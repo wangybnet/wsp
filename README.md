@@ -1,7 +1,7 @@
 WSP
 ===
 
-Data Structure
+Data Structures
 ---
 
 ### Task
@@ -41,6 +41,7 @@ Data Structure
 	level: UInt,
 	retry: UInt,
 	proxy: String,
+	fetcher: String,
 	raw_req: Pickle
 }
 ```
@@ -70,7 +71,7 @@ Data Structure
 }
 ```
 
-### Global
+### Config
 
 ```
 {
@@ -79,4 +80,40 @@ Data Structure
 	agent: String,
 	fetchers: List<String>
 }
+```
+
+Interfaces
+---
+
+### Fetcher
+
+```
+// RPC server and client
+start(task_id ObjectId) 
+stop(task_id ObjectId)
+add(task_id ObjectId)
+delete(task_id ObjectId)
+start_all()
+stop_all()
+binding_task()(task_ids List<ObjectId>)
+```
+
+#### Kafka
+
+```
+push(task_id ObjectId, req Request)
+poll(task_id ObjectId)(req Request)
+```
+
+#### Master
+
+```
+// Task
+create(task Task)(task_id ObjectId) 
+delete(task_id ObjectId)
+status(task_id ObjectId)
+status_all()
+
+// Master
+status(config Config)
 ```
