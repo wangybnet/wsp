@@ -29,14 +29,14 @@ class KafkaHelper(object):
     '''
     @staticmethod
     def test_write_topics():
-        return 3
+        return 'many topics'
 
     '''
     测试读取指定的一批topic的数据
     '''
     @staticmethod
     def test_read_specfic_topics():
-        return 3
+        return 'many topics'
 
     '''
     统计某个topic的消息数目
