@@ -6,58 +6,77 @@ Data Structure
 
 ### Task
 
-| Field | Type | Default |
-| --- | --- | --- |
-| id | ObjectId | - |
-| create_time | DateTime | - | 
-| finish_time | DateTime | - |
-| is_running | Bool | False |
-| desc | String | "" |
-| start_urls | List< String> | [ ] |
-| follow | _Follow | - |
-| check | List< _Check> | - |
-| max_retry | UInt | 0 |
-| custom_fetcher | String | "" |
+```
+{
+	id: ObjectId,
+	create_time: DateTime,
+	finish_time: DateTime,
+	is_running: Bool,
+	desc: String,
+	start_urls: List<String>,
+	follow: {
+		starts_with: List<String>,
+		ends_with: List<String>,
+		contains: List<String>,
+		regex_matches: List<String>
+	},
+	check: List<{
+		url: String,
+		succ: String,
+		deny: String
+	}>,
+	max_retry: UInt,
+	custom_fetcher: String
+}
+```
 
-### _Follow
+### Request
 
-| Field | Type | Default |
-| --- | --- | --- |
-| starts_with | List< String> | [ ] |
-| ends_with | List< String> | [ ] |
-| contains | List< String> | [ ] |
-| regex_matches | List< String> | [ ] |
+```
+{
+	id: ObjectId,
+	father_id: ObjectId,
+	task_id: ObjectId,
+	url: String,
+	level: UInt,
+	retry: UInt,
+	proxy: String,
+	raw_req: Pickle
+}
+```
 
-### _Check
+### Response
 
-| Field | Type | Default |
-| --- | --- | --- |
-| rule | List< _Url, List< _Succ, _Deny> > | [ ] |
+```
+{
+	id: ObjectId,
+	req_id: ObjectId,	
+	task_id: ObjectId,
+	url: String,
+	html: String,
+	http_code: UInt,
+	error: String,
+	raw_resp: Pickle
+}
+```
 
 ### Result_{task_id}
 
-| Field | Type | Default |
-| --- | --- | --- |
-| req_id | ObjectId | - |
-| req_father_id | ObjectId | - |
-| resp_id | ObjectId | - |
-| url | String | "" |
-| level | UInt | 0 |
-| html | String | "" |
-| retry | UInt | 0 |
-| proxy | String | "" |
-| http_code | UInt | - |
-| internal_error | String | "" |
-| raw_req | _Pickle | - |
-| raw_resp | _Pickle | - |
+```
+{
+	id: ObjectId,
+	req: Request,
+	resp: Response
+}
+```
 
 ### Global
 
-| Field | Type | Default |
-| --- | --- | --- |
-| kafka | _Addr | - |
-| mongo | _Addr | - |
-| agent | _Addr | - |
-| fetchers | List< _Addr> | [ ] |
-
-### _Url / _Succ / _Deny / _Pickle / _Addr => String
+```
+{
+	kafka: String,
+	mongo: String,
+	agent: String,
+	fetchers: List<String>
+}
+```
