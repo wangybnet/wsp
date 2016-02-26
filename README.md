@@ -91,11 +91,9 @@ Interfaces
 // RPC server and client
 start(task_id ObjectId) 
 stop(task_id ObjectId)
-add(task_id ObjectId)
-delete(task_id ObjectId)
-start_all()
+start_all() 
 stop_all()
-binding_task()(task_ids List<ObjectId>)
+list()
 ```
 
 #### Kafka
@@ -111,6 +109,8 @@ poll(task_id ObjectId)(req Request)
 // Task
 create(task Task)(task_id ObjectId) 
 delete(task_id ObjectId)
+start(task_id ObjectId) 
+stop(task_id ObjectId)
 status(task_id ObjectId)
 status_all()
 
