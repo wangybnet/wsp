@@ -15,7 +15,13 @@ Data Structures
 	id: ObjectId,
 	create_time: DateTime,
 	finish_time: DateTime,
-	is_running: Bool,
+	status: {
+		0: CREATED,
+		1: RUNNING,
+		2: STOPPED,
+		3: FINISHED,
+		4: REMOVED
+	},
 	desc: String,
 	start_urls: List<String>,
 	follow: {
