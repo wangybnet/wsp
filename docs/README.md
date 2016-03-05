@@ -1,3 +1,1 @@
-=========================================
-WSP (Web Scraping Platform) documentation
-=========================================
+# WSP (Web Scraping Platform) Documentation
