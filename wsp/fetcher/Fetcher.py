@@ -68,6 +68,17 @@ class Fetcher:
         response.id = ObjectId()
         response.req_id = req.id
         response.task_id = req.task_id
+        conn = pymongo.Connection('localhost',27017)
+        db = conn.wsp
+        reqTable = db.request
+        reqJason = {'id':req.id,'father_id':req.father_id,'task_id':req.task_id,'url':req.url,'level':req.level,'retry':req.retry,'proxy':req.proxy,'fetcher':req.fetcher}
+        reqTable.save(reqJason)
+        respTable = db.response
+        respJason = {'id':response.id,'req_id':response.req_id,'task_id':response.task_id,'url':response.url,'html':response.html,'http_code':response.http_code,'error':response.error}
+        respTable.save(respJason)
+        tid = '%d'%req.task_id
+        resTable = db['result_'+tid]
+        resTable.save({'id':ObjectId(),'req':reqJason,'resp':respJason})
         if response.error != None:
             req.retry += 1
             self.pushReq(req)
@@ -109,5 +120,6 @@ class Fetcher:
                     newReq.father_id = req.id
                     newReq.task_id = req.task_id
                     newReq.url = u
+                    newReq.level+=1
                     self.pushReq(req)
             self.producer.flush()
