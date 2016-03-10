@@ -11,12 +11,3 @@ class WspResponse:
         self.html = html
         self.http_code = http_code
         self.error = error
-
-    """
-    将Downloader的response转换成WSP的response
-    """
-    @classmethod
-    def from_downloader_response(cls, response):
-        # TODO
-        pass
-

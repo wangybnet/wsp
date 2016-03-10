@@ -5,6 +5,14 @@ import time
 from wsp.downloader import Downloader
 
 
+def _convert(func):
+    def wrapper(req, resp):
+        print('call %s():' % func.__name__, req["url"], resp["status"])
+        return func(req, resp)
+    return wrapper
+
+
+@_convert
 def save_result(request, response):
     if response is None:
         print("Error")

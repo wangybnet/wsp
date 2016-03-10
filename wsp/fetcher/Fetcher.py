@@ -64,6 +64,16 @@ class Fetcher:
             if (self.count == 200):
                 time.sleep(5)
 
+    # TODO: @GladysLau 请通过调用self._push_task(req)这个函数给downloader传递任务，参数req是WspRequest。By the way, 看到此消息后请删除这行。
+    @_convert_request
+    def _push_task(self, req):
+        while True:
+            if self.downloader.add_task(req, self.saveResult):
+                break
+            # TODO: 这里暂定写死休息1s，回头再修改
+            time.sleep(1)
+
+    @_convert_result
     def saveResult(self, req, response):
         response.id = ObjectId()
         response.req_id = req.id
@@ -123,3 +133,22 @@ class Fetcher:
                     newReq.level+=1
                     self.pushReq(req)
             self.producer.flush()
+
+
+# 将WSP的request转换成Downloader的request
+def _convert_request(func):
+    def wrapper(req):
+        # TODO @wangybnet 添加代码
+
+        return func(req)
+    return wrapper
+
+
+# 将Downloader的request和reponse转换成WSP的request和response
+def _convert_result(func):
+    def wrapper(req, resp):
+        # TODO @wangybnet 添加代码
+
+        return func(req, resp)
+    return wrapper
+
