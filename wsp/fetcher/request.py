@@ -26,7 +26,7 @@ class WspRequest:
     """
     将WSP的request转换成Downloader的request
     """
-    def to_downloader_reqeust(self):
+    def to_downloader_request(self):
         # TODO
         pass
 
