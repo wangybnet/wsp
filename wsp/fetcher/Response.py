@@ -1,9 +1,22 @@
-class WSPresponse:
-    def __init__(self):
-        self.id = 0
-        self.req_id = 0
-        self.task_id = 0
-        self.url = ''
-        self.html = ''
-        self.http_code = 0
-        self.error = ''
+# coding=utf-8
+
+
+class WspResponse:
+
+    def __init__(self, *, id=None, req_id=None, task_id=None, url=None, html=None, http_code=200, error=None):
+        self.id = id
+        self.req_id = req_id
+        self.task_id = task_id
+        self.url = url
+        self.html = html
+        self.http_code = http_code
+        self.error = error
+
+    """
+    将Downloader的response转换成WSP的response
+    """
+    @classmethod
+    def from_downloader_response(cls, response):
+        # TODO
+        pass
+
