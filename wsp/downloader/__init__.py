@@ -7,8 +7,10 @@ import threading
 
 class Downloader(object):
 
-    def __init__(self):
+    def __init__(self, *, clients=1):
         self._loop = None
+        self._clients = clients
+        self._clients_lock = threading.Lock()
 
     """
     添加下载任务，在未启动下载线程之前添加下载任务会自动启动下载线程
@@ -32,13 +34,18 @@ class Downloader(object):
 
     返回True表示已添加该下载任务，False表示当前已经满负荷，请过段时间再添加任务
     """
-    # TODO: 控制task数量
-    def add_task(self, request=None, callback=None):
-        if (request is None) or (callback is None):
-            return
+    def add_task(self, request, callback):
         if self._loop is None:
             self.start()
-        self._loop.call_soon_threadsafe(self._add_task, *(request, callback))
+        ok = False
+        self._clients_lock.acquire()
+        if self._clients > 0:
+            self._clients -= 1
+            ok = True
+        self._clients_lock.release()
+        if ok:
+            self._loop.call_soon_threadsafe(self._add_task, *(request, callback))
+        return ok
 
     """
     启动下载线程
@@ -57,18 +64,18 @@ class Downloader(object):
         self._loop.call_soon_threadsafe(self._stop_event_loop)
         self._loop = None
 
-    @classmethod
-    def _add_task(cls, request, callback):
+    def _add_task(self, request, callback):
         loop = asyncio.get_event_loop()
-        loop.create_task(cls._download(request, callback))
+        loop.create_task(self._download(request, callback))
 
-    @staticmethod
-    async def _download(request, callback):
-        with aiohttp.ClientSession(connector=None if (request.get("proxy", None) is None) else aiohttp.ProxyConnector(proxy=request["proxy"])) as session:
+    async def _download(self, request, callback):
+        with aiohttp.ClientSession(connector=None if (request.get("proxy", None) is None) else aiohttp.ProxyConnector(proxy=request["proxy"]),
+                                   cookies=request.get("cookies", None)) as session:
             try:
-                # TODO: 添加其他参数
                 async with session.request("GET" if (request.get("method", None) is None) else request["method"],
-                                           request["url"]) as resp:
+                                           request["url"],
+                                           headers=request.get("headers", None),
+                                           params=request.get("params", None)) as resp:
                     body = await resp.read()
             except Exception as e:
                 print(e)
@@ -76,6 +83,10 @@ class Downloader(object):
             else:
                 response = {"status": resp.status, "headers": resp.headers, "body": body, "cookies": resp.cookies}
                 callback(request, response)
+            finally:
+                self._clients_lock.acquire()
+                self._clients += 1
+                self._clients_lock.release()
 
     @staticmethod
     def _run_event_loop(loop):

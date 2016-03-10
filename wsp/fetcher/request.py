@@ -3,8 +3,8 @@
 
 class WspRequest:
 
-    def __init__(self, *, url=None, obj_id=None, father_id=None, task_id=None, level=1, retry=0, proxy=None, fetcher=None):
-        self.obj_id = obj_id
+    def __init__(self, *, id=None, father_id=None, task_id=None, url=None, level=1, retry=0, proxy=None, fetcher=None):
+        self.id = id
         self.father_id = father_id
         self.task_id = task_id
         self.url = url
