@@ -3,8 +3,13 @@
 import threading
 
 import aiohttp
+from aiohttp.client_reqrep import helpers
+try:
+    import cchardet as chardet
+except ImportError:
+    import chardet
 
-from wsp.downloader.asyncthread import AsyncThread
+from .asyncthread import AsyncThread
 
 
 class Downloader(object):
@@ -31,7 +36,7 @@ class Downloader(object):
         status: 整数，状态码
         headers: 字典，HTTP头
         body: 字节数组，HTTP body
-        html: 字符串，如果HTTP body是一个网页会有该字段
+        text: 字符串，如果HTTP body的MIME类型是“text/*”会有该字段
         cookies: Cookie
         error: 字符串，如果请求不成功会有该字段
 
@@ -80,5 +85,18 @@ class Downloader(object):
             except Exception as e:
                 response = {"error": "%s" % e}
             else:
-                response = {"status": resp.status, "headers": resp.headers, "body": body, "cookies": resp.cookies}
+                response = {"status": resp.status,
+                            "headers": resp.headers,
+                            "body": body,
+                            "cookies": resp.cookies}
+                ctype = resp.headers.get("Content-Type", "").lower()
+                mtype, _, _, params = helpers.parse_mimetype(ctype)
+                if mtype == "text":
+                    encoding = params.get("charset")
+                    if not encoding:
+                        encoding = chardet.detect(body)["encoding"]
+                    if not encoding:
+                        encoding = "utf-8"
+                    response["text"] = body.decode(encoding)
+
         return response
