@@ -98,5 +98,4 @@ class Downloader(object):
                     if not encoding:
                         encoding = "utf-8"
                     response["text"] = body.decode(encoding)
-
         return response
