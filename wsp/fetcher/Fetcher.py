@@ -28,7 +28,6 @@ class Fetcher:
             topic = '%d' % t.id
             topics.append(topic)
             if t.id not in self.taskDict.keys():
-                t.status = 1
                 for url in t.start_urls:
                     req = WspRequest()
                     req.id = ObjectId()
@@ -37,9 +36,6 @@ class Fetcher:
                     self.pushReq(req)
                 self.producer.flush()
         self.consumer.subscribe(topics)
-        for t in self.taskDict.values():
-            if t not in tasks:
-                t.status = 2
         self.taskDict = {}
         for t in tasks:
             self.taskDict[t.id] = t
@@ -99,7 +95,7 @@ class Fetcher:
             req.retry += 1
             self.pushReq(req)
         else:
-            url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*"(.*?)">', response.html)
+            url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
             hasNewUrl = False
             for u in url_list:
                 if u.startswith('//'):

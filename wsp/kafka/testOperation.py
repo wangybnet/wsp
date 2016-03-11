@@ -1,4 +1,4 @@
-from Operation import Operation
+from wsp.kafka.Operation import Operation
 import unittest
 class testOperation(unittest.TestCase):
     def testProduct(self):

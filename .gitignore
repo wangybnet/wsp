@@ -1,4 +1,3 @@
 *.pyc
-*Reqfile.txt
 # Ignoring the project files of PyCharm.
 .idea
