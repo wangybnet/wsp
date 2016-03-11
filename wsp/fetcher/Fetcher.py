@@ -2,6 +2,7 @@ import pickle
 import time
 import re
 import pymongo
+import xmlrpc.server
 from bson.objectid import ObjectId
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
@@ -12,11 +13,13 @@ from wsp.fetcher.request import WspRequest
 
 class Fetcher:
     def __init__(self):
+        self.rpcServer = xmlrpc.server.SimpleXMLRPCServer(('127.0.0.1', 8080))
+        self.rpcServer.register_function(self.changeTasks)
+        self.rpcServer.serve_forever()
         self.producer = KafkaProducer(bootstrap_servers='localhost:9092')
         self.consumer = KafkaConsumer(bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
-        self.downloader = Downloader()
+        self.downloader = Downloader(clients=200)
         self.taskDict = {}
-        self.count = 0
 
     def changeTasks(self, tasks):
         topics = []
@@ -42,29 +45,14 @@ class Fetcher:
 
     def pushReq(self, req):
         topic = '%d' % req.task_id
-        fileObj = open("G:\Reqfile.txt", 'w')
-        pickle.dump(req, fileObj, 0)
-        fileObj.close()
-        fileObj = open("G:\Reqfile.txt", 'r')
-        allText = fileObj.read()
-        fileObj.truncate()
-        fileObj.close()
-        bytes(allText, encoding="utf8")
-        self.producer.send(topic, allText)
+        tempreq = pickle.dumps(req)
+        self.producer.send(topic, tempreq)
 
-    def pullReq(self, ):
+    def pullReq(self):
         for record in self.consumer:
-            fileObj = open("G:\Reqfile.txt", 'w')
-            fileObj.write(record.value)
-            fileObj.close()
-            fileObj = open("G:\Reqfile.txt", 'r')
-            req = pickle.load(fileObj)
-            fileObj.close()
-            self.count += 1
-            if (self.count == 200):
-                time.sleep(5)
+            req = pickle.loads(record)
+            self._push_task(req)
 
-    # TODO: @GladysLau 请通过调用self._push_task(req)这个函数给downloader传递任务，参数req是WspRequest。By the way, 看到此消息后请删除这行。
     @_convert_request
     def _push_task(self, req):
         while True:
@@ -81,10 +69,27 @@ class Fetcher:
         conn = pymongo.Connection('localhost',27017)
         db = conn.wsp
         reqTable = db.request
-        reqJason = {'id':req.id,'father_id':req.father_id,'task_id':req.task_id,'url':req.url,'level':req.level,'retry':req.retry,'proxy':req.proxy,'fetcher':req.fetcher}
+        reqJason = {
+            'id':req.id,
+            'father_id':req.father_id,
+            'task_id':req.task_id,
+            'url':req.url,
+            'level':req.level,
+            'retry':req.retry,
+            'proxy':req.proxy,
+            'fetcher':req.fetcher
+        }
         reqTable.save(reqJason)
         respTable = db.response
-        respJason = {'id':response.id,'req_id':response.req_id,'task_id':response.task_id,'url':response.url,'html':response.html,'http_code':response.http_code,'error':response.error}
+        respJason = {
+            'id':response.id,
+            'req_id':response.req_id,
+            'task_id':response.task_id,
+            'url':response.url,
+            'html':response.html,
+            'http_code':response.http_code,
+            'error':response.error
+        }
         respTable.save(respJason)
         tid = '%d'%req.task_id
         resTable = db['result_'+tid]
@@ -94,6 +99,7 @@ class Fetcher:
             self.pushReq(req)
         else:
             url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*"(.*?)">', response.html)
+            hasNewUrl = False
             for u in url_list:
                 if u.startswith('//'):
                     if req.url.startswith("http:"):
@@ -125,14 +131,17 @@ class Fetcher:
                             if re.search(rule, u):
                                 tag = True
                                 break
-                    newReq = WspRequest()
-                    newReq.id = ObjectId()
-                    newReq.father_id = req.id
-                    newReq.task_id = req.task_id
-                    newReq.url = u
-                    newReq.level+=1
-                    self.pushReq(req)
-            self.producer.flush()
+                    if tag:
+                        hasNewUrl = True
+                        newReq = WspRequest()
+                        newReq.id = ObjectId()
+                        newReq.father_id = req.id
+                        newReq.task_id = req.task_id
+                        newReq.url = u
+                        newReq.level+=1
+                        self.pushReq(req)
+            if hasNewUrl:
+                self.producer.flush()
 
 
 # 将WSP的request转换成Downloader的request
@@ -151,4 +160,5 @@ def _convert_result(func):
 
         return func(req, resp)
     return wrapper
+
 
