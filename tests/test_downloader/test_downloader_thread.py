@@ -7,15 +7,15 @@ from wsp.downloader import Downloader
 
 def _convert(func):
     def wrapper(req, resp):
-        print('call %s():' % func.__name__, req["url"], resp["status"])
+        print('call %s():' % func.__name__)
         return func(req, resp)
     return wrapper
 
 
 @_convert
 def save_result(request, response):
-    if response is None:
-        print("Error")
+    if "error" in response:
+        print("Error:", response["error"])
     else:
         print("URL:", request["url"])
         print("Status:", response["status"])
@@ -27,7 +27,7 @@ def save_result(request, response):
 
 if __name__ == "__main__":
     d = Downloader(clients=2)
-    for url in ["https://github.com", "http://www.haosou.com", "http://www.baidu.com.com", "http://www.iie.ac.cn"]:
+    for url in ["https://github.com", "http://www.haosou.com", "http://error-domain-0x00.com", "http://www.baidu.com.com", "http://www.iie.ac.cn"]:
         req = {"proxy": None, "url": url}
         ok = False
         while not ok:
