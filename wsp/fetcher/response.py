@@ -3,11 +3,13 @@
 
 class WspResponse:
 
-    def __init__(self, *, id=None, req_id=None, task_id=None, url=None, html=None, http_code=200, error=None):
-        self.id = id
-        self.req_id = req_id
-        self.task_id = task_id
-        self.url = url
-        self.html = html
-        self.http_code = http_code
-        self.error = error
+    def __init__(self, **kw):
+        self.id = kw.get("id", None)
+        self.req_id = kw.get("req_id", None)
+        self.task_id = kw.get("task_id", None)
+        self.url = kw.get("url", None)
+        self.html = kw.get("html", None)
+        self.http_code = kw.get("http_code", None)
+        self.error = kw.get("error", None)
+        self.headers = kw.get("headers", None)
+        self.body = kw.get("body", None)

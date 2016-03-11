@@ -9,6 +9,7 @@ from kafka import KafkaConsumer
 
 from wsp.downloader import Downloader
 from wsp.fetcher.request import WspRequest
+from wsp.fetcher.response import WspResponse
 
 
 class Fetcher:
@@ -147,18 +148,22 @@ class Fetcher:
 # 将WSP的request转换成Downloader的request
 def _convert_request(func):
     def wrapper(req):
-        # TODO @wangybnet 添加代码
-
-        return func(req)
+        request = {"_obj": req, "url": req.url, "proxy": req.proxy, "headers": req.headers}
+        return func(request)
     return wrapper
 
 
 # 将Downloader的request和reponse转换成WSP的request和response
 def _convert_result(func):
     def wrapper(req, resp):
-        # TODO @wangybnet 添加代码
-
-        return func(req, resp)
+        request = req["_obj"]
+        response = WspResponse(req_id=request.id,
+                               task_id=request.task_id,
+                               url=request.url,
+                               html=resp.get("html", None),
+                               http_code=resp.get("status", None),
+                               error=resp.get("error", None),
+                               headers=resp.get("headers", None),
+                               body=resp.get("body", None))
+        return func(request, response)
     return wrapper
-
-

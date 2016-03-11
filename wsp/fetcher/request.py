@@ -3,12 +3,15 @@
 
 class WspRequest:
 
-    def __init__(self, *, id=None, father_id=None, task_id=None, url=None, level=1, retry=0, proxy=None, fetcher=None):
-        self.id = id
-        self.father_id = father_id
-        self.task_id = task_id
-        self.url = url
-        self.level = level
-        self.retry = retry
-        self.proxy = proxy
-        self.fetcher = fetcher
+    def __init__(self, **kw):
+        self.id = kw.get("id", None)
+        self.father_id = kw.get("father_id", None)
+        self.task_id = kw.get("task_id", None)
+        self.url = kw.get("url", None)
+        self.level = kw.get("level", 1)
+        self.retry = kw.get("retry", 0)
+        self.proxy = kw.get("proxy", None)
+        self.fetcher = kw.get("fetcher", None)
+        self.headers = kw.get("headers", None)
+
+        # TODO: 获取本机ip地址给fetcher
