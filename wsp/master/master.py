@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.5
 # encoding: utf-8
 
 
@@ -24,7 +23,7 @@ class Master(object):
         flag = collection.remove({'_id' : task_id})
         return flag
 
- 
+
 
 
 
