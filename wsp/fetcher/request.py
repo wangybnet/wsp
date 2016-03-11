@@ -1,5 +1,7 @@
 # coding=utf-8
 
+import socket
+
 
 class WspRequest:
 
@@ -14,4 +16,5 @@ class WspRequest:
         self.fetcher = kw.get("fetcher", None)
         self.headers = kw.get("headers", None)
 
-        # TODO: 获取本机ip地址给fetcher
+        if self.fetcher is None:
+            self.fetcher = socket.gethostbyname(socket.getfqdn(socket.gethostname()))

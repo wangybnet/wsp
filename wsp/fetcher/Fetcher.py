@@ -160,7 +160,7 @@ def _convert_result(func):
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,
                                url=request.url,
-                               html=resp.get("html", None),
+                               html=resp.get("text", None),
                                http_code=resp.get("status", None),
                                error=resp.get("error", None),
                                headers=resp.get("headers", None),

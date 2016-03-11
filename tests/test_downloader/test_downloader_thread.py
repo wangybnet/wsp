@@ -23,6 +23,8 @@ def save_result(request, response):
         # print("Cookies:", response["cookies"])
         # print("Body:")
         # print(response["body"])
+        # print("Text:")
+        # print(response.get("text", ""))
 
 
 if __name__ == "__main__":
