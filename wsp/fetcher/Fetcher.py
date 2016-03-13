@@ -6,6 +6,7 @@ import xmlrpc.server
 from bson.objectid import ObjectId
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
+from aiohttp.client_reqrep import helpers
 
 from wsp.downloader import Downloader
 from wsp.fetcher.request import WspRequest
@@ -152,6 +153,16 @@ def _convert_request(func):
 # 将Downloader的request和reponse转换成WSP的request和response
 def _convert_result(func):
     def wrapper(req, resp):
+        if resp.get("body", None) is not None:
+            ctype = resp.headers.get("Content-Type", "").lower()
+            mtype, _, _, params = helpers.parse_mimetype(ctype)
+            if mtype == "text":
+                encoding = params.get("charset")
+                # if not encoding:
+                #     encoding = chardet.detect(body)["encoding"]
+                if not encoding:
+                    encoding = "utf-8"
+                resp["text"] = resp["body"].decode(encoding)
         request = req["_obj"]
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,

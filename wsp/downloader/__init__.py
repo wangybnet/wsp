@@ -3,11 +3,6 @@
 import threading
 
 import aiohttp
-from aiohttp.client_reqrep import helpers
-try:
-    import cchardet as chardet
-except ImportError:
-    import chardet
 
 from .asyncthread import AsyncThread
 
@@ -24,7 +19,8 @@ class Downloader(object):
 
     request: 字典，可以包含以下字段
         method: 字符串，GET, POST, etc.
-        headers: 字典，HTTP headers
+        headers: 字典，HTTP头
+        body: 字节数组，HTTP body
         url: 字符串，URL
         params: 字典，参数
         cookies: Cookie
@@ -36,7 +32,6 @@ class Downloader(object):
         status: 整数，状态码
         headers: 字典，HTTP头
         body: 字节数组，HTTP body
-        text: 字符串，如果HTTP body的MIME类型是“text/*”会有该字段
         cookies: Cookie
         error: 字符串，如果请求不成功会有该字段
 
@@ -80,6 +75,7 @@ class Downloader(object):
                 async with session.request("GET" if (request.get("method", None) is None) else request["method"],
                                            request["url"],
                                            headers=request.get("headers", None),
+                                           data=request.get("body", None),
                                            params=request.get("params", None)) as resp:
                     body = await resp.read()
             except Exception as e:
@@ -89,13 +85,4 @@ class Downloader(object):
                             "headers": resp.headers,
                             "body": body,
                             "cookies": resp.cookies}
-                ctype = resp.headers.get("Content-Type", "").lower()
-                mtype, _, _, params = helpers.parse_mimetype(ctype)
-                if mtype == "text":
-                    encoding = params.get("charset")
-                    if not encoding:
-                        encoding = chardet.detect(body)["encoding"]
-                    if not encoding:
-                        encoding = "utf-8"
-                    response["text"] = body.decode(encoding)
         return response

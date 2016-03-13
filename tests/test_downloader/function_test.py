@@ -7,7 +7,6 @@ from wsp.downloader import Downloader
 
 def _convert(func):
     def wrapper(req, resp):
-        print('call %s():' % func.__name__)
         return func(req, resp)
     return wrapper
 
