@@ -5,9 +5,10 @@ import threading
 import aiohttp
 
 from .asyncthread import AsyncThread
+from .http import HttpRequest, HttpResponse, HttpError
 
 
-class Downloader(object):
+class Downloader:
 
     def __init__(self, *, clients=1):
         self._downloader = AsyncThread()
@@ -15,27 +16,9 @@ class Downloader(object):
         self._clients_lock = threading.Lock()
 
     """
-    添加下载任务，在未启动下载线程之前添加下载任务会自动启动下载线程
-
-    request: 字典，可以包含以下字段
-        method: 字符串，GET, POST, etc.
-        headers: 字典，HTTP头
-        body: 字节数组，HTTP body
-        url: 字符串，URL
-        params: 字典，参数
-        cookies: Cookie
-        proxy: 字符串，代理地址，仅支持HTTP代理，proxy需要以"http://"开头
-
-    callback: 下载任务结束后的回调函数，会传入request和response两个函数
-
-    response: 字典，可以包含以下字段
-        status: 整数，状态码
-        headers: 字典，HTTP头
-        body: 字节数组，HTTP body
-        cookies: Cookie
-        error: 字符串，如果请求不成功会有该字段
-
-    返回True表示已添加该下载任务，False表示当前已经满负荷，请过段时间再添加任务
+    添加下载任务
+    在未启动下载线程之前添加下载任务会自动启动下载线程。
+    返回True表示已添加该下载任务，False表示当前已经满负荷，请过段时间再添加任务。
     """
     def add_task(self, request, callback):
         ok = False
@@ -49,40 +32,34 @@ class Downloader(object):
         return ok
 
     """
-    启动下载线程
-    """
-    def start(self):
-        self._downloader.start()
-
-    """
     停止下载线程
     """
     def stop(self):
         self._downloader.stop()
 
     async def _run(self, request, callback):
-        response = await self._download(request)
-        callback(request, response)
-        self._clients_lock.acquire()
-        self._clients += 1
-        self._clients_lock.release()
+        try:
+            response = await self._download(request)
+            callback(request, response)
+        except Exception as e:
+            callback(request, HttpError(e))
+        finally:
+            self._clients_lock.acquire()
+            self._clients += 1
+            self._clients_lock.release()
 
     @staticmethod
     async def _download(request):
-        with aiohttp.ClientSession(connector=None if (request.get("proxy", None) is None) else aiohttp.ProxyConnector(proxy=request["proxy"]),
-                                   cookies=request.get("cookies", None)) as session:
-            try:
-                async with session.request("GET" if (request.get("method", None) is None) else request["method"],
-                                           request["url"],
-                                           headers=request.get("headers", None),
-                                           data=request.get("body", None),
-                                           params=request.get("params", None)) as resp:
-                    body = await resp.read()
-            except Exception as e:
-                response = {"error": "%s" % e}
-            else:
-                response = {"status": resp.status,
-                            "headers": resp.headers,
-                            "body": body,
-                            "cookies": resp.cookies}
+        with aiohttp.ClientSession(connector=None if (request.proxy is None) else aiohttp.ProxyConnector(proxy=request.proxy),
+                                   cookies=request.cookies) as session:
+            async with session.request(request.method,
+                                       request.url,
+                                       params=request.params,
+                                       headers=request.headers,
+                                       data=request.body) as resp:
+                body = await resp.read()
+                response = HttpResponse(resp.status,
+                                        headers=resp.headers,
+                                        body=body,
+                                        cookies=resp.cookies)
         return response

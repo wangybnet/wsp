@@ -3,25 +3,27 @@
 import time
 
 from wsp.downloader import Downloader
-from tests.test_downloader.domains import DOMAINS
+from wsp.downloader.http import HttpRequest, HttpError
+from tests.test_downloader.domains import GLOBAL_DOMAINS, CHINESE_DOMAINS
 
 
 def save_result(request, response):
-    print("Cost Time: %f" % (time.time() - request["_time"]))
-    if "error" in response:
-        print("Error:", response["error"])
+    print("Cost Time: %f" % (time.time() - request._time))
+    if isinstance(response, HttpError):
+        print("Error:", response.error)
     else:
-        print("URL:", request["url"], "Status:", response["status"])
+        print("URL:", request.url, "Status:", response.status)
 
 
-if __name__ == "__main__":
+def test_global_sites():
     clients = 200
     d = Downloader(clients=clients)
     begin = time.time()
     repeat = 5
     for i in range(repeat):
-        for domain in DOMAINS:
-            req = {"proxy": None, "url": "http://" + domain, "_time": time.time()}
+        for domain in GLOBAL_DOMAINS:
+            req = HttpRequest("http://" + domain)
+            req._time = time.time()
             ok = False
             while not ok:
                 ok = d.add_task(req, save_result)
@@ -29,8 +31,37 @@ if __name__ == "__main__":
                     break
                 else:
                     print("Downloader is busy, so it cannot handle %s" % domain)
-                time.sleep(0.5)
+                time.sleep(1)
     duration = time.time() - begin
     print("Duration: %f" % duration)
-    print("QPS: %f" % ((len(DOMAINS) * repeat - clients) / duration))
+    print("QPS: %f" % ((len(GLOBAL_DOMAINS) * repeat - clients) / duration))
     d.stop()
+
+
+def test_chinese_sites():
+    clients = 200
+    d = Downloader(clients=clients)
+    begin = time.time()
+    repeat = 50
+
+    for i in range(repeat):
+        for domain in CHINESE_DOMAINS:
+            req = HttpRequest("http://" + domain)
+            req._time=time.time()
+            ok = False
+            while not ok:
+                ok = d.add_task(req, save_result)
+                if ok:
+                    break
+                else:
+                    print("Downloader is busy, so it cannot handle %s" % domain)
+                time.sleep(1)
+    duration = time.time() - begin
+    print("Duration: %f" % duration)
+    print("QPS: %f" % ((len(CHINESE_DOMAINS) * repeat - clients) / duration))
+    d.stop()
+
+
+if __name__ == "__main__":
+    test_global_sites()
+    # test_chinese_sites()

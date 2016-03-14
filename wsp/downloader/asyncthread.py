@@ -4,7 +4,7 @@ import asyncio
 import threading
 
 
-class AsyncThread(object):
+class AsyncThread:
 
     def __init__(self):
         self._loop = None

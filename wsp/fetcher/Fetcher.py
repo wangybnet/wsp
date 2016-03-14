@@ -9,6 +9,7 @@ from kafka import KafkaConsumer
 from aiohttp.client_reqrep import helpers
 
 from wsp.downloader import Downloader
+from wsp.downloader.http import HttpRequest, HttpError
 from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
 
@@ -145,32 +146,37 @@ class Fetcher:
 # 将WSP的request转换成Downloader的request
 def _convert_request(func):
     def wrapper(req):
-        request = {"_obj": req, "url": req.url, "proxy": req.proxy, "headers": req.headers}
+        request = HttpRequest(req.url, proxy=req.proxy, headers=req.headers)
+        request._wspreq = req
         return func(request)
+
     return wrapper
 
 
 # 将Downloader的request和reponse转换成WSP的request和response
 def _convert_result(func):
     def wrapper(req, resp):
-        if resp.get("body", None) is not None:
-            ctype = resp.headers.get("Content-Type", "").lower()
-            mtype, _, _, params = helpers.parse_mimetype(ctype)
-            if mtype == "text":
-                encoding = params.get("charset")
-                # if not encoding:
-                #     encoding = chardet.detect(body)["encoding"]
-                if not encoding:
-                    encoding = "utf-8"
-                resp["text"] = resp["body"].decode(encoding)
-        request = req["_obj"]
+        request = req._wspreq
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,
-                               url=request.url,
-                               html=resp.get("text", None),
-                               http_code=resp.get("status", None),
-                               error=resp.get("error", None),
-                               headers=resp.get("headers", None),
-                               body=resp.get("body", None))
+                               url=request.url)
+        if isinstance(resp, HttpError):
+            response.error = "%s" % resp.error
+        else:
+            if resp.body is not None:
+                ctype = resp.headers.get("Content-Type", "").lower()
+                mtype, _, _, params = helpers.parse_mimetype(ctype)
+                if mtype == "text":
+                    encoding = params.get("charset")
+                    # if not encoding:
+                    #     encoding = chardet.detect(resp.body)["encoding"]
+                    if not encoding:
+                        encoding = "utf-8"
+                    response.html = resp.body.decode(encoding)
+            response.url = request.url
+            response.http_code = resp.status
+            response.headers = resp.headers
+            response.body = resp.body
         return func(request, response)
+
     return wrapper
