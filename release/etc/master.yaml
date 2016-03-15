@@ -1,3 +1,22 @@
 #-*- coding:utf-8 -*-
 
 # 配置Master
+
+kafka:
+
+  - 192.168.0.1:8080
+  - 192.168.0.2:8090
+
+mongo:
+
+  - 192.168.0.1:8080
+  - 192.168.0.2:8090
+
+agent:
+
+  - agent1
+  - agent2
+  - agent3
+
+fetchers: [fetecher1, fetcher2, fetcher3]
+

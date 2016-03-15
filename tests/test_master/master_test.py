@@ -2,7 +2,8 @@
 
 import unittest
 from pymongo import MongoClient
-from wsp.master.master import Master
+#from wsp.master.master import Master
+import xmlrpc.client
 
 global inserted_id
 global flag
@@ -25,7 +26,6 @@ class TestMaster(unittest.TestCase):
         global inserted_id
         master.start_one(inserted_id)
 
-
     @classmethod
     def tearDownClass(self):
         master = Master()
@@ -34,6 +34,11 @@ class TestMaster(unittest.TestCase):
         print(inserted_id)
         flag = master.delete_one(inserted_id)
         print("测试结束")
+
+    def test_get_argu(self):
+        s = xmlrpc.client.ServerProxy('http://127.0.0.1:8090')
+        print(s.get_argu())
+
 
 if __name__ == '__main__':
     unittest.main()
