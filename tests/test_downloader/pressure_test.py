@@ -43,7 +43,6 @@ def test_chinese_sites():
     d = Downloader(clients=clients)
     begin = time.time()
     repeat = 50
-
     for i in range(repeat):
         for domain in CHINESE_DOMAINS:
             req = HttpRequest("http://" + domain)
@@ -63,5 +62,5 @@ def test_chinese_sites():
 
 
 if __name__ == "__main__":
-    test_global_sites()
-    # test_chinese_sites()
+    # test_global_sites()
+    test_chinese_sites()

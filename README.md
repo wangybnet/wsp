@@ -5,6 +5,14 @@ Google Style Guide
 ---
 <http://zh-google-styleguide.readthedocs.org/en/latest/google-python-styleguide/python_language_rules/>
 
+Dependencies
+---
+
+ - aiohttp
+ - pymongo
+ - kafka-python
+ - [pyyaml](http://pyyaml.org/download/pyyaml/PyYAML-3.11.zip)
+
 Data Structures
 ---
 
@@ -52,7 +60,7 @@ Data Structures
 	retry: UInt,
 	proxy: String,
 	fetcher: String,
-	raw_req: Pickle
+	headers: Dict
 }
 ```
 
@@ -67,7 +75,8 @@ Data Structures
 	html: String,
 	http_code: UInt,
 	error: String,
-	raw_resp: Pickle
+	headers: Dict,
+	body: Bytes
 }
 ```
 
