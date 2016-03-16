@@ -55,14 +55,14 @@ def _convert_result(func):
 
 
 class Fetcher:
-    def __init__(self, server_addr, downloader_clients, kafka_addr,mongo_host,mongo_port):
+    def __init__(self, master_addr, fetcher_addr, downloader_clients):
+        fetcher_host, fetcher_port = fetcher_addr.split(":")
+        kafka_addr, mongo_addr = self._pull_conf_from_master(master_addr)
+        mongo_host, mongo_port = mongo_addr.split(":")
         self.isRunning = True
-        self.rpcServer = SimpleXMLRPCServer(server_addr, allow_none=True)
-        self.rpcServer.register_function(self.changeTasks)
-        self.rpcServer.register_function(self.pullReq)
-        # self.rpcServer.serve_forever()
+        self.rpcServer = self._register_rpc_server(fetcher_host, fetcher_port)
         # 开启RPC服务
-        self.start_rpc_server()
+        self._start_rpc_server()
         client = MongoClient(mongo_host,mongo_port)
         self.db = client.wsp
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr,])
@@ -70,7 +70,18 @@ class Fetcher:
         self.downloader = Downloader(clients=downloader_clients)
         self.taskDict = {}
 
-    def start_rpc_server(self):
+    def _pull_conf_from_master(self, master_addr):
+        if not master_addr.startswith("http://"):
+            master_addr = "http://" + master_addr
+        # TODO: 从master拉取配置
+
+    def _register_rpc_server(self, host, port):
+        server = SimpleXMLRPCServer((host, port), allow_none=True)
+        self.rpcServer.register_function(self.changeTasks)
+        self.rpcServer.register_function(self.pullReq)
+        return server
+
+    def _start_rpc_server(self):
         t = Thread(target=self.rpcServer.serve_forever)
         t.start()
 
