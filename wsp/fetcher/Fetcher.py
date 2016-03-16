@@ -56,6 +56,7 @@ def _convert_result(func):
 
 class Fetcher:
     def __init__(self, server_addr, downloader_clients, kafka_addr,mongo_host,mongo_port):
+        self.isRunning = True
         self.rpcServer = SimpleXMLRPCServer(server_addr, allow_none=True)
         self.rpcServer.register_function(self.changeTasks)
         self.rpcServer.register_function(self.pullReq)
@@ -89,9 +90,13 @@ class Fetcher:
         self.producer.send(topic, tempreq)
 
     def pullReq(self):
-        for record in self.consumer:
-            req = pickle.loads(record)
-            self._push_task(req)
+        while self.isRunning:
+            if not self.taskDict:
+                record = next(self.consumer)
+                req = pickle.loads(record)
+                self._push_task(req)
+            else:
+                time.sleep(5)
 
     @_convert_request
     def _push_task(self, req):
@@ -118,7 +123,7 @@ class Fetcher:
             'fetcher':req.fetcher
         }
         reqTable.save(reqJason)
-        respTable = db.response
+        respTable = self.db.response
         respJason = {
             'id':response.id,
             'req_id':response.req_id,
@@ -130,11 +135,12 @@ class Fetcher:
         }
         respTable.save(respJason)
         tid = '%d'%req.task_id
-        resTable = db['result_'+tid]
+        resTable = self.db['result_'+tid]
         resTable.save({'id':ObjectId(),'req':reqJason,'resp':respJason})
-        if response.error != None:
+        if response.error is not None:
             req.retry += 1
-            self.pushReq(req)
+            if req.retry < self.taskDict[req.task_id].max_retry:
+                self.pushReq(req)
         else:
             url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
             hasNewUrl = False
