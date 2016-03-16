@@ -22,11 +22,10 @@ class Downloader:
     """
     def add_task(self, request, callback):
         ok = False
-        self._clients_lock.acquire()
-        if self._clients > 0:
-            self._clients -= 1
-            ok = True
-        self._clients_lock.release()
+        with self._clients_lock:
+            if self._clients > 0:
+                self._clients -= 1
+                ok = True
         if ok:
             self._downloader.add_task(self._run(request, callback))
         return ok
@@ -44,9 +43,8 @@ class Downloader:
         except Exception as e:
             callback(request, HttpError(e))
         finally:
-            self._clients_lock.acquire()
-            self._clients += 1
-            self._clients_lock.release()
+            with self._clients_lock:
+                self._clients += 1
 
     @staticmethod
     async def _download(request):

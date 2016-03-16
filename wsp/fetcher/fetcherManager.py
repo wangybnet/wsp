@@ -1,4 +1,7 @@
-import xmlrpc.client
+# coding=utf-8
+
+from xmlrpc.client import ServerProxy
+
 
 class fetcherManager:
 
@@ -10,7 +13,7 @@ class fetcherManager:
         for t in tasks:
             self.cur_tasks.append(t)
         for f in self.fetcherList:
-            rpcClient = xmlrpc.client.ServerProxy(f)
+            rpcClient = ServerProxy(f)
             rpcClient.changeTasks(self.cur_tasks)
         # TODO:默认返回True 之后可能根据rpc连接情况修改
         return True
@@ -19,7 +22,7 @@ class fetcherManager:
         for t in tasks:
             self.cur_tasks.remove(t)
         for f in self.fetcherList:
-            rpcClient = xmlrpc.client.ServerProxy(f)
+            rpcClient = ServerProxy(f)
             rpcClient.changeTasks(self.cur_tasks)
         # TODO:默认返回True 之后可能根据rpc连接情况修改
         return True

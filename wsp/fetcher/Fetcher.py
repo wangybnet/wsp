@@ -2,7 +2,8 @@ import pickle
 import time
 import re
 import pymongo
-import xmlrpc.server
+from threading import Thread
+from xmlrpc.server import SimpleXMLRPCServer
 from bson.objectid import ObjectId
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
@@ -14,15 +15,60 @@ from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
 
 
+# 将WSP的request转换成Downloader的request
+def _convert_request(func):
+    def wrapper(req):
+        request = HttpRequest(req.url, proxy=req.proxy, headers=req.headers)
+        request._wspreq = req
+        return func(request)
+
+    return wrapper
+
+
+# 将Downloader的request和reponse转换成WSP的request和response
+def _convert_result(func):
+    def wrapper(req, resp):
+        request = req._wspreq
+        response = WspResponse(req_id=request.id,
+                               task_id=request.task_id,
+                               url=request.url)
+        if isinstance(resp, HttpError):
+            response.error = "%s" % resp.error
+        else:
+            if resp.body is not None:
+                ctype = resp.headers.get("Content-Type", "").lower()
+                mtype, _, _, params = helpers.parse_mimetype(ctype)
+                if mtype == "text":
+                    encoding = params.get("charset")
+                    # if not encoding:
+                    #     encoding = chardet.detect(resp.body)["encoding"]
+                    if not encoding:
+                        encoding = "utf-8"
+                    response.html = resp.body.decode(encoding)
+            response.url = request.url
+            response.http_code = resp.status
+            response.headers = resp.headers
+            response.body = resp.body
+        return func(request, response)
+
+    return wrapper
+
+
 class Fetcher:
-    def __init__(self):
-        self.rpcServer = xmlrpc.server.SimpleXMLRPCServer(('127.0.0.1', 8080))
+    def __init__(self, server_addr, downloader_clients, kafka_addr):
+        self.rpcServer = SimpleXMLRPCServer(server_addr, allow_none=True)
         self.rpcServer.register_function(self.changeTasks)
-        self.rpcServer.serve_forever()
-        self.producer = KafkaProducer(bootstrap_servers='localhost:9092')
-        self.consumer = KafkaConsumer(bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
-        self.downloader = Downloader(clients=200)
+        # self.rpcServer.serve_forever()
+        # 开启RPC服务
+        self.start_rpc_server()
+        self.producer = KafkaProducer(bootstrap_servers=[kafka_addr,])
+        self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr,], auto_offset_reset='earliest')
+        self.downloader = Downloader(clients=downloader_clients)
         self.taskDict = {}
+
+    def start_rpc_server(self):
+        t = Thread(target=self.rpcServer.serve_forever)
+        t.start()
 
     def changeTasks(self, tasks):
         topics = []
@@ -141,42 +187,3 @@ class Fetcher:
                         self.pushReq(req)
             if hasNewUrl:
                 self.producer.flush()
-
-
-# 将WSP的request转换成Downloader的request
-def _convert_request(func):
-    def wrapper(req):
-        request = HttpRequest(req.url, proxy=req.proxy, headers=req.headers)
-        request._wspreq = req
-        return func(request)
-
-    return wrapper
-
-
-# 将Downloader的request和reponse转换成WSP的request和response
-def _convert_result(func):
-    def wrapper(req, resp):
-        request = req._wspreq
-        response = WspResponse(req_id=request.id,
-                               task_id=request.task_id,
-                               url=request.url)
-        if isinstance(resp, HttpError):
-            response.error = "%s" % resp.error
-        else:
-            if resp.body is not None:
-                ctype = resp.headers.get("Content-Type", "").lower()
-                mtype, _, _, params = helpers.parse_mimetype(ctype)
-                if mtype == "text":
-                    encoding = params.get("charset")
-                    # if not encoding:
-                    #     encoding = chardet.detect(resp.body)["encoding"]
-                    if not encoding:
-                        encoding = "utf-8"
-                    response.html = resp.body.decode(encoding)
-            response.url = request.url
-            response.http_code = resp.status
-            response.headers = resp.headers
-            response.body = resp.body
-        return func(request, response)
-
-    return wrapper
