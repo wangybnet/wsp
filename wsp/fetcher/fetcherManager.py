@@ -4,23 +4,23 @@ from kafka import KafkaProducer
 from xmlrpc.client import ServerProxy
 from wsp.fetcher.request import WspRequest
 
-import pymongo
+from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 
 class fetcherManager:
 
-    def __init__(self,flist,kafka_addr):
+    def __init__(self,flist,kafka_addr,mongo_host,mongo_port):
         self.running_tasks = []
         self.fetcherList = flist
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr,])
-        conn = pymongo.Connection('localhost',27017)
-        db = conn.wsp
+        client = MongoClient(mongo_host,mongo_port)
+        db = client.wsp
         self.taskTable = db.tasks
 
     def _start(self):
         for f in self.fetcherList:
-            rpcClient = ServerProxy(f)
+            rpcClient = ServerProxy(f,allow_none=True)
             rpcClient.changeTasks(self.running_tasks)
         # TODO:默认返回True 之后可能根据rpc连接情况修改
         return True

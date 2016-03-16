@@ -1,7 +1,7 @@
 import pickle
 import time
 import re
-import pymongo
+from pymongo import MongoClient
 from threading import Thread
 from xmlrpc.server import SimpleXMLRPCServer
 from bson.objectid import ObjectId
@@ -55,13 +55,15 @@ def _convert_result(func):
 
 
 class Fetcher:
-    def __init__(self, server_addr, downloader_clients, kafka_addr):
+    def __init__(self, server_addr, downloader_clients, kafka_addr,mongo_host,mongo_port):
         self.rpcServer = SimpleXMLRPCServer(server_addr, allow_none=True)
         self.rpcServer.register_function(self.changeTasks)
         self.rpcServer.register_function(self.pullReq)
         # self.rpcServer.serve_forever()
         # 开启RPC服务
         self.start_rpc_server()
+        client = MongoClient(mongo_host,mongo_port)
+        self.db = client.wsp
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr,])
         self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr,], auto_offset_reset='earliest')
         self.downloader = Downloader(clients=downloader_clients)
@@ -104,9 +106,7 @@ class Fetcher:
         response.id = ObjectId()
         response.req_id = req.id
         response.task_id = req.task_id
-        conn = pymongo.Connection('localhost',27017)
-        db = conn.wsp
-        reqTable = db.request
+        reqTable = self.db.request
         reqJason = {
             'id':req.id,
             'father_id':req.father_id,
