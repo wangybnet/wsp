@@ -58,6 +58,7 @@ class Fetcher:
     def __init__(self, server_addr, downloader_clients, kafka_addr):
         self.rpcServer = SimpleXMLRPCServer(server_addr, allow_none=True)
         self.rpcServer.register_function(self.changeTasks)
+        self.rpcServer.register_function(self.pullReq)
         # self.rpcServer.serve_forever()
         # 开启RPC服务
         self.start_rpc_server()
@@ -75,14 +76,6 @@ class Fetcher:
         for t in tasks:
             topic = '%d' % t.id
             topics.append(topic)
-            if t.id not in self.taskDict.keys():
-                for url in t.start_urls:
-                    req = WspRequest()
-                    req.id = ObjectId()
-                    req.father_id = req.id
-                    req.task_id = t.id
-                    self.pushReq(req)
-                self.producer.flush()
         self.consumer.subscribe(topics)
         self.taskDict = {}
         for t in tasks:
