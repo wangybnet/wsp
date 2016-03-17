@@ -1,16 +1,13 @@
 # encoding: utf-8
 
+from xmlrpc.server import SimpleXMLRPCServer
 from pymongo import MongoClient
 from wsp.fetcher.fetcherManager import fetcherManager
-from xmlrpc.server import SimpleXMLRPCServer
-from wsp.master.deal_yaml import DealYaml
+
 
 
 class Master(object):
 
-    def __init__(self):
-        self.fetcher_manager = fetcherManager()
-        self.deal_yaml = DealYaml()
 
     '''
     Master类的功能:
@@ -21,9 +18,15 @@ class Master(object):
         [5].返回配置文件信息供fetcher使用
     '''
 
-    def __init__(self):
-        #self.fetcher_manager = fetcherManager()
-        self.deal_yaml = DealYaml()
+    def __init__(self, config):
+        self.config = config
+
+        # self.fetcher_manager = fetcherManager(
+        #     self.config['fetchers'],
+        #     self.config['kafka_addr'],
+        #     self.self.config['mongo_host'],
+        #     self.config['mongo_port']
+        # )
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
@@ -57,13 +60,12 @@ class Master(object):
         flag = self.fetcher_manager.stop(tasks)
         return flag
 
-    # 供fetchers获取参数的接口
-    def get_argu(self):
-        self.deal_yaml = DealYaml()
-        self.filename = "../../release/etc/master.yaml"
-        return self.deal_yaml.yaml_to_dict(self.filename)
+    def get_config(self):
+        return self.config
 
-
-sxr = SimpleXMLRPCServer(("127.0.0.1", 8090))
-sxr.register_instance(Master())
-sxr.serve_forever()
+    def start(self):
+        print("start")
+        sxr = SimpleXMLRPCServer(("0.0.0.0", 8090), allow_none=True)
+        # sxr.register_instance(self)
+        sxr.register_function(self.get_config)
+        sxr.serve_forever()
