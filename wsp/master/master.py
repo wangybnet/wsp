@@ -5,10 +5,7 @@ from pymongo import MongoClient
 from wsp.fetcher.fetcherManager import fetcherManager
 
 
-
 class Master(object):
-
-
     '''
     Master类的功能:
         [1].新建任务,任务建立成功返回任务ID
@@ -20,13 +17,7 @@ class Master(object):
 
     def __init__(self, config):
         self.config = config
-
-        # self.fetcher_manager = fetcherManager(
-        #     self.config['fetchers'],
-        #     self.config['kafka_addr'],
-        #     self.self.config['mongo_host'],
-        #     self.config['mongo_port']
-        # )
+        self.fetcher_manager = fetcherManager(self.config.kafka_addr, self.config.mongo_addr)
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
@@ -63,9 +54,18 @@ class Master(object):
     def get_config(self):
         return self.config
 
-    def start(self):
-        print("start")
-        sxr = SimpleXMLRPCServer(("0.0.0.0", 8090), allow_none=True)
+    def register_fetcher(self, fetcher_addr):
+        self.fetcher_manager.add_fetcher(fetcher_addr)
+
+    def start(self, master_addr):
+        host, port = master_addr.split(":")
+        port = int(port)
+        sxr = SimpleXMLRPCServer((host, port), allow_none=True)
         # sxr.register_instance(self)
+        sxr.register_function(self.create_one)
+        sxr.register_function(self.delete_one)
+        sxr.register_function(self.start_one)
+        sxr.register_function(self.stop_one)
         sxr.register_function(self.get_config)
+        sxr.register_function(self.register_fetcher)
         sxr.serve_forever()

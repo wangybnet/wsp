@@ -5,3 +5,5 @@
 
 bin=`dirname "${BASH_SOURCE-$0}"`
 bin=`cd "$bin"; pwd`
+
+$bin/../pyscripts/start-master.py $bin/../etc/master.yaml

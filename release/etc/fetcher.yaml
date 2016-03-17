@@ -2,11 +2,8 @@
 
 # 配置Fetcher
 
-downloader:
-  clients: 200
+downloader_clients: 200
 
-master:
-  rpc_addr: 127.0.0.1:8090
+master_addr: 127.0.0.1:8090
 
-fetcher:
-  rpc_host: 0.0.0.0:8082
+fetcher_addr: 0.0.0.0:8091

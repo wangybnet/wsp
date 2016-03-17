@@ -1,10 +1,9 @@
-# coding=utf-8
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
 import sys
-import logging
 
 import yaml
-
 
 from wsp.fetcher.Fetcher import Fetcher
 
@@ -12,6 +11,7 @@ from wsp.fetcher.Fetcher import Fetcher
 if __name__ == "__main__":
     print(sys.argv)
     fetcher_yaml = sys.argv[1]
+    conf = {}
     try:
         with open(fetcher_yaml, "r", encoding="utf-8") as f:
             conf = yaml.load(f)
@@ -19,5 +19,5 @@ if __name__ == "__main__":
     except Exception:
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
-    fetcher = Fetcher(conf["master"]["rpc_addr"], conf["fetcher"]["rpc_host"], conf["downloader"]["clients"])
-    # TODO
+    fetcher = Fetcher(conf["master_addr"], conf["fetcher_addr"], conf["downloader_clients"])
+    fetcher.start()

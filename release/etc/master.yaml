@@ -2,17 +2,10 @@
 
 # 配置Master
 
-kafka_addr: 192.168.0.2:8090
+master_addr: 0.0.0.0:8090
 
-mongo_host: 192.168.0.1
+kafka_addr: 127.0.0.1:9092
 
-mongo_port: 8090
+mongo_addr: 127.0.0.1:27017
 
-agent:
-
-  - agent1
-  - agent2
-  - agent3
-
-fetchers: [fetecher1, fetcher2, fetcher3]
-
+agent_addr:

@@ -1,5 +1,5 @@
-# encoding: utf-8
-
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 
 from wsp.master.master import Master
 import yaml
@@ -8,10 +8,7 @@ import sys
 
 if __name__ == "__main__":
 
-    global master_yaml
-    master_yaml = sys.argv[1]
-    def get_master_yaml():
-        global master_yaml
+    def get_master_yaml(master_yaml):
         try:
             with open(master_yaml, "r", encoding="utf-8") as f:
                 dict = yaml.load(f)
@@ -19,8 +16,6 @@ if __name__ == "__main__":
         except Exception:
             print("Loafing master.yaml is failed")
 
-    config = get_master_yaml()
+    conf = get_master_yaml(sys.argv[1])
     master = Master(config)
     master.start()
-
-

@@ -1,9 +1,14 @@
+# coding=utf-8
+
 import pickle
 import time
 import re
-from pymongo import MongoClient
-from threading import Thread
+import socket
+import threading
 from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.client import ServerProxy
+
+from pymongo import MongoClient
 from bson.objectid import ObjectId
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
@@ -13,6 +18,10 @@ from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpError
 from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
+
+
+def _get_local_ip():
+    return socket.gethostbyname(socket.getfqdn(socket.gethostname()))
 
 
 # 将WSP的request转换成Downloader的request
@@ -29,6 +38,7 @@ def _convert_request(func):
 def _convert_result(func):
     def wrapper(req, resp):
         request = req._wspreq
+        request.fetcher = _get_local_ip()
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,
                                url=request.url)
@@ -56,33 +66,46 @@ def _convert_result(func):
 
 class Fetcher:
     def __init__(self, master_addr, fetcher_addr, downloader_clients):
-        fetcher_host, fetcher_port = fetcher_addr.split(":")
-        kafka_addr, mongo_addr = self._pull_conf_from_master(master_addr)
-        mongo_host, mongo_port = mongo_addr.split(":")
-        self.isRunning = True
-        self.rpcServer = self._register_rpc_server(fetcher_host, fetcher_port)
-        # 开启RPC服务
-        self._start_rpc_server()
-        client = MongoClient(mongo_host,mongo_port)
-        self.db = client.wsp
-        self.producer = KafkaProducer(bootstrap_servers=[kafka_addr,])
-        self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr,], auto_offset_reset='earliest')
-        self.downloader = Downloader(clients=downloader_clients)
-        self.taskDict = {}
-
-    def _pull_conf_from_master(self, master_addr):
         if not master_addr.startswith("http://"):
             master_addr = "http://" + master_addr
-        # TODO: 从master拉取配置
+        self.master_addr = master_addr
+        fetcher_host, fetcher_port = fetcher_addr.split(":")
+        fetcher_port = int(fetcher_port)
+        self.port = fetcher_port
+        kafka_addr, mongo_addr = self._pull_config_from_master(master_addr)
+        mongo_host, mongo_port = mongo_addr.split(":")
+        mongo_port = int(mongo_port)
+        self.isRunning = True
+        self.rpcServer = self._create_rpc_server(fetcher_host, fetcher_port)
+        client = MongoClient(mongo_host, mongo_port)
+        self.db = client.wsp
+        self.producer = KafkaProducer(bootstrap_servers=[kafka_addr, ])
+        self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr, ], auto_offset_reset='earliest')
+        self.downloader = Downloader(clients=downloader_clients)
+        self.taskDict = {}
+        self._task_lock = threading.Lock()
 
-    def _register_rpc_server(self, host, port):
+    def _pull_config_from_master(self):
+        rpc_client = ServerProxy(self.master_addr, allow_none=True)
+        conf = rpc_client.get_config()
+        return conf.kafka_addr, conf.mongo_addr
+
+    def _register(self):
+        rpc_client = ServerProxy(self.master_addr, allow_none=True)
+        rpc_client.register_fetcher("%s:%d" % (_get_local_ip(), self.port))
+
+    def _create_rpc_server(self, host, port):
         server = SimpleXMLRPCServer((host, port), allow_none=True)
-        self.rpcServer.register_function(self.changeTasks)
-        self.rpcServer.register_function(self.pullReq)
+        server.register_function(self.changeTasks)
         return server
 
+    def start(self):
+        self._start_pull_req()
+        self._start_rpc_server()
+        self._register()
+
     def _start_rpc_server(self):
-        t = Thread(target=self.rpcServer.serve_forever)
+        t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
     def changeTasks(self, tasks):
@@ -90,31 +113,39 @@ class Fetcher:
         for t in tasks:
             topic = '%d' % t.id
             topics.append(topic)
-        self.consumer.subscribe(topics)
-        self.taskDict = {}
-        for t in tasks:
-            self.taskDict[t.id] = t
+        with self._task_lock:
+            self.consumer.subscribe(topics)
+            self.taskDict = {}
+            for t in tasks:
+                self.taskDict[t.id] = t
 
     def pushReq(self, req):
         topic = '%d' % req.task_id
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
-    def pullReq(self):
+    def _pull_req(self):
         while self.isRunning:
-            if not self.taskDict:
+            with self._task_lock:
+                should_work = not self.taskDict
+            if should_work:
                 record = next(self.consumer)
                 req = pickle.loads(record)
                 self._push_task(req)
             else:
+                # FIXME: 这里暂定休息5s
                 time.sleep(5)
+
+    def _start_pull_req(self):
+        t = threading.Thread(target=self._pull_req())
+        t.start()
 
     @_convert_request
     def _push_task(self, req):
         while True:
             if self.downloader.add_task(req, self.saveResult):
                 break
-            # TODO: 这里暂定写死休息1s，回头再修改
+            # FIXME: 这里暂定休息1s
             time.sleep(1)
 
     @_convert_result
