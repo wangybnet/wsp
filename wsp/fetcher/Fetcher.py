@@ -71,8 +71,8 @@ class Fetcher:
         self.master_addr = master_addr
         fetcher_host, fetcher_port = fetcher_addr.split(":")
         fetcher_port = int(fetcher_port)
-        self.port = fetcher_port
-        kafka_addr, mongo_addr = self._pull_config_from_master(master_addr)
+        self._port = fetcher_port
+        kafka_addr, mongo_addr = self._pull_config_from_master()
         mongo_host, mongo_port = mongo_addr.split(":")
         mongo_port = int(mongo_port)
         self.isRunning = True
@@ -92,7 +92,7 @@ class Fetcher:
 
     def _register(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        rpc_client.register_fetcher("%s:%d" % (_get_local_ip(), self.port))
+        rpc_client.register_fetcher("%s:%d" % (_get_local_ip(), self._port))
 
     def _create_rpc_server(self, host, port):
         server = SimpleXMLRPCServer((host, port), allow_none=True)

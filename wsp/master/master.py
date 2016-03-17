@@ -15,9 +15,10 @@ class Master(object):
         [5].返回配置文件信息供fetcher使用
     '''
 
-    def __init__(self, config):
-        self.config = config
-        self.fetcher_manager = fetcherManager(self.config.kafka_addr, self.config.mongo_addr)
+    def __init__(self, addr, config):
+        self._addr = addr
+        self._config = config
+        self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
@@ -52,13 +53,13 @@ class Master(object):
         return flag
 
     def get_config(self):
-        return self.config
+        return self._config
 
     def register_fetcher(self, fetcher_addr):
         self.fetcher_manager.add_fetcher(fetcher_addr)
 
-    def start(self, master_addr):
-        host, port = master_addr.split(":")
+    def start(self):
+        host, port = self._addr.split(":")
         port = int(port)
         sxr = SimpleXMLRPCServer((host, port), allow_none=True)
         # sxr.register_instance(self)

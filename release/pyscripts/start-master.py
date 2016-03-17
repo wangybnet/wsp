@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-from wsp.master.master import Master
-import yaml
 import sys
+
+import yaml
+
+from wsp.master.master import Master
+from wsp.master.config import WspConfig
 
 
 if __name__ == "__main__":
@@ -17,5 +20,8 @@ if __name__ == "__main__":
             print("Loafing master.yaml is failed")
 
     conf = get_master_yaml(sys.argv[1])
-    master = Master(config)
+    master = Master(conf["master_addr"],
+                    WspConfig(kafka_addr=conf["kafka_addr"],
+                              mongo_addr=conf["mongo_addr"],
+                              agent_addr=conf["agent_addr"]))
     master.start()
