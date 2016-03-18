@@ -18,7 +18,7 @@ class Master(object):
     '''
 
     def __init__(self, addr, config):
-        logging.debug("New master with addr=%s, config=%s" % (addr, config))
+        logging.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (addr, config.kafka_addr, config.mongo_addr, config.agent_addr))
         self._addr = addr
         self._config = config
         self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)

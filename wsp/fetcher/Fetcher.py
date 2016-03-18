@@ -15,6 +15,7 @@ from kafka import KafkaProducer
 from kafka import KafkaConsumer
 from aiohttp.client_reqrep import helpers
 
+from wsp.master.config import WspConfig
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpError
 from wsp.fetcher.request import WspRequest
@@ -89,7 +90,8 @@ class Fetcher:
 
     def _pull_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        conf = rpc_client.get_config()
+        conf = WspConfig(**rpc_client.get_config())
+        logging.debug("Get the configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
         return conf.kafka_addr, conf.mongo_addr
 
     def _register(self):
