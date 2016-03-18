@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+import logging
+
 from xmlrpc.server import SimpleXMLRPCServer
 from pymongo import MongoClient
 from wsp.fetcher.fetcherManager import fetcherManager
@@ -16,6 +18,7 @@ class Master(object):
     '''
 
     def __init__(self, addr, config):
+        logging.debug("New master with addr=%s, config=%s" % (addr, config))
         self._addr = addr
         self._config = config
         self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)
@@ -27,16 +30,20 @@ class Master(object):
         return collection
 
     def create_one(self, task):
+        logging.debug("Create the task %s" % task)
         collection = self.__get_col('wsp', 'task')
         task_id = collection.insert_one(task).inserted_id  # 返回任务ID
+        logging.info("Create the task %s" % task_id)
         return task_id
 
     def delete_one(self, task_id):
+        logging.info("Delete the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
         flag = collection.remove({'_id': task_id})
         return flag
 
     def start_one(self, task_id):
+        logging.info("Start the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
         task = collection.find_one({'_id': task_id})
         tasks = []
@@ -45,6 +52,7 @@ class Master(object):
         return flag
 
     def stop_one(self, task_id):
+        logging.info("Stop the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
         task = collection.find_one({'_id': task_id})
         tasks = []
@@ -53,14 +61,17 @@ class Master(object):
         return flag
 
     def get_config(self):
+        logging.debug("Return the configuration")
         return self._config
 
     def register_fetcher(self, fetcher_addr):
+        logging.info("The fetcher at %s is registered" % fetcher_addr)
         self.fetcher_manager.add_fetcher(fetcher_addr)
 
     def start(self):
         host, port = self._addr.split(":")
         port = int(port)
+        logging.info("Start master RPC at host=%s port=%d" % (host, port))
         sxr = SimpleXMLRPCServer((host, port), allow_none=True)
         # sxr.register_instance(self)
         sxr.register_function(self.create_one)

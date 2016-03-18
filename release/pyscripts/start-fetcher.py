@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import sys
+import logging
 
 import yaml
 
@@ -19,5 +20,9 @@ if __name__ == "__main__":
     except Exception:
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
-    fetcher = Fetcher(conf["master_addr"], conf["fetcher_addr"], conf["downloader_clients"])
+    logging.basicConfig(level=getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
+                        format='%(asctime)s %(filename)s: [%(levelname)s] %(message)s',
+                        datefmt='%b.%d,%Y %H:%M:%S')
+    logging.debug("master.yaml=%s" % conf)
+    fetcher = Fetcher(conf["master_addr"], conf["fetcher_addr"], int(conf["downloader_clients"]))
     fetcher.start()

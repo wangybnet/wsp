@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import threading
+import logging
 
 import aiohttp
 
@@ -39,8 +40,10 @@ class Downloader:
     async def _run(self, request, callback):
         try:
             response = await self._download(request)
+            logging.debug("%s %s" % (request.url, response.status))
             callback(request, response)
         except Exception as e:
+            logging.debug("HttpError: %s" % e)
             callback(request, HttpError(e))
         finally:
             with self._clients_lock:
@@ -48,6 +51,7 @@ class Downloader:
 
     @staticmethod
     async def _download(request):
+        logging.debug("%s %s" % (request.method, request.url))
         with aiohttp.ClientSession(connector=None if (request.proxy is None) else aiohttp.ProxyConnector(proxy=request.proxy),
                                    cookies=request.cookies) as session:
             async with session.request(request.method,

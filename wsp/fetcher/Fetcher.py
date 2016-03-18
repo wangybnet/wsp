@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import logging
 import pickle
 import time
 import re
@@ -66,6 +67,7 @@ def _convert_result(func):
 
 class Fetcher:
     def __init__(self, master_addr, fetcher_addr, downloader_clients):
+        logging.debug("New fetcher with master_addr=%s, fetcher_addr=%s, downloader_clients=%d" % (master_addr, fetcher_addr, downloader_clients))
         if not master_addr.startswith("http://"):
             master_addr = "http://" + master_addr
         self.master_addr = master_addr
@@ -91,10 +93,13 @@ class Fetcher:
         return conf.kafka_addr, conf.mongo_addr
 
     def _register(self):
+        ip = _get_local_ip()
+        logging.info("Register on master at %s with ip=%s port=%d" % (self.master_addr, ip, self._port))
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        rpc_client.register_fetcher("%s:%d" % (_get_local_ip(), self._port))
+        rpc_client.register_fetcher("%s:%d" % (ip, self._port))
 
     def _create_rpc_server(self, host, port):
+        logging.info("Create RPC server at host=%s, port=%d" % (host, port))
         server = SimpleXMLRPCServer((host, port), allow_none=True)
         server.register_function(self.changeTasks)
         return server
@@ -105,6 +110,7 @@ class Fetcher:
         self._register()
 
     def _start_rpc_server(self):
+        logging.info("Start RPC server")
         t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
@@ -114,6 +120,7 @@ class Fetcher:
             topic = '%d' % t.id
             topics.append(topic)
         with self._task_lock:
+            logging.debug("Subscribe topics %s" % topics)
             self.consumer.subscribe(topics)
             self.taskDict = {}
             for t in tasks:
@@ -121,6 +128,7 @@ class Fetcher:
 
     def pushReq(self, req):
         topic = '%d' % req.task_id
+        logging.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
@@ -131,12 +139,16 @@ class Fetcher:
             if should_work:
                 record = next(self.consumer)
                 req = pickle.loads(record)
+                logging.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
                 self._push_task(req)
             else:
                 # FIXME: 这里暂定休息5s
-                time.sleep(5)
+                sleep_time = 5
+                logging.debug("No work, and I will sleep %s seconds" % sleep_time)
+                time.sleep(sleep_time)
 
     def _start_pull_req(self):
+        logging.info("Start to pull requests")
         t = threading.Thread(target=self._pull_req())
         t.start()
 
@@ -146,13 +158,17 @@ class Fetcher:
             if self.downloader.add_task(req, self.saveResult):
                 break
             # FIXME: 这里暂定休息1s
-            time.sleep(1)
+            sleep_time = 1
+            logging.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
+            time.sleep(sleep_time)
 
     @_convert_result
     def saveResult(self, req, response):
         response.id = ObjectId()
         response.req_id = req.id
         response.task_id = req.task_id
+        logging.debug("Save the WSP request (id=%s, url=%s)" % (req.id, req.url))
+        logging.debug("Save the WSP response (id=%s, url=%s, http_code=%s, error=%s)" % (response.id, response.url, response.http_code, response.error))
         reqTable = self.db.request
         reqJason = {
             'id':req.id,
@@ -183,6 +199,8 @@ class Fetcher:
             req.retry += 1
             if req.retry < self.taskDict[req.task_id].max_retry:
                 self.pushReq(req)
+            else:
+                logging.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url))
         else:
             url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
             hasNewUrl = False
@@ -218,13 +236,14 @@ class Fetcher:
                                 tag = True
                                 break
                     if tag:
+                        logging.debug("Find a new url %s in the page %s." % (u, req.url))
                         hasNewUrl = True
                         newReq = WspRequest()
                         newReq.id = ObjectId()
                         newReq.father_id = req.id
                         newReq.task_id = req.task_id
                         newReq.url = u
-                        newReq.level+=1
+                        newReq.level=req.level+1
                         self.pushReq(req)
             if hasNewUrl:
                 self.producer.flush()
