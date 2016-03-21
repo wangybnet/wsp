@@ -15,12 +15,10 @@ class fetcherManager:
 
     def __init__(self, kafka_addr, mongo_addr):
         logging.debug("New fetcher manager with kafka_addr=%s, mongo_addr=%s" % (kafka_addr, mongo_addr))
-        mongo_host, mongo_port = mongo_addr.split(":")
-        mongo_port = int(mongo_port)
         self.running_tasks = []
         self.fetcherList = []
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr, ])
-        client = MongoClient(mongo_host, mongo_port)
+        client = MongoClient(mongo_addr)
         db = client.wsp
         self.taskTable = db.tasks
 
