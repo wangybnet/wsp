@@ -36,7 +36,7 @@ class Master(object):
     def _create_rpc_server(self):
         host, port = self._addr.split(":")
         port = int(port)
-        server = SimpleXMLRPCServer((host, port), allow_none=True)
+        server = MasterRpcServer((host, port), allow_none=True)
         server.register_function(self.create_one)
         server.register_function(self.delete_one)
         server.register_function(self.start_one)
