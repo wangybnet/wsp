@@ -5,6 +5,7 @@ import logging
 from xmlrpc.server import SimpleXMLRPCServer
 from pymongo import MongoClient
 from wsp.fetcher.fetcherManager import fetcherManager
+from wsp.master.task import WspTask
 
 
 class Master(object):
@@ -39,6 +40,9 @@ class Master(object):
     def delete_one(self, task_id):
         logging.info("Delete the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
+
+        # FIXME: 调用fetcher manager的delete
+
         flag = collection.remove({'_id': task_id})
         return flag
 
@@ -46,6 +50,7 @@ class Master(object):
         logging.info("Start the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
         task = collection.find_one({'_id': task_id})
+        task = WspTask(**task, id=task_id)
         tasks = []
         tasks.append(task)
         flag = self.fetcher_manager.start(tasks)
@@ -55,6 +60,7 @@ class Master(object):
         logging.info("Stop the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
         task = collection.find_one({'_id': task_id})
+        task = WspTask(**task, id=task_id)
         tasks = []
         tasks.append(task)
         flag = self.fetcher_manager.stop(tasks)

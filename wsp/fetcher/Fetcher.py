@@ -16,6 +16,7 @@ from kafka import KafkaConsumer
 from aiohttp.client_reqrep import helpers
 
 from wsp.master.config import WspConfig
+from wsp.master.task import WspTask
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpError
 from wsp.fetcher.request import WspRequest
@@ -119,6 +120,7 @@ class Fetcher:
     def changeTasks(self, tasks):
         topics = []
         for t in tasks:
+            t = WspTask(t)
             topic = '%d' % t.id
             topics.append(topic)
         with self._task_lock:
@@ -137,17 +139,17 @@ class Fetcher:
     def _pull_req(self):
         while self.isRunning:
             with self._task_lock:
-                should_work = not self.taskDict
-            if should_work:
-                record = next(self.consumer)
-                req = pickle.loads(record)
-                logging.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
-                self._push_task(req)
-            else:
+                no_work = not self.taskDict
+            if no_work:
                 # FIXME: 这里暂定休息5s
                 sleep_time = 5
                 logging.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
+            else:
+                record = next(self.consumer)
+                req = pickle.loads(record)
+                logging.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
+                self._push_task(req)
 
     def _start_pull_req(self):
         logging.info("Start to pull requests")
