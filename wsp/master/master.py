@@ -11,7 +11,7 @@ from wsp.master.task import WspTask
 class MasterRpcServer(SimpleXMLRPCServer):
 
     def process_request(self, request, client_address):
-        self.client_addr = client_address
+        self.client_addr = "%s:%d" % client_address
         return super(MasterRpcServer, self).process_request(request, client_address)
 
 
