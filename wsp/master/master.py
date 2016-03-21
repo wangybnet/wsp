@@ -26,7 +26,7 @@ class Master(object):
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
-        client = MongoClient()
+        client = MongoClient('mongodb://wsp:wsp123456@192.168.120.181:27017/')
         collection = client[db_name][col_name]
         return collection
 
