@@ -70,7 +70,8 @@ class Fetcher:
         if not master_addr.startswith("http://"):
             master_addr = "http://" + master_addr
         self.master_addr = master_addr
-        self._addr = fetcher_addr
+        self._host, self._port = fetcher_addr.split(":")
+        self._port = int(self._port)
         kafka_addr, mongo_addr = self._pull_config_from_master()
         client = MongoClient(mongo_addr)
         self.db = client.wsp
@@ -91,12 +92,10 @@ class Fetcher:
     def _register(self):
         logging.debug("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        rpc_client.register_fetcher()
+        rpc_client.register_fetcher(self._port)
 
     def _create_rpc_server(self):
-        host, port = self._addr.split(":")
-        port = int(port)
-        server = SimpleXMLRPCServer((host, port), allow_none=True)
+        server = SimpleXMLRPCServer((self._host, self._port), allow_none=True)
         server.register_function(self.changeTasks)
         return server
 

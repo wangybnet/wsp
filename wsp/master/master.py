@@ -11,7 +11,7 @@ from wsp.master.task import WspTask
 class MasterRpcServer(SimpleXMLRPCServer):
 
     def process_request(self, request, client_address):
-        self.client_addr = "%s:%d" % client_address
+        self.client_ip, _ = client_address
         return super(MasterRpcServer, self).process_request(request, client_address)
 
 
@@ -95,8 +95,8 @@ class Master(object):
         logging.debug("Return the configuration")
         return self._config
 
-    def register_fetcher(self):
-        fetcher_addr = self._rpc_server.client_addr
+    def register_fetcher(self, port):
+        fetcher_addr = "%s:%d" % (self._rpc_server.client_ip, port)
         logging.info("The fetcher at %s is registered" % fetcher_addr)
         self.fetcher_manager.add_fetcher(fetcher_addr)
 
