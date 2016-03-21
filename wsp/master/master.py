@@ -30,10 +30,20 @@ class Master(object):
         self._addr = addr
         self._config = config
         self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)
+        self._rpc_server = self._create_rpc_server()
+        self._mongo_client = MongoClient(self._config.mongo_addr)
+
+    def _create_rpc_server(self):
         host, port = self._addr.split(":")
         port = int(port)
-        self._rpc_server = SimpleXMLRPCServer((host, port), allow_none=True)
-        self._mongo_client = MongoClient(self._config.mongo_addr)
+        server = SimpleXMLRPCServer((host, port), allow_none=True)
+        server.register_function(self.create_one)
+        server.register_function(self.delete_one)
+        server.register_function(self.start_one)
+        server.register_function(self.stop_one)
+        server.register_function(self.get_config)
+        server.register_function(self.register_fetcher)
+        return server
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
@@ -51,9 +61,13 @@ class Master(object):
     def delete_one(self, task_id):
         logging.info("Delete the task %s" % task_id)
         collection = self.__get_col('wsp', 'task')
-
-        # FIXME: 调用fetcher manager的delete
-
+        task = collection.find_one({'_id': task_id})
+        task = WspTask(**task, id=task_id)
+        tasks = []
+        tasks.append(task)
+        flag = self.fetcher_manager.delete(tasks)
+        if not flag:
+            return False
         flag = collection.remove({'_id': task_id})
         return flag
 
