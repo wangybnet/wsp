@@ -8,6 +8,13 @@ from wsp.fetcher.fetcherManager import fetcherManager
 from wsp.master.task import WspTask
 
 
+class MasterRpcServer(SimpleXMLRPCServer):
+
+    def process_request(self, request, client_address):
+        self.client_addr = client_address
+        return super(MasterRpcServer, self).process_request(request, client_address)
+
+
 class Master(object):
     '''
     Master类的功能:
@@ -23,11 +30,15 @@ class Master(object):
         self._addr = addr
         self._config = config
         self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)
+        host, port = self._addr.split(":")
+        port = int(port)
+        self._rpc_server = SimpleXMLRPCServer((host, port), allow_none=True)
+        self._mongo_client = MongoClient(self._config.mongo_addr)
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
-        client = MongoClient('mongodb://wsp:wsp123456@192.168.120.181:27017/')
-        collection = client[db_name][col_name]
+        addr = self._config.mongo_addr
+        collection = self._mongo_client[db_name][col_name]
         return collection
 
     def create_one(self, task):
@@ -70,20 +81,11 @@ class Master(object):
         logging.debug("Return the configuration")
         return self._config
 
-    def register_fetcher(self, fetcher_addr):
+    def register_fetcher(self):
+        fetcher_addr = self._rpc_server.client_addr
         logging.info("The fetcher at %s is registered" % fetcher_addr)
         self.fetcher_manager.add_fetcher(fetcher_addr)
 
     def start(self):
-        host, port = self._addr.split(":")
-        port = int(port)
-        logging.info("Start master RPC at host=%s port=%d" % (host, port))
-        sxr = SimpleXMLRPCServer((host, port), allow_none=True)
-        # sxr.register_instance(self)
-        sxr.register_function(self.create_one)
-        sxr.register_function(self.delete_one)
-        sxr.register_function(self.start_one)
-        sxr.register_function(self.stop_one)
-        sxr.register_function(self.get_config)
-        sxr.register_function(self.register_fetcher)
-        sxr.serve_forever()
+        logging.info("Start master RPC at %s" % self._addr)
+        self._rpc_server.serve_forever()

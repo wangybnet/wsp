@@ -23,10 +23,6 @@ from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
 
 
-def _get_local_ip():
-    return socket.gethostbyname(socket.getfqdn(socket.gethostname()))
-
-
 # 将WSP的request转换成Downloader的request
 def _convert_request(func):
     def wrapper(req):
@@ -41,7 +37,8 @@ def _convert_request(func):
 def _convert_result(func):
     def wrapper(req, resp):
         request = req._wspreq
-        request.fetcher = _get_local_ip()
+        # FIXME: 这种获取本机IP地址的方式在Linux下面可能获取到类似127.*.*.*的地址
+        request.fetcher = socket.gethostbyname(socket.gethostname())
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,
                                url=request.url)
@@ -73,16 +70,12 @@ class Fetcher:
         if not master_addr.startswith("http://"):
             master_addr = "http://" + master_addr
         self.master_addr = master_addr
-        fetcher_host, fetcher_port = fetcher_addr.split(":")
-        fetcher_port = int(fetcher_port)
-        self._port = fetcher_port
+        self._addr = fetcher_addr
         kafka_addr, mongo_addr = self._pull_config_from_master()
-        mongo_host, mongo_port = mongo_addr.split(":")
-        mongo_port = int(mongo_port)
-        self.isRunning = True
-        self.rpcServer = self._create_rpc_server(fetcher_host, fetcher_port)
-        client = MongoClient(mongo_host, mongo_port)
+        client = MongoClient(mongo_addr)
         self.db = client.wsp
+        self.isRunning = True
+        self.rpcServer = self._create_rpc_server()
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr, ])
         self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr, ], auto_offset_reset='earliest')
         self.downloader = Downloader(clients=downloader_clients)
@@ -96,13 +89,13 @@ class Fetcher:
         return conf.kafka_addr, conf.mongo_addr
 
     def _register(self):
-        ip = _get_local_ip()
-        logging.info("Register on master at %s with ip=%s port=%d" % (self.master_addr, ip, self._port))
+        logging.debug("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        rpc_client.register_fetcher("%s:%d" % (ip, self._port))
+        rpc_client.register_fetcher()
 
-    def _create_rpc_server(self, host, port):
-        logging.info("Create RPC server at host=%s, port=%d" % (host, port))
+    def _create_rpc_server(self):
+        host, port = self._addr.split(":")
+        port = int(port)
         server = SimpleXMLRPCServer((host, port), allow_none=True)
         server.register_function(self.changeTasks)
         return server
@@ -113,14 +106,14 @@ class Fetcher:
         self._register()
 
     def _start_rpc_server(self):
-        logging.info("Start RPC server")
+        logging.info("Start RPC server at %s" % self._addr)
         t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
     def changeTasks(self, tasks):
         topics = []
         for t in tasks:
-            t = WspTask(t)
+            t = WspTask(**t)
             topic = '%d' % t.id
             topics.append(topic)
         with self._task_lock:
@@ -153,7 +146,7 @@ class Fetcher:
 
     def _start_pull_req(self):
         logging.info("Start to pull requests")
-        t = threading.Thread(target=self._pull_req())
+        t = threading.Thread(target=self._pull_req)
         t.start()
 
     @_convert_request
@@ -204,7 +197,7 @@ class Fetcher:
             if req.retry < self.taskDict[req.task_id].max_retry:
                 self.pushReq(req)
             else:
-                logging.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url))
+                logging.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
         else:
             url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
             hasNewUrl = False
