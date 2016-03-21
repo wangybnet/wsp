@@ -105,7 +105,7 @@ class Fetcher:
         self._register()
 
     def _start_rpc_server(self):
-        logging.info("Start RPC server at %s:%d" % (self._addr, self._port))
+        logging.info("Start RPC server at %s:%d" % (self._host, self._port))
         t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
