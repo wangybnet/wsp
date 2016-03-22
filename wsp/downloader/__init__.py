@@ -42,18 +42,19 @@ class Downloader:
     async def _run(self, request, callback):
         try:
             response = await self._download(request)
-            log.debug("%s %s" % (request.url, response.status))
-            callback(request, response)
+            log.debug("Http Response: %s %s" % (request.url, response.status))
         except Exception as e:
-            log.debug("%s" % e)
+            log.debug("Http Error: %s" % e)
             callback(request, HttpError(e))
+        else:
+            callback(request, response)
         finally:
             with self._clients_lock:
                 self._clients += 1
 
     @staticmethod
     async def _download(request):
-        log.debug("%s %s" % (request.method, request.url))
+        log.debug("Http Request: %s %s" % (request.method, request.url))
         with aiohttp.ClientSession(connector=None if (request.proxy is None) else aiohttp.ProxyConnector(proxy=request.proxy),
                                    cookies=request.cookies) as session:
             async with session.request(request.method,

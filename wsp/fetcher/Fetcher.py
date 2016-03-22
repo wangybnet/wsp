@@ -27,17 +27,17 @@ log = logging.getLogger(__name__)
 
 # 将WSP的request转换成Downloader的request
 def _convert_request(func):
-    def wrapper(req):
+    def wrapper(self, req):
         request = HttpRequest(req.url, proxy=req.proxy, headers=req.headers)
         request._wspreq = req
-        return func(request)
+        return func(self, request)
 
     return wrapper
 
 
 # 将Downloader的request和reponse转换成WSP的request和response
 def _convert_result(func):
-    def wrapper(req, resp):
+    def wrapper(self, req, resp):
         request = req._wspreq
         # FIXME: 这种获取本机IP地址的方式在Linux下面可能获取到类似127.*.*.*的地址
         request.fetcher = socket.gethostbyname(socket.gethostname())
@@ -61,7 +61,7 @@ def _convert_result(func):
             response.http_code = resp.status
             response.headers = resp.headers
             response.body = resp.body
-        return func(request, response)
+        return func(self, request, response)
 
     return wrapper
 
@@ -142,7 +142,7 @@ class Fetcher:
                 time.sleep(sleep_time)
             else:
                 record = next(self.consumer)
-                req = pickle.loads(record)
+                req = pickle.loads(record.value)
                 log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
                 self._push_task(req)
 
@@ -179,6 +179,8 @@ class Fetcher:
             'proxy':req.proxy,
             'fetcher':req.fetcher
         }
+        log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJason["id"],
+                                                                      reqJason["url"]))
         reqTable.save(reqJason)
         respTable = self.db.response
         respJason = {
@@ -190,10 +192,17 @@ class Fetcher:
             'http_code':response.http_code,
             'error':response.error
         }
+        log.debug("Save response record (id=%s, url=%s) into mongo" % (respJason["id"],
+                                                                       respJason["url"]))
         respTable.save(respJason)
-        tid = '%d'%req.task_id
+        tid = '%s' % req.task_id
         resTable = self.db['result_'+tid]
-        resTable.save({'id':ObjectId(),'req':reqJason,'resp':respJason})
+        result_record = {'id':ObjectId(),'req':reqJason,'resp':respJason}
+        log.debug("Save result record (id=%s, req_id=%s, resp_id=%s) of the task %s into mongo" % (result_record["id"],
+                                                                                                   result_record["req"]["id"],
+                                                                                                   result_record["resp"]["id"],
+                                                                                                   req.task_id))
+        resTable.save(result_record)
         if response.error is not None:
             req.retry += 1
             if req.retry < self.taskDict[req.task_id].max_retry:
@@ -214,35 +223,40 @@ class Fetcher:
                     u = strlist[0] + u
                 else:
                     followDict = self.taskDict[req.task_id].follow
-                    tag = False
-                    for rule in followDict['starts_with']:
-                        if u.startswith(rule):
-                            tag = True
-                            break
-                    if not tag:
-                        for rule in followDict['ends_with']:
-                            if u.endswith(rule):
-                                tag = True
-                                break
-                    if not tag:
-                        for rule in followDict['contains']:
-                            if u.__contains__(rule):
-                                tag = True
-                                break
-                    if not tag:
-                        for rule in followDict['regex_matches']:
-                            if re.search(rule, u):
-                                tag = True
-                                break
-                    if tag:
-                        log.debug("Find a new url %s in the page %s." % (u, req.url))
-                        hasNewUrl = True
-                        newReq = WspRequest()
-                        newReq.id = ObjectId()
-                        newReq.father_id = req.id
-                        newReq.task_id = req.task_id
-                        newReq.url = u
-                        newReq.level=req.level+1
-                        self.pushReq(req)
+                    if followDict:
+                        tag = False
+                        if "starts_with" in followDict:
+                            for rule in followDict['starts_with']:
+                                if u.startswith(rule):
+                                    tag = True
+                                    break
+                        if not tag:
+                            if "ends_with" in followDict:
+                                for rule in followDict['ends_with']:
+                                    if u.endswith(rule):
+                                        tag = True
+                                        break
+                        if not tag:
+                            if "contains" in followDict:
+                                for rule in followDict['contains']:
+                                    if u.__contains__(rule):
+                                        tag = True
+                                        break
+                        if not tag:
+                            if "regex_matches" in followDict:
+                                for rule in followDict['regex_matches']:
+                                    if re.search(rule, u):
+                                        tag = True
+                                        break
+                        if tag:
+                            log.debug("Find a new url %s in the page %s." % (u, req.url))
+                            hasNewUrl = True
+                            newReq = WspRequest()
+                            newReq.id = ObjectId()
+                            newReq.father_id = req.id
+                            newReq.task_id = req.task_id
+                            newReq.url = u
+                            newReq.level=req.level+1
+                            self.pushReq(req)
             if hasNewUrl:
                 self.producer.flush()
