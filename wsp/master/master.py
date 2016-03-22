@@ -1,11 +1,15 @@
 # encoding: utf-8
 
 import logging
-
 from xmlrpc.server import SimpleXMLRPCServer
+
+from bson.objectid import ObjectId
 from pymongo import MongoClient
+
 from wsp.fetcher.fetcherManager import fetcherManager
 from wsp.master.task import WspTask
+
+log = logging.getLogger(__name__)
 
 
 class MasterRpcServer(SimpleXMLRPCServer):
@@ -26,7 +30,7 @@ class Master(object):
     '''
 
     def __init__(self, addr, config):
-        logging.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (addr, config.kafka_addr, config.mongo_addr, config.agent_addr))
+        log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (addr, config.kafka_addr, config.mongo_addr, config.agent_addr))
         self._addr = addr
         self._config = config
         self.fetcher_manager = fetcherManager(self._config.kafka_addr, self._config.mongo_addr)
@@ -47,34 +51,37 @@ class Master(object):
 
     # 建立mongodb连接并选择集合
     def __get_col(self, db_name, col_name):
-        addr = self._config.mongo_addr
         collection = self._mongo_client[db_name][col_name]
         return collection
 
+    def _find_one(self, obj_id):
+         return next(self.__get_col('wsp', 'task').find({'_id': ObjectId(obj_id)}))
+
     def create_one(self, task):
-        logging.debug("Create the task %s" % task)
+        if "status" not in task:
+            task["status"] = 0
         collection = self.__get_col('wsp', 'task')
         task_id = collection.insert_one(task).inserted_id  # 返回任务ID
-        logging.info("Create the task %s" % task_id)
-        return task_id
+        log.info("Create the task %s with id=%s" % (task, task_id))
+        return "%s" % task_id
 
     def delete_one(self, task_id):
-        logging.info("Delete the task %s" % task_id)
-        collection = self.__get_col('wsp', 'task')
-        task = collection.find_one({'_id': task_id})
+        log.info("Delete the task %s" % task_id)
+        task = self._find_one(task_id)
+        log.debug("The detail of this task: %s" % task)
         task = WspTask(**task, id=task_id)
         tasks = []
         tasks.append(task)
         flag = self.fetcher_manager.delete(tasks)
         if not flag:
             return False
-        flag = collection.remove({'_id': task_id})
+        flag = self.__get_col('wsp', 'task').remove({'_id': task_id})
         return flag
 
     def start_one(self, task_id):
-        logging.info("Start the task %s" % task_id)
-        collection = self.__get_col('wsp', 'task')
-        task = collection.find_one({'_id': task_id})
+        log.info("Start the task %s" % task_id)
+        task = self._find_one(task_id)
+        log.debug("The detail of this task: %s" % task)
         task = WspTask(**task, id=task_id)
         tasks = []
         tasks.append(task)
@@ -82,9 +89,9 @@ class Master(object):
         return flag
 
     def stop_one(self, task_id):
-        logging.info("Stop the task %s" % task_id)
-        collection = self.__get_col('wsp', 'task')
-        task = collection.find_one({'_id': task_id})
+        log.info("Stop the task %s" % task_id)
+        task = self._find_one(task_id)
+        log.debug("The detail of this task: %s" % task)
         task = WspTask(**task, id=task_id)
         tasks = []
         tasks.append(task)
@@ -92,14 +99,14 @@ class Master(object):
         return flag
 
     def get_config(self):
-        logging.debug("Return the configuration")
+        log.debug("Return the configuration")
         return self._config
 
     def register_fetcher(self, port):
         fetcher_addr = "%s:%d" % (self._rpc_server.client_ip, port)
-        logging.info("The fetcher at %s is registered" % fetcher_addr)
+        log.info("The fetcher at %s is registered" % fetcher_addr)
         self.fetcher_manager.add_fetcher(fetcher_addr)
 
     def start(self):
-        logging.info("Start master RPC at %s" % self._addr)
+        log.info("Start master RPC at %s" % self._addr)
         self._rpc_server.serve_forever()

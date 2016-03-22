@@ -22,6 +22,8 @@ from wsp.downloader.http import HttpRequest, HttpError
 from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
 
+log = logging.getLogger(__name__)
+
 
 # 将WSP的request转换成Downloader的request
 def _convert_request(func):
@@ -66,7 +68,7 @@ def _convert_result(func):
 
 class Fetcher:
     def __init__(self, master_addr, fetcher_addr, downloader_clients):
-        logging.debug("New fetcher with master_addr=%s, fetcher_addr=%s, downloader_clients=%d" % (master_addr, fetcher_addr, downloader_clients))
+        log.debug("New fetcher with master_addr=%s, fetcher_addr=%s, downloader_clients=%d" % (master_addr, fetcher_addr, downloader_clients))
         if not master_addr.startswith("http://"):
             master_addr = "http://" + master_addr
         self.master_addr = master_addr
@@ -86,11 +88,11 @@ class Fetcher:
     def _pull_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
         conf = WspConfig(**rpc_client.get_config())
-        logging.debug("Get the configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
+        log.debug("Get the configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
         return conf.kafka_addr, conf.mongo_addr
 
     def _register(self):
-        logging.debug("Register on the master at %s" % self.master_addr)
+        log.debug("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
         rpc_client.register_fetcher(self._port)
 
@@ -105,7 +107,7 @@ class Fetcher:
         self._register()
 
     def _start_rpc_server(self):
-        logging.info("Start RPC server at %s:%d" % (self._host, self._port))
+        log.info("Start RPC server at %s:%d" % (self._host, self._port))
         t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
@@ -113,18 +115,19 @@ class Fetcher:
         topics = []
         for t in tasks:
             t = WspTask(**t)
-            topic = '%d' % t.id
+            topic = '%s' % t.id
             topics.append(topic)
         with self._task_lock:
-            logging.debug("Subscribe topics %s" % topics)
+            log.debug("Subscribe topics %s" % topics)
             self.consumer.subscribe(topics)
             self.taskDict = {}
             for t in tasks:
+                t = WspTask(**t)
                 self.taskDict[t.id] = t
 
     def pushReq(self, req):
         topic = '%d' % req.task_id
-        logging.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
+        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
@@ -135,16 +138,16 @@ class Fetcher:
             if no_work:
                 # FIXME: 这里暂定休息5s
                 sleep_time = 5
-                logging.debug("No work, and I will sleep %s seconds" % sleep_time)
+                log.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
             else:
                 record = next(self.consumer)
                 req = pickle.loads(record)
-                logging.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
+                log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
                 self._push_task(req)
 
     def _start_pull_req(self):
-        logging.info("Start to pull requests")
+        log.info("Start to pull requests")
         t = threading.Thread(target=self._pull_req)
         t.start()
 
@@ -155,7 +158,7 @@ class Fetcher:
                 break
             # FIXME: 这里暂定休息1s
             sleep_time = 1
-            logging.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
+            log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
     @_convert_result
@@ -163,8 +166,8 @@ class Fetcher:
         response.id = ObjectId()
         response.req_id = req.id
         response.task_id = req.task_id
-        logging.debug("Save the WSP request (id=%s, url=%s)" % (req.id, req.url))
-        logging.debug("Save the WSP response (id=%s, url=%s, http_code=%s, error=%s)" % (response.id, response.url, response.http_code, response.error))
+        log.debug("Save the WSP request (id=%s, url=%s)" % (req.id, req.url))
+        log.debug("Save the WSP response (id=%s, url=%s, http_code=%s, error=%s)" % (response.id, response.url, response.http_code, response.error))
         reqTable = self.db.request
         reqJason = {
             'id':req.id,
@@ -196,7 +199,7 @@ class Fetcher:
             if req.retry < self.taskDict[req.task_id].max_retry:
                 self.pushReq(req)
             else:
-                logging.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
+                log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
         else:
             url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
             hasNewUrl = False
@@ -232,7 +235,7 @@ class Fetcher:
                                 tag = True
                                 break
                     if tag:
-                        logging.debug("Find a new url %s in the page %s." % (u, req.url))
+                        log.debug("Find a new url %s in the page %s." % (u, req.url))
                         hasNewUrl = True
                         newReq = WspRequest()
                         newReq.id = ObjectId()

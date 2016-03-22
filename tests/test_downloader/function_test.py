@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import time
+import logging
 
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpError
@@ -26,6 +27,8 @@ def save_result(request, response):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
     d = Downloader(clients=2)
     for url in ["https://github.com", "http://www.haosou.com", "http://error-domain-0x00.com", "http://www.baidu.com.com", "http://www.iie.ac.cn"]:
         req = HttpRequest(url)

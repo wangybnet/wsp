@@ -6,6 +6,7 @@ import logging
 
 import yaml
 
+import wsp
 from wsp.master.master import Master
 from wsp.master.config import WspConfig
 
@@ -22,10 +23,12 @@ if __name__ == "__main__":
             exit(1)
 
     conf = get_master_yaml(sys.argv[1])
-    logging.basicConfig(level=getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
-                        format='%(asctime)s %(filename)s: [%(levelname)s] %(message)s',
-                        datefmt='%b.%d,%Y %H:%M:%S')
-    logging.debug("master.yaml=%s" % conf)
+    wsp.set_logger(getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
+                   "%(asctime)s %(filename)s: [%(levelname)s] %(message)s",
+                   "%b.%d,%Y %H:%M:%S")
+    log = logging.getLogger("wsp")
+    log.debug("master.yaml=%s" % conf)
+
     master = Master(conf["master_addr"],
                     WspConfig(kafka_addr=conf["kafka_addr"],
                               mongo_addr=conf["mongo_addr"],

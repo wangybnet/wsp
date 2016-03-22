@@ -6,6 +6,7 @@ import logging
 
 import yaml
 
+import wsp
 from wsp.fetcher.Fetcher import Fetcher
 
 
@@ -18,9 +19,10 @@ if __name__ == "__main__":
     except Exception:
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
-    logging.basicConfig(level=getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
-                        format='%(asctime)s %(filename)s: [%(levelname)s] %(message)s',
-                        datefmt='%b.%d,%Y %H:%M:%S')
-    logging.debug("master.yaml=%s" % conf)
+    wsp.set_logger(getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
+                   "%(asctime)s %(filename)s: [%(levelname)s] %(message)s",
+                   "%b.%d,%Y %H:%M:%S")
+    log = logging.getLogger("wsp")
+    log.debug("fetcher.yaml=%s" % conf)
     fetcher = Fetcher(conf["master_addr"], conf["fetcher_addr"], int(conf["downloader_clients"]))
     fetcher.start()
