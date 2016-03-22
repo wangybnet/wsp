@@ -119,7 +119,8 @@ class Fetcher:
             topics.append(topic)
         with self._task_lock:
             log.debug("Subscribe topics %s" % topics)
-            self.consumer.subscribe(topics)
+            if topics:
+                self.consumer.subscribe(topics)
             self.taskDict = {}
             for t in tasks:
                 t = WspTask(**t)
@@ -169,7 +170,7 @@ class Fetcher:
         log.debug("Save the WSP request (id=%s, url=%s)" % (req.id, req.url))
         log.debug("Save the WSP response (id=%s, url=%s, http_code=%s, error=%s)" % (response.id, response.url, response.http_code, response.error))
         reqTable = self.db.request
-        reqJason = {
+        reqJson = {
             'id':req.id,
             'father_id':req.father_id,
             'task_id':req.task_id,
@@ -179,11 +180,11 @@ class Fetcher:
             'proxy':req.proxy,
             'fetcher':req.fetcher
         }
-        log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJason["id"],
-                                                                      reqJason["url"]))
-        reqTable.save(reqJason)
+        log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJson["id"],
+                                                                      reqJson["url"]))
+        reqTable.save(reqJson)
         respTable = self.db.response
-        respJason = {
+        respJson = {
             'id':response.id,
             'req_id':response.req_id,
             'task_id':response.task_id,
@@ -192,17 +193,9 @@ class Fetcher:
             'http_code':response.http_code,
             'error':response.error
         }
-        log.debug("Save response record (id=%s, url=%s) into mongo" % (respJason["id"],
-                                                                       respJason["url"]))
-        respTable.save(respJason)
-        tid = '%s' % req.task_id
-        resTable = self.db['result_'+tid]
-        result_record = {'id':ObjectId(),'req':reqJason,'resp':respJason}
-        log.debug("Save result record (id=%s, req_id=%s, resp_id=%s) of the task %s into mongo" % (result_record["id"],
-                                                                                                   result_record["req"]["id"],
-                                                                                                   result_record["resp"]["id"],
-                                                                                                   req.task_id))
-        resTable.save(result_record)
+        log.debug("Save response record (id=%s, url=%s) into mongo" % (respJson["id"],
+                                                                       respJson["url"]))
+        respTable.save(respJson)
         if response.error is not None:
             req.retry += 1
             if req.retry < self.taskDict[req.task_id].max_retry:
@@ -210,53 +203,84 @@ class Fetcher:
             else:
                 log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
         else:
-            url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
-            hasNewUrl = False
-            for u in url_list:
-                if u.startswith('//'):
-                    if req.url.startswith("http:"):
-                        u = 'http:' + u
-                    else:
-                        u = 'https:' + u
-                elif not u.startswith('http://') and not u.startswith("https://"):
-                    strlist = req.url.split('?')
-                    u = strlist[0] + u
+            flg_match = False
+            flg_deny = False
+            for ch in self.taskDict[response.task_id].check:
+                if response.url.startswith(ch['url']):
+                    if response.url.find(ch['succ']):
+                        flg_match = True
+                        break
+                    if response.url.find(ch['deny']):
+                        flg_deny = True
+                        break
+
+            if not flg_match:
+                if flg_deny:
+                    # TODO:待处理 retry不加一 但扔回kafka 代理记录
+                    pass
                 else:
-                    followDict = self.taskDict[req.task_id].follow
-                    if followDict:
-                        tag = False
-                        if "starts_with" in followDict:
-                            for rule in followDict['starts_with']:
-                                if u.startswith(rule):
-                                    tag = True
-                                    break
-                        if not tag:
-                            if "ends_with" in followDict:
-                                for rule in followDict['ends_with']:
-                                    if u.endswith(rule):
+                    req.retry += 1
+                    if req.retry < self.taskDict[req.task_id].max_retry:
+                        self.pushReq(req)
+                    else:
+                        log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
+            else:
+                tid = '%s' % req.task_id
+                resTable = self.db['result_'+tid]
+                result_record = {'id':ObjectId(),'req':reqJson,'resp':respJson}
+                log.debug("Save result record (id=%s, req_id=%s, resp_id=%s) of the task %s into mongo" % (result_record["id"],
+                                                                                                   result_record["req"]["id"],
+                                                                                                   result_record["resp"]["id"],
+                                                                                                   req.task_id))
+                resTable.save(result_record)
+                url_list = re.findall(r'<a[\s]*href[\s]*=[\s]*["|\']?(.*?)["|\']?>', response.html)
+                hasNewUrl = False
+                for u in url_list:
+                    if u.startswith('//'):
+                        if req.url.startswith("http:"):
+                            u = 'http:' + u
+                        else:
+                            u = 'https:' + u
+                    elif not u.startswith('http://') and not u.startswith("https://"):
+                        strlist = req.url.split('?')
+                        u = strlist[0] + u
+                    else:
+                        followDict = self.taskDict[req.task_id].follow
+                        if followDict:
+                            tag = False
+                            if "starts_with" in followDict:
+                                for rule in followDict['starts_with']:
+                                    if u.startswith(rule):
                                         tag = True
                                         break
-                        if not tag:
-                            if "contains" in followDict:
-                                for rule in followDict['contains']:
-                                    if u.__contains__(rule):
-                                        tag = True
-                                        break
-                        if not tag:
-                            if "regex_matches" in followDict:
-                                for rule in followDict['regex_matches']:
-                                    if re.search(rule, u):
-                                        tag = True
-                                        break
-                        if tag:
-                            log.debug("Find a new url %s in the page %s." % (u, req.url))
-                            hasNewUrl = True
-                            newReq = WspRequest()
-                            newReq.id = ObjectId()
-                            newReq.father_id = req.id
-                            newReq.task_id = req.task_id
-                            newReq.url = u
-                            newReq.level=req.level+1
-                            self.pushReq(req)
-            if hasNewUrl:
-                self.producer.flush()
+                            if not tag:
+                                if "ends_with" in followDict:
+                                    for rule in followDict['ends_with']:
+                                        if u.endswith(rule):
+                                            tag = True
+                                            break
+                            if not tag:
+                                if "contains" in followDict:
+                                    for rule in followDict['contains']:
+                                        if u.find(rule)!=-1:
+                                            tag = True
+                                            break
+                            if not tag:
+                                if "regex_matches" in followDict:
+                                    for rule in followDict['regex_matches']:
+                                        if re.search(rule, u):
+                                            tag = True
+                                            break
+                            if tag:
+                                log.debug("Find a new url %s in the page %s." % (u, req.url))
+                                hasNewUrl = True
+                                newReq = WspRequest()
+                                newReq.id = ObjectId()
+                                newReq.father_id = req.id
+                                newReq.task_id = req.task_id
+                                newReq.url = u
+                                newReq.level=req.level+1
+                                self.pushReq(req)
+            self.producer.flush()
+
+
