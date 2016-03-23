@@ -19,3 +19,4 @@ class WspTask:
         self.start_urls = kw.get("start_urls", ())
         self.follow = kw.get("follow", {})
         self.max_retry = kw.get("max_retry", DEFAULT_MAX_RETRY)
+        self.check = kw.get("check", ())

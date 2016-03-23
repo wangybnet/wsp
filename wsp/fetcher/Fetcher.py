@@ -127,7 +127,7 @@ class Fetcher:
                 self.taskDict[t.id] = t
 
     def pushReq(self, req):
-        topic = '%d' % req.task_id
+        topic = '%s' % req.task_id
         log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
@@ -199,6 +199,7 @@ class Fetcher:
         if response.error is not None:
             req.retry += 1
             if req.retry < self.taskDict[req.task_id].max_retry:
+                log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, req.url, response.error))
                 self.pushReq(req)
             else:
                 log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, req.retry))
@@ -281,6 +282,6 @@ class Fetcher:
                                 newReq.url = u
                                 newReq.level=req.level+1
                                 self.pushReq(req)
-            self.producer.flush()
+        self.producer.flush()
 
 
