@@ -207,10 +207,10 @@ class Fetcher:
             flg_deny = False
             for ch in self.taskDict[response.task_id].check:
                 if response.url.startswith(ch['url']):
-                    if response.url.find(ch['succ']):
+                    if response.html.find(ch['succ']):
                         flg_match = True
                         break
-                    if response.url.find(ch['deny']):
+                    if response.html.find(ch['deny']):
                         flg_deny = True
                         break
 
