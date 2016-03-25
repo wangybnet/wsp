@@ -106,6 +106,7 @@ class Master(object):
         fetcher_addr = "%s:%d" % (self._rpc_server.client_ip, port)
         log.info("The fetcher at %s is registered" % fetcher_addr)
         self.fetcher_manager.add_fetcher(fetcher_addr)
+        return fetcher_addr
 
     def start(self):
         log.info("Start master RPC at %s" % self._addr)

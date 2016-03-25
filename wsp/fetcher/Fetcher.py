@@ -4,7 +4,6 @@ import logging
 import pickle
 import time
 import re
-import socket
 import threading
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import ServerProxy
@@ -39,8 +38,7 @@ def _convert_request(func):
 def _convert_result(func):
     def wrapper(self, req, resp):
         request = req._wspreq
-        # FIXME: 这种获取本机IP地址的方式在Linux下面可能获取到类似127.*.*.*的地址
-        request.fetcher = socket.gethostbyname(socket.gethostname())
+        request.fetcher = self._addr
         response = WspResponse(req_id=request.id,
                                task_id=request.task_id,
                                url=request.url)
@@ -77,13 +75,15 @@ class Fetcher:
         kafka_addr, mongo_addr = self._pull_config_from_master()
         client = MongoClient(mongo_addr)
         self.db = client.wsp
-        self.isRunning = True
+        self.isRunning = False
+        self._addr = None
         self.rpcServer = self._create_rpc_server()
         self.producer = KafkaProducer(bootstrap_servers=[kafka_addr, ])
         self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr, ], auto_offset_reset='earliest')
         self.downloader = Downloader(clients=downloader_clients)
         self.taskDict = {}
         self._task_lock = threading.Lock()
+
 
     def _pull_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
@@ -94,7 +94,7 @@ class Fetcher:
     def _register(self):
         log.debug("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        rpc_client.register_fetcher(self._port)
+        self._addr = rpc_client.register_fetcher(self._port)
 
     def _create_rpc_server(self):
         server = SimpleXMLRPCServer((self._host, self._port), allow_none=True)
@@ -102,6 +102,7 @@ class Fetcher:
         return server
 
     def start(self):
+        self.isRunning = True
         self._start_pull_req()
         self._start_rpc_server()
         self._register()

@@ -9,20 +9,17 @@ class AsyncThread:
     def __init__(self):
         self._loop = None
 
-    def start(self):
-        if self._loop is not None:
-            return
-        self._loop = asyncio.new_event_loop()
-        t = threading.Thread(target=self._start, args=(self._loop,))
-        t.start()
-
     def stop(self):
+        if self._loop is None:
+            return
         self._loop.call_soon_threadsafe(self._stop)
         self._loop = None
 
     def add_task(self, coro):
         if self._loop is None:
-            self.start()
+            self._loop = asyncio.new_event_loop()
+            t = threading.Thread(target=self._start, args=(self._loop,))
+            t.start()
         self._loop.call_soon_threadsafe(self._add_task, coro)
 
     @staticmethod

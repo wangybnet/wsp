@@ -50,11 +50,9 @@ def test_chinese_sites():
             ok = False
             while not ok:
                 ok = d.add_task(req, save_result)
-                if ok:
-                    break
-                else:
+                if not ok:
                     print("Downloader is busy, so it cannot handle %s" % domain)
-                time.sleep(1)
+                    time.sleep(1)
     duration = time.time() - begin
     print("Duration: %f" % duration)
     print("QPS: %f" % ((len(CHINESE_DOMAINS) * repeat - clients) / duration))
