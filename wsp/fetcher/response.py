@@ -15,3 +15,12 @@ class WspResponse:
         self.error = kw.get("error", None)
         self.headers = kw.get("headers", None)
         self.body = kw.get("body", None)
+
+    def to_dict(self):
+        return {'id':self.id,
+                'req_id': self.req_id,
+                'task_id': self.task_id,
+                'url': self.url,
+                'html': self.html,
+                'http_code': self.http_code,
+                'error': self.error}

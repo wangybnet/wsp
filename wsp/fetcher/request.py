@@ -17,3 +17,13 @@ class WspRequest:
         self.proxy = kw.get("proxy", None)
         self.fetcher = kw.get("fetcher", None)
         self.headers = kw.get("headers", None)
+
+    def to_dict(self):
+        return {'id': self.id,
+                'father_id': self.father_id,
+                'task_id': self.task_id,
+                'url': self.url,
+                'level': self.level,
+                'retry': self.retry,
+                'proxy': self.proxy,
+                'fetcher': self.fetcher}
