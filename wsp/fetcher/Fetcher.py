@@ -12,7 +12,7 @@ from kafka import KafkaProducer
 from kafka import KafkaConsumer
 
 from wsp.master.config import WspConfig
-from wsp.master.task import WspTask
+from wsp.config.task import WspTask
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpResponse
 from wsp.utils.fetcher import pack_request, unpack_request, parse_request

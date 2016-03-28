@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 from wsp.fetcher.fetcherManager import fetcherManager
-from wsp.master.task import WspTask
+from wsp.config.task import WspTask
 
 log = logging.getLogger(__name__)
 

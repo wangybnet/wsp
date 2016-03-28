@@ -1,11 +1,7 @@
 #-*- coding:utf-8 -*-
 
-# 配置Fetcher
-
+# ------ Fetcher ------
 downloader_clients: 200
-
 master_addr: 127.0.0.1:8090
-
 fetcher_addr: 0.0.0.0:8091
-
 log_level: DEBUG

@@ -1,13 +1,10 @@
 #-*- coding:utf-8 -*-
 
-# 配置Master
-
+# ------ Master -------
 master_addr: 0.0.0.0:8090
-
-kafka_addr: 127.0.0.1:9092
-
-mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
-
-agent_addr:
-
 log_level: DEBUG
+
+# ------ System Configuration ------
+kafka_addr: 127.0.0.1:9092
+mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+agent_addr:

@@ -20,6 +20,7 @@ class Downloader:
 
     """
     添加下载任务
+
     在未启动下载线程之前添加下载任务会自动启动下载线程。
     返回True表示已添加该下载任务，False表示当前已经满负荷，请过段时间再添加任务。
     """
@@ -55,12 +56,17 @@ class Downloader:
                 else:
                     res = response
             if plugin:
-                res = await self._handle_response(request, res, plugin)
+                _res = await self._handle_response(request, res, plugin)
+                if _res:
+                    res = _res
         except Exception as e:
+            log.debug("An error=%s has occurred when downloader running" % e)
             try:
+                res = None
                 if plugin:
                     res = await self._handle_error(request, e, plugin)
             except Exception as _e:
+                log.debug("Another error=%s has occurred when handling error=%s" % (e, _e))
                 await callback(request, _e)
             else:
                 if res:

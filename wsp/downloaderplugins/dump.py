@@ -3,7 +3,6 @@
 import logging
 
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 
 from wsp.utils.fetcher import extract_request, parse_response, parse_error
 

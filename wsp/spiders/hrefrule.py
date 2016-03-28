@@ -3,13 +3,13 @@
 import logging
 import re
 
-from wsp.spiders import Spider
+from wsp.spider import BaseSpider
 from wsp.utils.fetcher import text_from_http_body
 
 log = logging.getLogger(__name__)
 
 
-class HrefRuleSpider(Spider):
+class HrefRuleSpider(BaseSpider):
     def __init__(self, **kw):
         self._starts_with = kw.get("starts_with", [])
         self._ends_with = kw.get("ends_with", [])
