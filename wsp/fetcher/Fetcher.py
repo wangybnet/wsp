@@ -9,7 +9,6 @@ from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import ServerProxy
 
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
 
@@ -17,14 +16,14 @@ from wsp.master.config import WspConfig
 from wsp.master.task import WspTask
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpResponse
-from wsp.fetcher.request import WspRequest
-from wsp.utils.fetcher import reconvert_request, reconvert_response, reconvert_error
+from wsp.utils.fetcher import convert_request, reconvert_request
+from .taskmanager import TaskManager
 
 log = logging.getLogger(__name__)
 
 
 class Fetcher:
-    # FIXME: 根据任务设置spider，plugin
+    # FIXME: 根据任务设置spider
     def __init__(self, master_addr, fetcher_addr, downloader_clients):
         log.debug("New fetcher with master_addr=%s, fetcher_addr=%s, downloader_clients=%d" % (master_addr, fetcher_addr, downloader_clients))
         if not master_addr.startswith("http://"):
@@ -32,15 +31,16 @@ class Fetcher:
         self.master_addr = master_addr
         self._host, self._port = fetcher_addr.split(":")
         self._port = int(self._port)
-        kafka_addr, mongo_addr = self._pull_config_from_master()
-        client = MongoClient(mongo_addr)
+        self._wsp_config = self._pull_config_from_master()
+        client = MongoClient(self._wsp_config.mongo_addr)
         self.db = client.wsp
         self.isRunning = False
         self._addr = None
         self.rpcServer = self._create_rpc_server()
-        self.producer = KafkaProducer(bootstrap_servers=[kafka_addr, ])
-        self.consumer = KafkaConsumer(bootstrap_servers=[kafka_addr, ], auto_offset_reset='earliest')
+        self.producer = KafkaProducer(bootstrap_servers=[self._wsp_config.kafka_addr, ])
+        self.consumer = KafkaConsumer(bootstrap_servers=[self._wsp_config.kafka_addr, ], auto_offset_reset='earliest')
         self.downloader = Downloader(clients=downloader_clients)
+        self._task_manager = TaskManager(self._wsp_config)
         self.taskDict = {}
         self._task_lock = threading.Lock()
 
@@ -48,9 +48,9 @@ class Fetcher:
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
         conf = WspConfig(**rpc_client.get_config())
         log.debug("Get the configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
-        return conf.kafka_addr, conf.mongo_addr
+        return conf
 
-    def _register(self):
+    def _register_on_master(self):
         log.debug("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
         self._addr = rpc_client.register_fetcher(self._port)
@@ -64,7 +64,7 @@ class Fetcher:
         self.isRunning = True
         self._start_pull_req()
         self._start_rpc_server()
-        self._register()
+        self._register_on_master()
 
     def _start_rpc_server(self):
         log.info("Start RPC server at %s:%d" % (self._host, self._port))
@@ -105,6 +105,8 @@ class Fetcher:
                 record = next(self.consumer)
                 req = pickle.loads(record.value)
                 log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
+                # 添加处理该请求的fetcher的地址
+                req.fetcher = self._addr
                 self._push_task(req)
 
     def _start_pull_req(self):
@@ -113,8 +115,9 @@ class Fetcher:
         t.start()
 
     def _push_task(self, req):
+        request = convert_request(req)
         while True:
-            if self.downloader.add_task(req, self.saveResult):
+            if self.downloader.add_task(request, self.saveResult):
                 break
             # FIXME: 这里暂定休息1s
             sleep_time = 1
@@ -124,11 +127,10 @@ class Fetcher:
     async def saveResult(self, request, result):
         if isinstance(result, HttpRequest):
             req = reconvert_request(result)
-            self._push_task()
+            self._push_task(req)
             self.producer.flush()
         elif isinstance(result, HttpResponse):
             # FIXME: 调用对应的spider
-            pass
+            log.debug("I will use spider to handle the response soon")
         else:
-            req, err = reconvert_error(request, result)
-            # Do Nothing
+            log.debug("Got an error %s when request %s, but I will do noting here" % (result, request.url))

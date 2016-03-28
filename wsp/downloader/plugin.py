@@ -15,7 +15,7 @@ class DownloaderPluginManager:
             self._add_plugin(plugin)
 
     @classmethod
-    def from_config(cls):
+    def from_config(cls, conf):
         # FIXME: Get plugins from configuration
         plugins = []
         return cls(*plugins)

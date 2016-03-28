@@ -14,7 +14,6 @@ class RetryPlugin:
     """
     判断是否重试
     """
-
     # 需要重试的异常的集合
     RETRY_ERRORS = (HttpError, AccessDeny, ResponseNotMatch)
     # 需要重试的HTTP状态码的集合

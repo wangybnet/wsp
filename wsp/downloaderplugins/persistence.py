@@ -14,13 +14,13 @@ class PersistencePlugin:
     """
     将抓取的结果持久化
     """
-    def __init__(self, addr, mongo_addr):
-        self._addr = addr
+    def __init__(self, mongo_addr):
         client = MongoClient(mongo_addr)
         self.db = client.wsp
 
     async def handle_response(self, request, response):
         req, res = reconvert_response(request, response)
+
         res.id = ObjectId()
         tid = '%s' % req.task_id
         resTable = self.db['result_' + tid]

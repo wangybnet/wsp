@@ -2,8 +2,11 @@
 
 
 class ProxyPlugin:
-    def __init__(self, server_addr):
-        self._server_addr = server_addr
+    """
+    给Http请求添加代理的插件
+    """
+    def __init__(self, agent_addr):
+        self._agent_addr = agent_addr
 
     """
     根据任务配置实例化代理插件
@@ -17,7 +20,7 @@ class ProxyPlugin:
     """
     async def handle_request(self, request):
         # TODO
-        return request
+        pass
 
     """
     请求正常时的反馈

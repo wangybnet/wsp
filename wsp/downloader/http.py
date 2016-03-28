@@ -51,5 +51,5 @@ class HttpResponse:
 
 class HttpError(Exception):
     def __init__(self, error):
-        self.erro = error
+        self.error = error
         super(HttpError, self).__init__(error)
