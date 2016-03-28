@@ -38,7 +38,7 @@ class TaskManager:
         if task_id not in self._downloader_plugins:
             plugins = [dplugins.RetryPlugin(task.get_config(tconf.MAX_RETRY)),
                        dplugins.ProxyPlugin(self._sysconf.agent_addr),
-                       dplugins.CheckPlugin(task.get_config(tconf.CHECK)),
+                       # dplugins.CheckPlugin(task.get_config(tconf.CHECK)),
                        dplugins.DumpPlugin(self._sysconf.mongo_addr),
                        dplugins.PersistencePlugin(self._sysconf.mongo_addr)]
             self._downloader_plugins[task_id] = DownloaderPluginManager(*plugins)

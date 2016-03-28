@@ -16,7 +16,11 @@ class Spider:
         try:
             if plugin:
                 await cls._handle_input(request, response, plugin)
-            res = ((await r if inspect.iscoroutine(r) else r) for r in spider.parse(request, response))
+            res = []
+            for r in spider.parse(request, response):
+                if inspect.iscoroutine(r):
+                    res.append(await r)
+                res.append(r)
         except Exception as e:
             log.debug("An error=%s has occurred when spider running" % e)
             try:

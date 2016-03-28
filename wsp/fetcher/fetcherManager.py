@@ -10,6 +10,7 @@ from bson.objectid import ObjectId
 
 from wsp.fetcher.request import WspRequest
 from wsp.downloader.http import HttpRequest
+from wsp.config import task as tconf
 
 log = logging.getLogger(__name__)
 
@@ -59,8 +60,9 @@ class fetcherManager:
         for t in tasks:
             log.debug("Start task %s (status=%s)" % (t.id, t.status))
             if t.status==0:
-                log.debug("Push the start URLs %s of task %s" % (t.start_urls, t.id))
-                for url in t.start_urls:
+                start_urls = t.get_config(tconf.START_URLS)
+                log.debug("Push the start URLs %s of task %s" % (start_urls, t.id))
+                for url in start_urls:
                     obj_id = ObjectId()
                     req = WspRequest(id=obj_id,
                                      father_id=obj_id,
