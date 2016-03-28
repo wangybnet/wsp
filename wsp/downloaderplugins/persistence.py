@@ -21,8 +21,6 @@ class PersistencePlugin:
     async def handle_response(self, request, response):
         req = extract_request(request)
         res = parse_response(req, response)
-
-        res.id = ObjectId()
         tid = '%s' % req.task_id
         resTable = self.db['result_' + tid]
         res_record = {'id': ObjectId(), 'req': req.to_dict(), 'resp': res.to_dict()}

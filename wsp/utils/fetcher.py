@@ -9,7 +9,7 @@ from wsp import reqmeta
 
 # WspRequest --> HttpRequest
 def pack_request(wsp_request):
-    req = wsp_request.http_reqeust
+    req = wsp_request.http_request
     req.meta[reqmeta.WSP_REQUEST] = wsp_request
     return req
 
@@ -35,6 +35,7 @@ def parse_request(wsp_request, http_request):
     req = WspRequest(father_id=wsp_request.father_id,
                      task_id=wsp_request.task_id,
                      http_request=wsp_request.http_request)
+    return req
 
 
 # HttpResponse --> WspResponse

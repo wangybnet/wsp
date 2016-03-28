@@ -130,7 +130,7 @@ class Fetcher:
         req = unpack_request(request)
         if isinstance(result, HttpRequest):
             res = parse_request(req, result)
-            self._push_task(req)
+            self.pushReq(req)
             self.producer.flush()
         elif isinstance(result, HttpResponse):
             # FIXME: 调用对应的spider

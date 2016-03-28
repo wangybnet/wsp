@@ -1,10 +1,12 @@
 # coding=utf-8
 
+from bson.objectid import ObjectId
+
 
 class WspResponse:
 
     def __init__(self, **kw):
-        self.id = kw.get("id", None)
+        self.id = kw.get("id", ObjectId())
         self.req_id = kw.get("req_id", None)
         self.task_id = kw.get("task_id", None)
         self.html = kw.get("html", None)

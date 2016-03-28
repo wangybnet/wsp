@@ -1,12 +1,14 @@
 # coding=utf-8
 
+from bson.objectid import ObjectId
+
 from wsp import reqmeta
 
 
 class WspRequest:
 
     def __init__(self, **kw):
-        self.id = kw.get("id", None)
+        self.id = kw.get("id", ObjectId())
         self.father_id = kw.get("father_id", None)
         self.task_id = kw.get("task_id", None)
         self.fetcher = kw.get("fetcher", None)

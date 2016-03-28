@@ -33,7 +33,6 @@ class DumpPlugin:
         self._save_response(res)
 
     def _save_request(self, req):
-        req.id = ObjectId()
         reqTable = self.db.request
         reqJson = req.to_dict()
         log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJson["id"],
@@ -41,7 +40,6 @@ class DumpPlugin:
         reqTable.save(reqJson)
 
     def _save_response(self, res):
-        res.id = ObjectId()
         resTable = self.db.response
         resJson = res.to_dict()
         log.debug("Save response record (id=%s, url=%s) into mongo" % (resJson["id"],
