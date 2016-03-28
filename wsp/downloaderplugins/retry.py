@@ -2,7 +2,7 @@
 
 import logging
 
-from wsp.utils.fetcher import reconvert_request
+from wsp.utils.fetcher import extract_request
 from wsp.downloader.http import HttpError
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp import reqmeta
@@ -34,12 +34,12 @@ class RetryPlugin:
         return self._retry(request, slot, "%s" % error)
 
     def _retry(self, request, slot, reason):
-        req = reconvert_request(request)
+        req = extract_request(request)
         retry_times = request.meta.get(reqmeta.RETRY_TIMES, 0) + slot
         if retry_times <= self._max_retry_times:
-            log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, req.url, reason))
+            log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, request.url, reason))
             request.meta[reqmeta.RETRY_TIMES] = retry_times
             return request
         else:
-            log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, self._max_retry_times))
+            log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))
             raise IgnoreRequest()

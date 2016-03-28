@@ -3,7 +3,6 @@
 import logging
 import pickle
 import time
-import re
 import threading
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import ServerProxy

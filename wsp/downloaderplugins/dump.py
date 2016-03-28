@@ -5,7 +5,7 @@ import logging
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-from wsp.utils.fetcher import reconvert_request, reconvert_response, reconvert_error
+from wsp.utils.fetcher import extract_request, parse_response, parse_error
 
 log = logging.getLogger(__name__)
 
@@ -19,15 +19,17 @@ class DumpPlugin:
         self.db = client.wsp
 
     async def handle_request(self, request):
-        req = reconvert_request(request)
+        req = extract_request(request)
         self._save_request(req)
 
     async def handle_reponse(self, request, response):
-        _, res = reconvert_response(request, response)
+        req = extract_request(request)
+        res = parse_response(req, response)
         self._save_response(res)
 
     async def handle_error(self, request, error):
-        _, res = reconvert_error(request, error)
+        req = extract_request(request)
+        res = parse_error(req, error)
         self._save_response(res)
 
     def _save_request(self, req):
@@ -35,7 +37,7 @@ class DumpPlugin:
         reqTable = self.db.request
         reqJson = req.to_dict()
         log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJson["id"],
-                                                                      reqJson["url"]))
+                                                                      reqJson["http_request"]["url"]))
         reqTable.save(reqJson)
 
     def _save_response(self, res):
@@ -43,5 +45,5 @@ class DumpPlugin:
         resTable = self.db.response
         resJson = res.to_dict()
         log.debug("Save response record (id=%s, url=%s) into mongo" % (resJson["id"],
-                                                                       resJson["url"]))
+                                                                       resJson["http_request"]["url"]))
         resTable.save(resJson)
