@@ -9,6 +9,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 from wsp.fetcher.request import WspRequest
+from wsp.downloader.http import HttpRequest
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class fetcherManager:
                     req = WspRequest(id=obj_id,
                                      father_id=obj_id,
                                      task_id=t.id,
-                                     url=url)
+                                     http_request=HttpRequest(url))
                     self._pushReq(req)
                 self.producer.flush()
             self.taskTable.update({"id":t.id},{"$set":{'status':1}})
@@ -74,6 +75,6 @@ class fetcherManager:
 
     def _pushReq(self, req):
         topic = '%s' % req.task_id
-        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
+        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)

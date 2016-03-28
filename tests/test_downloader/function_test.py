@@ -7,18 +7,11 @@ from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpError
 
 
-def _convert(func):
-    def wrapper(req, resp):
-        return func(req, resp)
-    return wrapper
-
-
-@_convert
-def save_result(request, response):
+async def save_result(request, response):
     if isinstance(response, HttpError):
         print("Error:", response.error)
     else:
-        print("URL:", request.url)
+        print("URL:", response.url)
         print("Status:", response.status)
         print("Headers:", response.headers)
         print("Cookies:", response.cookies)

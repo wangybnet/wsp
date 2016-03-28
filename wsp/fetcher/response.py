@@ -7,20 +7,18 @@ class WspResponse:
         self.id = kw.get("id", None)
         self.req_id = kw.get("req_id", None)
         self.task_id = kw.get("task_id", None)
-        self.url = kw.get("url", None)
         self.html = kw.get("html", None)
-        self.http_code = kw.get("http_code", None)
-        if self.http_code is not None:
-            self.http_code = int(self.http_code)
         self.error = kw.get("error", None)
-        self.headers = kw.get("headers", None)
-        self.body = kw.get("body", None)
+        self.http_response = kw.get("http_response", None)
 
     def to_dict(self):
-        return {'id':self.id,
-                'req_id': self.req_id,
-                'task_id': self.task_id,
-                'url': self.url,
-                'html': self.html,
-                'http_code': self.http_code,
-                'error': self.error}
+        return {
+            'id': self.id,
+            'req_id': self.req_id,
+            'task_id': self.task_id,
+            'html': self.html,
+            'error': self.error,
+            'http_response': None if self.http_response is None else {
+                'url': self.http_response.url,
+                'http_code': self.http_response.status
+            }}

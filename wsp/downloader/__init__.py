@@ -48,7 +48,7 @@ class Downloader:
             if res is None:
                 try:
                     response = await self._download(request)
-                    log.debug("Http Response: %s %s" % (request.url, response.status))
+                    log.debug("Http Response: %s %s" % (response.url, response.status))
                 except Exception as e:
                     log.debug("Http Error: %s" % e)
                     raise HttpError(e)
@@ -58,7 +58,8 @@ class Downloader:
                 res = await self._handle_response(request, res, plugin)
         except Exception as e:
             try:
-                res = await self._handle_error(request, e, plugin)
+                if plugin:
+                    res = await self._handle_error(request, e, plugin)
             except Exception as _e:
                 await callback(request, _e)
             else:
@@ -110,7 +111,8 @@ class Downloader:
                                        headers=request.headers,
                                        data=request.body) as resp:
                 body = await resp.read()
-                response = HttpResponse(resp.status,
+                response = HttpResponse(resp.url,
+                                        resp.status,
                                         headers=resp.headers,
                                         body=body,
                                         cookies=resp.cookies)

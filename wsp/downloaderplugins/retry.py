@@ -2,7 +2,7 @@
 
 import logging
 
-from wsp.utils.fetcher import text_from_http_body, reconvert_request
+from wsp.utils.fetcher import reconvert_request
 from wsp.downloader.http import HttpError
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp import reqmeta
@@ -26,12 +26,12 @@ class RetryPlugin:
         if response.status in self.RETRY_HTTP_STATUS:
             return self._retry(request, 1, "http status=%s" % response.status)
 
-    async def process_exception(self, request, exception):
-        if not isinstance(exception, self.RETRY_ERRORS):
+    async def handle_error(self, request, error):
+        if not isinstance(error, self.RETRY_ERRORS):
             return
         # FIXME: 根据错误的类型确定是否占用重试次数
         slot = 1
-        return self._retry(request, slot)
+        return self._retry(request, slot, "%s" % error)
 
     def _retry(self, request, slot, reason):
         req = reconvert_request(request)
@@ -41,5 +41,5 @@ class RetryPlugin:
             request.meta[reqmeta.RETRY_TIMES] = retry_times
             return request
         else:
-            log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, self._max_retry))
+            log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, req.url, self._max_retry_times))
             raise IgnoreRequest()

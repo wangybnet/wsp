@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from wsp import downloaderplugins as dplugins
+from wsp.downloader.plugin import DownloaderPluginManager
 
 
 class TaskManager:
@@ -19,12 +20,15 @@ class TaskManager:
         self._tasks = {}
         self._plugins = {}
         for task in tasks:
-            self._tasks[task.id] = task
+            task_id = "%s" % task.id
+            print(task_id)
+            self._tasks[task_id] = task
 
     """
     根据任务的id获取下载器插件
     """
     def downloader_plugins(self, task_id):
+        task_id = "%s" % task_id
         assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
         task = self._tasks[task_id]
         if task_id not in self._plugins:
@@ -33,4 +37,5 @@ class TaskManager:
                        dplugins.CheckPlugin(task.check),
                        dplugins.DumpPlugin(self._wsp_config.mongo_addr),
                        dplugins.PersistencePlugin(self._wsp_config.mongo_addr)]
-            self._plugins[task_id] = plugins
+            self._plugins[task_id] = DownloaderPluginManager(*plugins)
+        return self._plugins[task_id]

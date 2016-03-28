@@ -16,7 +16,7 @@ from wsp.master.config import WspConfig
 from wsp.master.task import WspTask
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpResponse
-from wsp.utils.fetcher import convert_request, reconvert_request
+from wsp.utils.fetcher import pack_request, unpack_request, parse_request
 from .taskmanager import TaskManager
 
 log = logging.getLogger(__name__)
@@ -72,9 +72,9 @@ class Fetcher:
         t.start()
 
     def changeTasks(self, tasks):
+        wsp_tasks = [WspTask(**t) for t in tasks]
         topics = []
-        for t in tasks:
-            t = WspTask(**t)
+        for t in wsp_tasks:
             topic = '%s' % t.id
             topics.append(topic)
         with self._task_lock:
@@ -82,13 +82,14 @@ class Fetcher:
             if topics:
                 self.consumer.subscribe(topics)
             self.taskDict = {}
-            for t in tasks:
-                t = WspTask(**t)
+            for t in wsp_tasks:
                 self.taskDict[t.id] = t
+            # set current tasks of task manager
+            self._task_manager.set_tasks(*wsp_tasks)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id
-        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.url, topic))
+        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
@@ -104,7 +105,7 @@ class Fetcher:
             else:
                 record = next(self.consumer)
                 req = pickle.loads(record.value)
-                log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.url))
+                log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
                 # 添加处理该请求的fetcher的地址
                 req.fetcher = self._addr
                 self._push_task(req)
@@ -115,9 +116,10 @@ class Fetcher:
         t.start()
 
     def _push_task(self, req):
-        request = convert_request(req)
+        request = pack_request(req)
+        task_id = "%s" % req.task_id
         while True:
-            if self.downloader.add_task(request, self.saveResult):
+            if self.downloader.add_task(request, self.saveResult, plugin=self._task_manager.downloader_plugins(task_id)):
                 break
             # FIXME: 这里暂定休息1s
             sleep_time = 1
@@ -125,12 +127,15 @@ class Fetcher:
             time.sleep(sleep_time)
 
     async def saveResult(self, request, result):
+        # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
+        req = unpack_request(request)
         if isinstance(result, HttpRequest):
-            req = reconvert_request(result)
+            res = parse_request(req, result)
             self._push_task(req)
             self.producer.flush()
         elif isinstance(result, HttpResponse):
             # FIXME: 调用对应的spider
             log.debug("I will use spider to handle the response soon")
         else:
-            log.debug("Got an error %s when request %s, but I will do noting here" % (result, request.url))
+            log.debug("Got an error (%s) when request %s, but I will do noting here" % (result, request.url))
+            raise result

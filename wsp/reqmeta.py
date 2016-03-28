@@ -10,3 +10,5 @@ META_PREFIX = "_wsp_"
 WSP_REQUEST = META_PREFIX + "request"
 # 重试次数
 RETRY_TIMES = META_PREFIX + "retry_times"
+# 抓取深度
+CRAWL_LEVEL = META_PREFIX + "crawl_level"
