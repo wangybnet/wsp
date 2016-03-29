@@ -8,7 +8,7 @@ import yaml
 
 import wsp
 from wsp.master.master import Master
-from wsp.master.config import WspConfig
+from wsp.config.system import SystemConfig
 
 
 if __name__ == "__main__":
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     log.debug("master.yaml=%s" % conf)
 
     master = Master(conf["master_addr"],
-                    WspConfig(kafka_addr=conf["kafka_addr"],
-                              mongo_addr=conf["mongo_addr"],
-                              agent_addr=conf["agent_addr"]))
+                    SystemConfig(kafka_addr=conf["kafka_addr"],
+                                 mongo_addr=conf["mongo_addr"],
+                                 agent_addr=conf["agent_addr"]))
     master.start()

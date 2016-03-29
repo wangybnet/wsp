@@ -60,13 +60,13 @@ class Downloader:
                 if _res:
                     res = _res
         except Exception as e:
-            log.debug("An error=%s has occurred when downloader running" % e)
+            log.debug("An error occurred when downloader running: %s" % e)
             try:
                 res = None
                 if plugin:
                     res = await self._handle_error(request, e, plugin)
             except Exception as _e:
-                log.debug("Another error=%s has occurred when handling error=%s" % (e, _e))
+                log.debug("Another error occurred when handling error=%s: %s" % (e, _e))
                 await callback(request, _e)
             else:
                 if res:

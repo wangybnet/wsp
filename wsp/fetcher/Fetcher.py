@@ -7,46 +7,50 @@ import threading
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import ServerProxy
 
-from pymongo import MongoClient
 from kafka import KafkaProducer
 from kafka import KafkaConsumer
 
-from wsp.master.config import WspConfig
-from wsp.config.task import WspTask
+from wsp.config.system import SystemConfig
 from wsp.downloader import Downloader
 from wsp.downloader.http import HttpRequest, HttpResponse
 from wsp.utils.fetcher import pack_request, unpack_request, parse_request
 from .taskmanager import TaskManager
+from .config import FetcherConfig
+from wsp.spider import Spider
 
 log = logging.getLogger(__name__)
 
 
 class Fetcher:
     # FIXME: 根据任务设置spider
-    def __init__(self, master_addr, fetcher_addr, downloader_clients):
-        log.debug("New fetcher with master_addr=%s, fetcher_addr=%s, downloader_clients=%d" % (master_addr, fetcher_addr, downloader_clients))
-        if not master_addr.startswith("http://"):
-            master_addr = "http://" + master_addr
-        self.master_addr = master_addr
-        self._host, self._port = fetcher_addr.split(":")
+    def __init__(self, conf):
+        assert isinstance(conf, FetcherConfig), "Wrong configuration"
+        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s, downloader_clients=%d" % (conf.master_rpc_addr, conf.rpc_addr, conf.downloader_clients))
+        self._conf = conf
+        self.master_addr = conf.master_rpc_addr
+        if not self.master_addr.startswith("http://"):
+            self.master_addr = "http://%s" % self.master_addr
+        self._host, self._port = conf.rpc_addr.split(":")
         self._port = int(self._port)
-        self._wsp_config = self._pull_config_from_master()
-        client = MongoClient(self._wsp_config.mongo_addr)
-        self.db = client.wsp
+        self._sys_config = self._pull_config_from_master()
         self.isRunning = False
-        self._addr = None
         self.rpcServer = self._create_rpc_server()
-        self.producer = KafkaProducer(bootstrap_servers=[self._wsp_config.kafka_addr, ])
-        self.consumer = KafkaConsumer(bootstrap_servers=[self._wsp_config.kafka_addr, ], auto_offset_reset='earliest')
-        self.downloader = Downloader(clients=downloader_clients)
-        self._task_manager = TaskManager(self._wsp_config)
+        self.producer = KafkaProducer(bootstrap_servers=[self._sys_config.kafka_addr, ])
+        self.consumer = KafkaConsumer(bootstrap_servers=[self._sys_config.kafka_addr, ],
+                                      auto_offset_reset='earliest',
+                                      consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
+        self.downloader = Downloader(clients=conf.downloader_clients)
+        self._task_manager = TaskManager(conf.data_dir, self._sys_config.mongo_addr)
         self.taskDict = {}
         self._task_lock = threading.Lock()
+        self._subscribe_lock = threading.Lock()
+        # NOTE: Fetcher的地址在向Master注册时获取
+        self._addr = None
 
     def _pull_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        conf = WspConfig(**rpc_client.get_config())
-        log.debug("Get the configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
+        conf = SystemConfig(**rpc_client.get_config())
+        log.debug("Get the system configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
         return conf
 
     def _register_on_master(self):
@@ -70,21 +74,19 @@ class Fetcher:
         t = threading.Thread(target=self.rpcServer.serve_forever)
         t.start()
 
+    # NOTE: The tasks here is a list of task IDs.
     def changeTasks(self, tasks):
-        wsp_tasks = [WspTask(**t) for t in tasks]
-        topics = []
-        for t in wsp_tasks:
-            topic = '%s' % t.id
-            topics.append(topic)
+        topics = [t for t in tasks]
         with self._task_lock:
-            log.debug("Subscribe topics %s" % topics)
-            if topics:
-                self.consumer.subscribe(topics)
-            self.taskDict = {}
-            for t in wsp_tasks:
-                self.taskDict[t.id] = t
-            # set current tasks of task manager
-            self._task_manager.set_tasks(*wsp_tasks)
+            with self._subscribe_lock:
+                log.debug("Subscribe topics %s" % topics)
+                if topics:
+                    self.consumer.subscribe(topics)
+                self.taskDict = {}
+                for t in tasks:
+                    self.taskDict[t] = None
+                # set current tasks of task manager
+                self._task_manager.set_tasks(*tasks)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id
@@ -97,17 +99,21 @@ class Fetcher:
             with self._task_lock:
                 no_work = not self.taskDict
             if no_work:
-                # FIXME: 这里暂定休息5s
-                sleep_time = 5
+                sleep_time = self._conf.no_work_sleep_time
                 log.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
             else:
-                record = next(self.consumer)
-                req = pickle.loads(record.value)
-                log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
-                # 添加处理该请求的fetcher的地址
-                req.fetcher = self._addr
-                self._push_task(req)
+                try:
+                    with self._subscribe_lock:
+                        record = next(self.consumer)
+                    req = pickle.loads(record.value)
+                    log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
+                except Exception as e:
+                    log.warning("An error occured when fetch data from Kafka: %s", e)
+                else:
+                    # 添加处理该请求的fetcher的地址
+                    req.fetcher = self._addr
+                    self._push_task(req)
 
     def _start_pull_req(self):
         log.info("Start to pull requests")
@@ -118,10 +124,11 @@ class Fetcher:
         request = pack_request(req)
         task_id = "%s" % req.task_id
         while True:
-            if self.downloader.add_task(request, self.saveResult, plugin=self._task_manager.downloader_plugins(task_id)):
+            if self.downloader.add_task(request,
+                                        self.saveResult,
+                                        plugin=self._task_manager.downloader_plugins(task_id)):
                 break
-            # FIXME: 这里暂定休息1s
-            sleep_time = 1
+            sleep_time = self._conf.downloader_busy_sleep_time
             log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
@@ -129,12 +136,23 @@ class Fetcher:
         # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
         req = unpack_request(request)
         if isinstance(result, HttpRequest):
-            res = parse_request(req, result)
-            self.pushReq(req)
+            new_req = parse_request(req, result)
+            self.pushReq(new_req)
             self.producer.flush()
         elif isinstance(result, HttpResponse):
-            # FIXME: 调用对应的spider
-            log.debug("I will use spider to handle the response soon")
+            task_id = "%s" % req.task_id
+            spider = self._task_manager.spider(task_id)
+            if spider:
+                for res in (await Spider.crawl(spider,
+                                               request,
+                                               result,
+                                               plugin=self._task_manager.spider_plugins(task_id))):
+                    if isinstance(res, HttpRequest):
+                        new_req = parse_request(req, res)
+                        self.pushReq(new_req)
+                    else:
+                        log.debug("Got %s, but I will do noting here", res)
+                self.producer.flush()
         else:
             log.debug("Got an error (%s) when request %s, but I will do noting here" % (result, request.url))
             raise result

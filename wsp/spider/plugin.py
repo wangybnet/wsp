@@ -1,26 +1,21 @@
 # coding=utf-8
 
+from wsp.plugin import PluginManager
 
-class SpiderPluginManager:
+
+class SpiderPluginManager(PluginManager):
     """
     Spider插件管理器
-
-    插件由内向外逐层包裹Spider。
     """
+
     def __init__(self, *plugins):
         self._input_handlers = []
         self._output_handlers = []
         self._error_handlers = []
-        for plugin in plugins:
-            self._add_plugin(plugin)
-
-    @classmethod
-    def from_config(cls, conf):
-        # FIXME: Get plugins from configuration
-        plugins = []
-        return cls(*plugins)
+        super(SpiderPluginManager, self).__init__(*plugins)
 
     def _add_plugin(self, plugin):
+        super(SpiderPluginManager, self)._add_plugin(plugin)
         if hasattr(plugin, "handle_input"):
             self._input_handlers.append(plugin.handle_input)
         if hasattr(plugin, "handle_output"):
@@ -39,3 +34,10 @@ class SpiderPluginManager:
     @property
     def error_handlers(self):
         return self._error_handlers
+
+    @classmethod
+    def _plugin_list_from_config(cls, config):
+        # FIXME: Get plugin list from configuration
+
+        plugin_list = ["wsp.spiderplugins.levellimit.LevelLimitPlugin"]
+        return plugin_list

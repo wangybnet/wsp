@@ -1,10 +1,11 @@
 #-*- coding:utf-8 -*-
 
-# ------ Master -------
-master_addr: 0.0.0.0:8090
 log_level: DEBUG
 
+# ------ Master -------
+rpc_addr: 0.0.0.0:8090
+
 # ------ System Configuration ------
-kafka_addr: 127.0.0.1:9092
-mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
-agent_addr:
+sys_kafka_addr: 127.0.0.1:9092
+sys_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+sys_agent_addr:

@@ -22,7 +22,13 @@ class LevelLimitPlugin:
         return self._handle_response(request, result)
 
     def _handle_response(self, request, result):
-        level = request.meta.get(reqmeta.CRAWL_LEVEL) + 1
-        if level <= self._max_level:
-            return result
-        return ((None if isinstance(r, HttpRequest) else r) for r in result)
+        level = request.meta.get(reqmeta.CRAWL_LEVEL, 0) + 1
+        for r in result:
+            if isinstance(r, HttpRequest):
+                if level > self._max_level:
+                    yield None
+                else:
+                    r.meta[reqmeta.CRAWL_LEVEL] = level
+                    yield r
+            else:
+                yield r

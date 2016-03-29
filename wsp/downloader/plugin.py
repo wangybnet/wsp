@@ -1,26 +1,21 @@
 # coding=utf-8
 
+from wsp.plugin import PluginManager
 
-class DownloaderPluginManager:
+
+class DownloaderPluginManager(PluginManager):
     """
     下载器插件管理器
-
-    插件由内向外逐层包裹下载器。
     """
+
     def __init__(self, *plugins):
         self._request_handlers = []
         self._response_handlers = []
         self._error_handlers = []
-        for plugin in plugins:
-            self._add_plugin(plugin)
-
-    @classmethod
-    def from_config(cls, conf):
-        # FIXME: Get plugins from configuration
-        plugins = []
-        return cls(*plugins)
+        super(DownloaderPluginManager, self).__init__(*plugins)
 
     def _add_plugin(self, plugin):
+        super(DownloaderPluginManager, self)._add_plugin(plugin)
         if hasattr(plugin, "handle_request"):
             self._request_handlers.append(plugin.handle_request)
         if hasattr(plugin, "handle_response"):
@@ -39,3 +34,14 @@ class DownloaderPluginManager:
     @property
     def error_handlers(self):
         return self._error_handlers
+
+    @classmethod
+    def _plugin_list_from_config(cls, config):
+        # FIXME: Get plugin list from configuration
+
+        plugin_list = ["wsp.downloaderplugins.check.CheckPlugin",
+                       "wsp.downloaderplugins.retry.RetryPlugin",
+                       "wsp.downloaderplugins.check.CheckPlugin",
+                       "wsp.downloaderplugins.dump.DumpPlugin",
+                       "wsp.downloaderplugins.persistence.PersistencePlugin"]
+        return plugin_list

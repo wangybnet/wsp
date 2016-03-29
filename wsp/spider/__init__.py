@@ -4,6 +4,8 @@ import logging
 import inspect
 
 from wsp.downloader.http import HttpRequest
+from wsp.config import task as tc
+from wsp.utils.config import load_object
 
 log = logging.getLogger(__name__)
 
@@ -19,8 +21,9 @@ class Spider:
             res = []
             for r in spider.parse(request, response):
                 if inspect.iscoroutine(r):
-                    res.append(await r)
-                res.append(r)
+                    r = await r
+                if r:
+                    res.append(r)
         except Exception as e:
             log.debug("An error=%s has occurred when spider running" % e)
             try:
@@ -74,3 +77,20 @@ class BaseSpider:
     """
     def start_requests(self, start_urls):
         return (HttpRequest(u) for u in start_urls)
+
+
+class SpiderFactory:
+
+    @staticmethod
+    def create(config):
+        spider = None
+        cls_path = config.get(tc.SPIDER)
+        try:
+            spider_cls = load_object(cls_path)
+            if hasattr(spider_cls, "from_config"):
+                spider = spider_cls.from_config(config)
+            else:
+                spider = spider_cls()
+        except Exception as e:
+            log.warning("An error occurred when loading spider '%s': %s" % (cls_path, e))
+        return spider

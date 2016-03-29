@@ -8,6 +8,7 @@ import yaml
 
 import wsp
 from wsp.fetcher.Fetcher import Fetcher
+from wsp.fetcher.config import FetcherConfig
 
 
 if __name__ == "__main__":
@@ -24,5 +25,5 @@ if __name__ == "__main__":
                    "%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
     log.debug("fetcher.yaml=%s" % conf)
-    fetcher = Fetcher(conf["master_addr"], conf["fetcher_addr"], int(conf["downloader_clients"]))
+    fetcher = Fetcher(FetcherConfig(**conf))
     fetcher.start()

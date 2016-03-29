@@ -55,7 +55,7 @@ class Master(object):
         return collection
 
     def _find_one(self, obj_id):
-         return next(self.__get_col('wsp', 'task').find({'_id': ObjectId(obj_id)}))
+         return self.__get_col('wsp', 'task').find_one({'_id': ObjectId(obj_id)})
 
     def create_one(self, task):
         if "status" not in task:
