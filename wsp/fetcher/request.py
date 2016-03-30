@@ -8,7 +8,7 @@ from wsp import reqmeta
 class WspRequest:
 
     def __init__(self, **kw):
-        self.id = kw.get("id", ObjectId())
+        self.id = kw.get("id", "%s" % ObjectId())
         self.father_id = kw.get("father_id", None)
         self.task_id = kw.get("task_id", None)
         self.fetcher = kw.get("fetcher", None)
@@ -21,6 +21,7 @@ class WspRequest:
 
     def to_dict(self):
         return {
+            '_id': ObjectId(self.id),
             'id': self.id,
             'father_id': self.father_id,
             'task_id': self.task_id,

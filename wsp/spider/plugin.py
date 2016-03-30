@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from wsp.plugin import PluginManager
+from wsp.config import task as tc
 
 
 class SpiderPluginManager(PluginManager):
@@ -15,7 +16,6 @@ class SpiderPluginManager(PluginManager):
         super(SpiderPluginManager, self).__init__(*plugins)
 
     def _add_plugin(self, plugin):
-        super(SpiderPluginManager, self)._add_plugin(plugin)
         if hasattr(plugin, "handle_input"):
             self._input_handlers.append(plugin.handle_input)
         if hasattr(plugin, "handle_output"):
@@ -37,7 +37,4 @@ class SpiderPluginManager(PluginManager):
 
     @classmethod
     def _plugin_list_from_config(cls, config):
-        # FIXME: Get plugin list from configuration
-
-        plugin_list = ["wsp.spiderplugins.levellimit.LevelLimitPlugin"]
-        return plugin_list
+        return config.get(tc.SPIDER_PLUGINS)

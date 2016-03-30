@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from wsp.plugin import PluginManager
+from wsp.config import task as tc
 
 
 class DownloaderPluginManager(PluginManager):
@@ -15,7 +16,6 @@ class DownloaderPluginManager(PluginManager):
         super(DownloaderPluginManager, self).__init__(*plugins)
 
     def _add_plugin(self, plugin):
-        super(DownloaderPluginManager, self)._add_plugin(plugin)
         if hasattr(plugin, "handle_request"):
             self._request_handlers.append(plugin.handle_request)
         if hasattr(plugin, "handle_response"):
@@ -37,11 +37,4 @@ class DownloaderPluginManager(PluginManager):
 
     @classmethod
     def _plugin_list_from_config(cls, config):
-        # FIXME: Get plugin list from configuration
-
-        plugin_list = ["wsp.downloaderplugins.check.CheckPlugin",
-                       "wsp.downloaderplugins.retry.RetryPlugin",
-                       "wsp.downloaderplugins.check.CheckPlugin",
-                       "wsp.downloaderplugins.dump.DumpPlugin",
-                       "wsp.downloaderplugins.persistence.PersistencePlugin"]
-        return plugin_list
+        return config.get(tc.DOWNLOADER_PLUGINS)

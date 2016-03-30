@@ -82,7 +82,7 @@ class Downloader:
     @staticmethod
     async def _handle_request(request, plugin):
         for method in plugin.request_handlers:
-            res = await method(request=request)
+            res = await method(request)
             assert res is None or isinstance(res, (HttpRequest, HttpResponse)), \
                 "Request handler must return None, HttpRequest or HttpResponse, got %s" % type(res)
             if res:
@@ -91,7 +91,7 @@ class Downloader:
     @staticmethod
     async def _handle_response(request, response, plugin):
         for method in plugin.response_handlers:
-            res = await method(request=request, response=response)
+            res = await method(request, response)
             assert res is None or isinstance(res, HttpRequest), \
                 "Response handler must return None or HttpRequest, got %s" % type(res)
             if res:
@@ -100,7 +100,7 @@ class Downloader:
     @staticmethod
     async def _handle_error(request, error, plugin):
         for method in plugin.error_handlers:
-            res = await method(request=request, error=error)
+            res = await method(request, error)
             assert res is None or isinstance(res, HttpRequest), \
                 "Exception handler must return None or HttpRequest, got %s" % type(res)
             if res:

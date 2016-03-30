@@ -1,0 +1,23 @@
+#-*- coding:utf-8 -*-
+
+# ------ Downloader Plugins -------
+downloader_plugins:
+  - wsp.downloaderplugins.check.CheckPlugin
+  - wsp.downloaderplugins.retry.RetryPlugin
+  - wsp.downloaderplugins.check.CheckPlugin
+  - wsp.downloaderplugins.dump.DumpPlugin
+  - wsp.downloaderplugins.persistence.PersistencePlugin
+
+# ------ Spider Plugins -------
+spider_plugins:
+  - wsp.spiderplugins.levellimit.LevelLimitPlugin
+
+# ------ Spider -------
+spider:
+  - project.spider.WanFangSpider
+
+
+# ------ Start URLs ------
+start_urls:
+  - http://cfb.bd.gov.cn
+  - http://www.iie.ac.cn

@@ -3,9 +3,9 @@
 import logging
 import inspect
 
-from wsp.downloader.http import HttpRequest
 from wsp.config import task as tc
 from wsp.utils.config import load_object
+from wsp.downloader.http import HttpRequest
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,6 @@ class Spider:
 
     @classmethod
     async def crawl(cls, spider, request, response, *, plugin=None):
-        assert isinstance(spider, BaseSpider)
         try:
             if plugin:
                 await cls._handle_input(request, response, plugin)
@@ -37,20 +36,20 @@ class Spider:
     @staticmethod
     async def _handle_input(request, response, plugin):
         for method in plugin.input_handlers:
-            res = await method(request=request, response=response)
+            res = await method(request, response)
             assert res is None, "Input handler must return None, got %s" % type(res)
 
     @classmethod
     async def _handle_output(cls, request, response, result, plugin):
         for method in plugin.output_handlers:
-            res = await method(request=request, response=response, result=result)
+            res = await method(request, response, result)
             assert cls._isiterable(result), "Response handler must return an iterable object, got %s" % type(res)
             return res
 
     @staticmethod
     async def _handle_error(request, response, error, plugin):
         for method in plugin.error_handlers:
-            res = await method(request=request, response=response, error=error)
+            res = await method(request, response, error)
             assert res is None, "Exception handler must return None, got %s" % type(res)
 
     @staticmethod
@@ -72,18 +71,17 @@ class BaseSpider:
     def parse(self, request, response):
         raise NotImplementedError
 
-    """
-    根据初始的URL列表生成请Http Request
-    """
     def start_requests(self, start_urls):
-        return (HttpRequest(u) for u in start_urls)
+        if hasattr(self, tc.START_URLS):
+            start_urls = getattr(self, tc.START_URLS)
+        for url in start_urls:
+            yield HttpRequest(url)
 
 
 class SpiderFactory:
 
     @staticmethod
     def create(config):
-        spider = None
         cls_path = config.get(tc.SPIDER)
         try:
             spider_cls = load_object(cls_path)
@@ -91,6 +89,8 @@ class SpiderFactory:
                 spider = spider_cls.from_config(config)
             else:
                 spider = spider_cls()
+            assert isinstance(spider, BaseSpider), "Custom spider must extend %s" % BaseSpider.__name__
         except Exception as e:
             log.warning("An error occurred when loading spider '%s': %s" % (cls_path, e))
+            spider = None
         return spider

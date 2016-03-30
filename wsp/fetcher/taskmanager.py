@@ -23,7 +23,6 @@ class TaskManager:
     """
     用于管理任务的具体信息
     """
-    # FIXME: 1) 根据task configuration配置插件; 2) 从Mongo里面加载zip包 3) 调用插件的open和close方法
 
     def __init__(self, sys_conf, local_conf):
         assert isinstance(sys_conf, SystemConfig) and isinstance(local_conf, FetcherConfig), "Wrong configuration"
@@ -53,10 +52,11 @@ class TaskManager:
                 self._remove_task_config(t)
         self._tasks = new_tasks
 
-        # TODO: 只更改与原来不同的部分
-        self._tasks = {}
-        for t in tasks:
-            self._tasks[t] = self._load_task_config(t)
+    """
+    添加一个需要管理的任务
+    """
+    def add_task(self, task_id):
+        self._tasks[task_id] = self._load_task_config(task_id)
 
     """
     根据任务id获取下载器插件
@@ -80,23 +80,38 @@ class TaskManager:
         return self._spider[task_id]
 
     """
+    根据任务id获取任务配置
+    """
+    def task_config(self, task_id):
+        assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
+        return self._tasks[task_id]
+
+    """
     根据任务id加载任务配置
     """
     def _load_task_config(self, task_id):
-        task_config = self._install_task(task_id)
+        code_dir = self._get_code_dir(task_id)
+        self._install_task(task_id, code_dir)
+        config_yaml = "%s/%s" % (code_dir, self._sys_conf.task_config_file)
+        with open(config_yaml, "r", encoding="utf-8") as f:
+            task_config = TaskConfig(**yaml.load(f))
         log.debug("Load the configuration of the task %s: %s" % (task_id, task_config))
-
-        # TODO: 加载donwloader plugins, spider plugins, spider
-
+        # 添加sys.path
+        sys.path.append(code_dir)
+        self._spider[task_id] = self._load_spider(task_id)
+        self._downloader_plugins[task_id] = self._load_downloader_plugins(task_id)
+        self._spider_plugins[task_id] = self._load_spider_plugins(task_id)
+        # 移除sys.path
+        sys.path.remove(code_dir)
         return task_config
 
     """
     根据任务id加载任务配置
     """
     def _remove_task_config(self, task_id):
-
-        # TODO close所有plugin，移除所有plugin，调用self._uninstall_task()
-        pass
+        self._spider.pop(task_id)
+        self._downloader_plugins.pop(task_id)
+        self._spider_plugins.pop(task_id)
 
     """
     根据任务配置加载下载器插件
@@ -119,8 +134,7 @@ class TaskManager:
         task_config = self._tasks[task_id]
         return SpiderFactory.create(task_config)
 
-    def _install_task(self, task_id):
-        code_dir = self._get_code_dir(task_id)
+    def _install_task(self, task_id, code_dir):
         zip_json = self._mongo_client[self._sys_conf.mongo_db][self._sys_conf.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
         zipb = zip_json[self._sys_conf.mongo_task_config_zip]
         if not os.path.exists(code_dir):
@@ -131,16 +145,6 @@ class TaskManager:
         with zipfile.ZipFile(zipf, "r") as fz:
             for file in fz.namelist():
                 fz.extract(file, code_dir)
-        #添加sys.path
-        sys.path.append(code_dir)
-        config_yaml = "%s/%s" % (code_dir, self._sys_conf.task_config_file)
-        with open(config_yaml, "r", encoding="utf-8") as f:
-            task_config = TaskConfig(**yaml.load(f))
-        return task_config
-
-    def _uninstall_task(self, task_id):
-        # 移除sys.path
-        sys.path.remove(self._get_code_dir(task_id))
 
     def _get_code_dir(self, task_id):
         return "%s/%s" % (self._sys_conf.task_code_dir, task_id)

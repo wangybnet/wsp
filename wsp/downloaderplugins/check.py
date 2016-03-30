@@ -4,6 +4,7 @@ import logging
 
 from wsp.utils.fetcher import text_from_http_body
 from wsp.errors import AccessDeny, ResponseNotMatch
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -14,6 +15,10 @@ class CheckPlugin:
     """
     def __init__(self, check):
         self._check = check
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(config.get(tc.CHECK))
 
     async def handle_response(self, request, response):
         html = text_from_http_body(response)

@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 class WspResponse:
 
     def __init__(self, **kw):
-        self.id = kw.get("id", ObjectId())
+        self.id = kw.get("id", "%s" % ObjectId())
         self.req_id = kw.get("req_id", None)
         self.task_id = kw.get("task_id", None)
         self.html = kw.get("html", None)
@@ -15,6 +15,7 @@ class WspResponse:
 
     def to_dict(self):
         return {
+            '_id': ObjectId(self.id),
             'id': self.id,
             'req_id': self.req_id,
             'task_id': self.task_id,

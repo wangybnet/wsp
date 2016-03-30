@@ -17,6 +17,8 @@ from wsp.utils.fetcher import pack_request, unpack_request, parse_request
 from .taskmanager import TaskManager
 from .config import FetcherConfig
 from wsp.spider import Spider
+from .request import WspRequest
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ class Fetcher:
             self.master_addr = "http://%s" % self.master_addr
         self._host, self._port = conf.rpc_addr.split(":")
         self._port = int(self._port)
-        self._sys_config = self._pull_config_from_master()
+        self._sys_config = self._pull_sys_config_from_master()
         self.isRunning = False
         self.rpcServer = self._create_rpc_server()
         self.producer = KafkaProducer(bootstrap_servers=[self._sys_config.kafka_addr, ])
@@ -47,10 +49,10 @@ class Fetcher:
         # NOTE: Fetcher的地址在向Master注册时获取
         self._addr = None
 
-    def _pull_config_from_master(self):
+    def _pull_sys_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        conf = SystemConfig(**rpc_client.get_config())
-        log.debug("Get the system configuration={kafka_addr=%s, mongo_addr=%s, agent_addr=%s}" % (conf.kafka_addr, conf.mongo_addr, conf.agent_addr))
+        conf = SystemConfig(**rpc_client.get_sys_config())
+        log.debug("Get the system configuration={kafka_addr=%s, mongo_addr=%s}" % (conf.kafka_addr, conf.mongo_addr))
         return conf
 
     def _register_on_master(self):
@@ -61,6 +63,7 @@ class Fetcher:
     def _create_rpc_server(self):
         server = SimpleXMLRPCServer((self._host, self._port), allow_none=True)
         server.register_function(self.changeTasks)
+        server.register_function(self.new_task)
         return server
 
     def start(self):
@@ -87,6 +90,19 @@ class Fetcher:
                     self.taskDict[t] = None
                 # set current tasks of task manager
                 self._task_manager.set_tasks(*tasks)
+
+    """
+    通知添加了一个新任务
+
+    主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重插件解决。
+    """
+    def new_task(self, task_id):
+        self._task_manager.add_task(task_id)
+        spider = self._task_manager.spider(task_id)
+        task_config = self._task_manager.task_config(task_id)
+        for r in spider.start_requests(task_config.get(tc.START_URLS)):
+            req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
+            self.pushReq(req)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id

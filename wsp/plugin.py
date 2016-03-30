@@ -10,8 +10,6 @@ log = logging.getLogger(__name__)
 class PluginManager:
 
     def __init__(self, *plugins):
-        self._open_handlers = []
-        self._close_handlers = []
         for plugin in plugins:
             self._add_plugin(plugin)
 
@@ -36,23 +34,4 @@ class PluginManager:
         return cls(*plugins)
 
     def _add_plugin(self, plugin):
-        if hasattr(plugin, "open"):
-            self._open_handlers.append(plugin.open)
-        if hasattr(plugin, "close"):
-            self._close_handlers.append(plugin.close)
-
-    @property
-    def open_handlers(self):
-        return self._open_handlers
-
-    @property
-    def close_handlers(self):
-        return self._close_handlers
-
-    def open(self):
-        for h in self.open_handlers:
-            h()
-
-    def close(self):
-        for h in self.close_handlers:
-            h()
+        raise NotImplementedError

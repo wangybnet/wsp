@@ -6,6 +6,7 @@ from wsp.utils.fetcher import extract_request
 from wsp.downloader.http import HttpError
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp import reqmeta
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +23,10 @@ class RetryPlugin:
 
     def __init__(self, max_retry_times):
         self._max_retry_times = max_retry_times
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(config.get(tc.MAX_RETRY_TIMES))
 
     async def handle_response(self, request, response):
         if response.status in self.RETRY_HTTP_STATUS:

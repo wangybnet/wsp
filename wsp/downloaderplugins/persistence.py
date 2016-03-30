@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 from wsp.utils.fetcher import parse_response, extract_request
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +18,10 @@ class PersistencePlugin:
     def __init__(self, mongo_addr):
         client = MongoClient(mongo_addr)
         self.db = client.wsp
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(config.get(tc.MONGO_ADDR))
 
     async def handle_response(self, request, response):
         req = extract_request(request)
