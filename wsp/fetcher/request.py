@@ -2,8 +2,6 @@
 
 from bson import ObjectId
 
-from wsp import reqmeta
-
 
 class WspRequest:
 
@@ -28,7 +26,5 @@ class WspRequest:
             'fetcher': self.fetcher,
             'http_request': {
                 'url': self._http_request.url,
-                'level': self._http_request.meta.get(reqmeta.CRAWL_LEVEL, 0),
-                'retry': self._http_request.meta.get(reqmeta.RETRY_TIMES, 0),
-                'proxy': self._http_request.proxy
+                'meta': self._http_request.meta
             }}

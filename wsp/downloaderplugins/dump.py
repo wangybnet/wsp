@@ -38,15 +38,15 @@ class MongoDumpPlugin:
         self._save_response(res)
 
     def _save_request(self, req):
-        reqTable = self._mongo_client[self._mongo_db]["request_" % req.task_id]
+        reqTable = self._mongo_client[self._mongo_db]["request_%s" % req.task_id]
         reqJson = req.to_dict()
         log.debug("Save request record (id=%s, url=%s) into mongo" % (reqJson["id"],
                                                                       reqJson["http_request"]["url"]))
         reqTable.save(reqJson)
 
     def _save_response(self, res):
-        resTable = self._mongo_client[self._mongo_db]["response_" % res.req_id]
+        resTable = self._mongo_client[self._mongo_db]["response_%s" % res.req_id]
         resJson = res.to_dict()
-        log.debug("Save response record (id=%s, url=%s) into mongo" % (resJson["id"],
-                                                                       resJson["http_request"]["url"]))
+        log.debug("Save response record (id=%s, req_id=%s) into mongo" % (resJson["id"],
+                                                                          resJson["req_id"]))
         resTable.save(resJson)

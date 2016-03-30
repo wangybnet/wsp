@@ -29,6 +29,6 @@ check:
     deny: ""
 max_level: 0
 max_retry_times: 3
-dedump_mong_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
 dump_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
 store_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017

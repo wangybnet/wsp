@@ -27,7 +27,7 @@ class MongoDedupPlugin:
 
     async def handle_request(self, request):
         req = extract_request(request)
-        tbl = self._mongo_client[self._mongo_db]["dedup_" % req.task_id]
+        tbl = self._mongo_client[self._mongo_db]["dedup_%s" % req.task_id]
         url = "%s %s" % (request.method, request.url)
         res = tbl.find_one({"url": url})
         if res is not None:
