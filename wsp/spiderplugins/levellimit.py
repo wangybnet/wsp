@@ -4,7 +4,6 @@ import logging
 
 from wsp import reqmeta
 from wsp.downloader.http import HttpRequest
-from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class LevelLimitPlugin:
 
     @classmethod
     def from_config(cls, config):
-        return cls(config.get(tc.MAX_LEVEL))
+        return cls(config.get("max_level", 0))
 
     async def handle_response(self, request, response, result):
         return self._handle_response(request, result)

@@ -5,7 +5,6 @@ import logging
 from pymongo import MongoClient
 
 from wsp.utils.fetcher import extract_request, parse_response, parse_error
-from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ class DumpPlugin:
 
     @classmethod
     def from_config(cls, config):
-        return cls(config.get(tc.MONGO_ADDR))
+        return cls(config.get("mongo_addr"))
 
     async def handle_request(self, request):
         req = extract_request(request)

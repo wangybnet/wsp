@@ -1,3 +1,6 @@
 *.pyc
+
 # Ignoring the project files of PyCharm.
 .idea
+
+*.zip

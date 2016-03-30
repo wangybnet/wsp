@@ -9,11 +9,16 @@ from pymongo import MongoClient
 from wsp.fetcher.fetcherManager import fetcherManager
 from wsp.config.system import SystemConfig
 from .task import WspTask
+from .config import MasterConfig
 
 log = logging.getLogger(__name__)
 
 
 class MasterRpcServer(SimpleXMLRPCServer):
+    
+    def __init__(self, *args, **kw):
+        self.client_ip = None
+        super(MasterRpcServer, self).__init__(*args, **kw)
 
     def process_request(self, request, client_address):
         self.client_ip, _ = client_address
@@ -21,26 +26,28 @@ class MasterRpcServer(SimpleXMLRPCServer):
 
 
 class Master(object):
-    '''
+    """
     Master类的功能:
         [1].新建任务,任务建立成功返回任务ID
         [2].删除任务,删除成功返回true
         [3].启动单个任务,启动成功返回true
         [4].停止单个任务,停止成功返回true
         [5].返回配置文件信息供fetcher使用
-    '''
+    """
 
-    def __init__(self, addr, sys_config):
-        assert isinstance(sys_config, SystemConfig), "Wrong configuration"
-        log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (addr, sys_config.kafka_addr, sys_config.mongo_addr))
-        self._addr = addr
+    def __init__(self, master_config, sys_config):
+        assert isinstance(master_config, MasterConfig) and isinstance(sys_config, SystemConfig), "Wrong configuration"
+        log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (master_config.rpc_addr,
+                                                                                      sys_config.kafka_addr,
+                                                                                      sys_config.mongo_addr))
+        self._master_config = master_config
         self._sys_config = sys_config
         self.fetcher_manager = fetcherManager(self._sys_config)
         self._rpc_server = self._create_rpc_server()
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
 
     def _create_rpc_server(self):
-        host, port = self._addr.split(":")
+        host, port = self._master_config.rpc_addr.split(":")
         port = int(port)
         server = MasterRpcServer((host, port), allow_none=True)
         server.register_function(self.create_one)
@@ -57,14 +64,13 @@ class Master(object):
 
     def create_one(self, task_info, task_config_zip):
         task = WspTask(**task_info)
+        log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
         task.status = 0
-        # 返回任务ID
-        task_id = "%s" % self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict()).inserted_id
-        log.info("Create the task %s with id=%s" % (task.to_dict(), task_id))
+        self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict())
         # 上传zip
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_config_tbl).insert_one(
-            {"_id": task_id, self._sys_config.mongo_task_config_zip: task_config_zip.data})
-        return task_id
+            {"_id": task.id, self._sys_config.mongo_task_config_zip: task_config_zip.data})
+        return task.id
 
     def delete_one(self, task_id):
         log.info("Delete the task %s" % task_id)
@@ -95,5 +101,5 @@ class Master(object):
         return fetcher_addr
 
     def start(self):
-        log.info("Start master RPC at %s" % self._addr)
+        log.info("Start master RPC at %s" % self._master_config.rpc_addr)
         self._rpc_server.serve_forever()

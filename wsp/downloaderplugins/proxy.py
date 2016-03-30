@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from wsp.config import task as tc
-
 
 class ProxyPlugin:
     """
@@ -15,7 +13,7 @@ class ProxyPlugin:
     """
     @classmethod
     def from_config(cls, config):
-        return cls(config.get(tc.AGENT_ADDR))
+        return cls(config.get("agent_addr"))
 
     """
     给请求添加代理

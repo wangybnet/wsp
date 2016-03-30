@@ -74,8 +74,7 @@ class BaseSpider:
     def start_requests(self, start_urls):
         if hasattr(self, tc.START_URLS):
             start_urls = getattr(self, tc.START_URLS)
-        for url in start_urls:
-            yield HttpRequest(url)
+        return () if start_urls is None else (HttpRequest(u) for u in start_urls)
 
 
 class SpiderFactory:

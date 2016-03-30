@@ -6,7 +6,6 @@ from wsp.utils.fetcher import extract_request
 from wsp.downloader.http import HttpError
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp import reqmeta
-from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -26,15 +25,13 @@ class RetryPlugin:
 
     @classmethod
     def from_config(cls, config):
-        return cls(config.get(tc.MAX_RETRY_TIMES))
+        return cls(config.get("max_retry_times", 5))
 
     async def handle_response(self, request, response):
         if response.status in self.RETRY_HTTP_STATUS:
             return self._retry(request, 1, "http status=%s" % response.status)
 
     async def handle_error(self, request, error):
-        if not isinstance(error, self.RETRY_ERRORS):
-            return
         # FIXME: 根据错误的类型确定是否占用重试次数
         slot = 1
         return self._retry(request, slot, "%s" % error)

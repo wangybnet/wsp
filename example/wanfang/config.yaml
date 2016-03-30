@@ -3,10 +3,9 @@
 # ------ Downloader Plugins -------
 downloader_plugins:
   - wsp.downloaderplugins.check.CheckPlugin
-  - wsp.downloaderplugins.retry.RetryPlugin
-  - wsp.downloaderplugins.check.CheckPlugin
   - wsp.downloaderplugins.dump.DumpPlugin
   - wsp.downloaderplugins.persistence.PersistencePlugin
+  - wsp.downloaderplugins.retry.RetryPlugin
 
 # ------ Spider Plugins -------
 spider_plugins:
@@ -16,8 +15,17 @@ spider_plugins:
 spider:
   - project.spider.WanFangSpider
 
-
 # ------ Start URLs ------
 start_urls:
   - http://cfb.bd.gov.cn
   - http://www.iie.ac.cn
+
+# ------ Properties ------
+check:
+  -
+    url: "http://"
+    succ: ""
+    deny: ""
+mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+max_level: 0
+max_retry_times: 3
