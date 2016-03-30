@@ -12,7 +12,8 @@ from wsp.fetcher.config import FetcherConfig
 
 
 if __name__ == "__main__":
-    fetcher_yaml = sys.argv[1]
+    home_dir = sys.argv[1]
+    fetcher_yaml = sys.argv[2]
     conf = {}
     try:
         with open(fetcher_yaml, "r", encoding="utf-8") as f:
@@ -25,5 +26,5 @@ if __name__ == "__main__":
                    "%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
     log.debug("fetcher.yaml=%s" % conf)
-    fetcher = Fetcher(FetcherConfig(**conf))
+    fetcher = Fetcher(FetcherConfig(home_dir, **conf))
     fetcher.start()

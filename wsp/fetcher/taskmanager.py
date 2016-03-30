@@ -139,7 +139,7 @@ class TaskManager:
         zip_json = self._mongo_client[self._sys_conf.mongo_db][self._sys_conf.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
         zipb = zip_json[self._sys_conf.mongo_task_config_zip]
         if not os.path.exists(code_dir):
-            os.makedirs(code_dir, mode=0o664)
+            os.makedirs(code_dir, mode=0o775)
         zipf = "%s/%s.zip" % (code_dir, task_id)
         with open(zipf, "wb") as f:
             f.write(zipb)
