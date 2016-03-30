@@ -130,8 +130,9 @@ class Fetcher:
                     req = pickle.loads(record.value)
                     log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
                 except Exception as e:
-                    if e:
-                        log.warning("An error occurred when fetch data from Kafka: %s" % e)
+                    # FIXME: 找到Kafka Consumer读取超时的时候的异常的特征
+                    
+                    log.warning("An error occurred when fetch data from Kafka: %s" % e)
                 else:
                     # 添加处理该请求的fetcher的地址
                     req.fetcher = self._addr

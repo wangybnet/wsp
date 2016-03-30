@@ -25,6 +25,6 @@ class WspRequest:
             'task_id': self.task_id,
             'fetcher': self.fetcher,
             'http_request': {
-                'url': self._http_request.url,
-                'meta': self._http_request.meta
+                'method': self._http_request.method,
+                'url': self._http_request.url
             }}

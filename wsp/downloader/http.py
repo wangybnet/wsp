@@ -1,5 +1,6 @@
 # coding=utf-8
 
+from wsp import reqmeta
 
 class HttpRequest:
     """
@@ -33,8 +34,11 @@ class HttpRequest:
         kw = {}
         for x in ["url", "method", "proxy", "params", "headers", "body", "cookies", "meta"]:
             kw.setdefault(x, getattr(self, x))
-        return HttpRequest(**kw)
-
+        req = HttpRequest(**kw)
+        for k in req.meta.keys():
+            if k.startswith(reqmeta.META_PREFIX):
+                req.meta.pop(k)
+        return req
 
 class HttpResponse:
     """

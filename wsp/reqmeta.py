@@ -3,8 +3,8 @@
 """
 HTTP Request的meta的内置字段
 """
-#
-_META_PREFIX = "_wsp_"
+
+META_PREFIX = "_wsp_"
 
 # WspRequest
-WSP_REQUEST = _META_PREFIX + "request"
+WSP_REQUEST = META_PREFIX + "request"
