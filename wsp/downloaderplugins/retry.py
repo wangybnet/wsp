@@ -5,7 +5,6 @@ import logging
 from wsp.utils.fetcher import extract_request
 from wsp.downloader.http import HttpError
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
-from wsp import reqmeta
 
 log = logging.getLogger(__name__)
 
@@ -29,19 +28,19 @@ class RetryPlugin:
 
     async def handle_response(self, request, response):
         if response.status in self.RETRY_HTTP_STATUS:
-            return self._retry(request, 1, "http status=%s" % response.status)
+            return self._retry(request, "http status=%s" % response.status)
 
     async def handle_error(self, request, error):
-        # FIXME: 根据错误的类型确定是否占用重试次数
-        slot = 1
-        return self._retry(request, slot, "%s" % error)
+        if not isinstance(error, self.RETRY_ERRORS):
+            return
+        return self._retry(request, "%s: %s" % (type(error), error))
 
-    def _retry(self, request, slot, reason):
+    def _retry(self, request, reason):
         req = extract_request(request)
-        retry_times = request.meta.get(reqmeta.RETRY_TIMES, 0) + slot
+        retry_times = request.meta.get("_retry_times", 0) + 1
         if retry_times <= self._max_retry_times:
             log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, request.url, reason))
-            request.meta[reqmeta.RETRY_TIMES] = retry_times
+            request.meta["_retry_times"] = retry_times
             return request
         else:
             log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))

@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from bson.objectid import ObjectId
+from bson import ObjectId
 
 
 class WspResponse:

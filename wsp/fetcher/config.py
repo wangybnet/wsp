@@ -17,7 +17,7 @@ class FetcherConfig:
     def __init__(self, **kw):
         self.master_rpc_addr = kw.get("master_rpc_addr")
         assert self.master_rpc_addr is not None, "Must assign the RPC address of master"
-        self.downloader_clients = ensure_int(kw.get("down_loader_clients", DEFAULT_DOWNLOADER_CLIENTS))
+        self.downloader_clients = ensure_int(kw.get("downloader_clients", DEFAULT_DOWNLOADER_CLIENTS))
         self.rpc_addr = kw.get("rpc_addr", DEFAULT_RPC_ADDR)
         self.data_dir = kw.get("data_dir", DEFAULT_DATA_DIR)
         self.tmp_dir = kw.get("tmp_dir", DEFAULT_TMP_DIR)

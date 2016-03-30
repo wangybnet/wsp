@@ -2,9 +2,10 @@
 
 # ------ Downloader Plugins -------
 downloader_plugins:
+  - wsp.downloaderplugins.dedup.MongoDedupPlugin
   - wsp.downloaderplugins.check.CheckPlugin
-  - wsp.downloaderplugins.dump.DumpPlugin
-  - wsp.downloaderplugins.persistence.PersistencePlugin
+  - wsp.downloaderplugins.dump.MongoDumpPlugin
+  - wsp.downloaderplugins.store.MongoStorePlugin
   - wsp.downloaderplugins.retry.RetryPlugin
 
 # ------ Spider Plugins -------
@@ -26,6 +27,8 @@ check:
     url: "http://"
     succ: ""
     deny: ""
-mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
 max_level: 0
 max_retry_times: 3
+dedump_mong_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+dump_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
+store_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017

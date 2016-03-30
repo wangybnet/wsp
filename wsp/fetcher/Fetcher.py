@@ -25,14 +25,14 @@ log = logging.getLogger(__name__)
 
 class Fetcher:
     # FIXME: 根据任务设置spider
-    def __init__(self, conf):
-        assert isinstance(conf, FetcherConfig), "Wrong configuration"
-        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s, downloader_clients=%d" % (conf.master_rpc_addr, conf.rpc_addr, conf.downloader_clients))
-        self._conf = conf
-        self.master_addr = conf.master_rpc_addr
+    def __init__(self, config):
+        assert isinstance(config, FetcherConfig), "Wrong configuration"
+        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s, downloader_clients=%d" % (config.master_rpc_addr, config.rpc_addr, config.downloader_clients))
+        self._config = config
+        self.master_addr = self._config.master_rpc_addr
         if not self.master_addr.startswith("http://"):
             self.master_addr = "http://%s" % self.master_addr
-        self._host, self._port = conf.rpc_addr.split(":")
+        self._host, self._port = self._config.rpc_addr.split(":")
         self._port = int(self._port)
         self._sys_config = self._pull_sys_config_from_master()
         self.isRunning = False
@@ -41,8 +41,8 @@ class Fetcher:
         self.consumer = KafkaConsumer(bootstrap_servers=[self._sys_config.kafka_addr, ],
                                       auto_offset_reset='earliest',
                                       consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
-        self.downloader = Downloader(clients=conf.downloader_clients)
-        self._task_manager = TaskManager(conf.data_dir, self._sys_config.mongo_addr)
+        self.downloader = Downloader(clients=self._config.downloader_clients)
+        self._task_manager = TaskManager(self._sys_config, self._config)
         self.taskDict = {}
         self._task_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
@@ -115,7 +115,7 @@ class Fetcher:
             with self._task_lock:
                 no_work = not self.taskDict
             if no_work:
-                sleep_time = self._conf.no_work_sleep_time
+                sleep_time = self._config.no_work_sleep_time
                 log.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
             else:
@@ -144,7 +144,7 @@ class Fetcher:
                                         self.saveResult,
                                         plugin=self._task_manager.downloader_plugins(task_id)):
                 break
-            sleep_time = self._conf.downloader_busy_sleep_time
+            sleep_time = self._config.downloader_busy_sleep_time
             log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
             time.sleep(sleep_time)
 

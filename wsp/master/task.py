@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from bson.objectid import ObjectId
+from bson import ObjectId
 
 from wsp.utils.config import ensure_int
 

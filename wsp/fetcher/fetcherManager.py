@@ -62,7 +62,7 @@ class fetcherManager:
 
     def start_one(self, task_id):
         task_dict = self.taskTable.find_one({"_id": ObjectId(task_id)})
-        task = WspTask(id=task_id, **task_dict)
+        task = WspTask(**task_dict)
         if task.status == 0:
             if not self._notice_new_task(task_id):
                 return False
