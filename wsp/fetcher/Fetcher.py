@@ -100,9 +100,14 @@ class Fetcher:
         self._task_manager.add_task(task_id)
         spider = self._task_manager.spider(task_id)
         task_config = self._task_manager.task_config(task_id)
-        for r in spider.start_requests(task_config.get(tc.START_URLS)):
-            req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
-            self.pushReq(req)
+        if spider is None:
+            for u in task_config.get(tc.START_URLS):
+                req = WspRequest(task_id=task_id, father_id=task_id, http_request=HttpRequest(u))
+                self.pushReq(req)
+        else:
+            for r in spider.start_requests(task_config.get(tc.START_URLS)):
+                req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
+                self.pushReq(req)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id

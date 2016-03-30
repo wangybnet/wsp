@@ -13,8 +13,7 @@ spider_plugins:
   - wsp.spiderplugins.levellimit.LevelLimitPlugin
 
 # ------ Spider -------
-spider:
-  - project.spider.WanFangSpider
+spider: project.spider.WanFangSpider
 
 # ------ Start URLs ------
 start_urls:

@@ -95,12 +95,12 @@ class TaskManager:
         config_yaml = "%s/%s" % (code_dir, self._sys_conf.task_config_file)
         with open(config_yaml, "r", encoding="utf-8") as f:
             task_config = TaskConfig(**yaml.load(f))
-        log.debug("Load the configuration of the task %s: %s" % (task_id, task_config))
+        log.debug("Loaded the configuration of the task %s" % task_id)
         # 添加sys.path
         sys.path.append(code_dir)
-        self._spider[task_id] = self._load_spider(task_id)
-        self._downloader_plugins[task_id] = self._load_downloader_plugins(task_id)
-        self._spider_plugins[task_id] = self._load_spider_plugins(task_id)
+        self._spider[task_id] = self._load_spider(task_config)
+        self._downloader_plugins[task_id] = self._load_downloader_plugins(task_config)
+        self._spider_plugins[task_id] = self._load_spider_plugins(task_config)
         # 移除sys.path
         sys.path.remove(code_dir)
         return task_config
@@ -116,22 +116,19 @@ class TaskManager:
     """
     根据任务配置加载下载器插件
     """
-    def _load_downloader_plugins(self, task_id):
-        task_config = self._tasks[task_id]
+    def _load_downloader_plugins(self, task_config):
         return DownloaderPluginManager.from_config(task_config)
 
     """
     根据任务配置加载Spider插件
     """
-    def _load_spider_plugins(self, task_id):
-        task_config = self._tasks[task_id]
+    def _load_spider_plugins(self, task_config):
         return SpiderPluginManager.from_config(task_config)
 
     """
     根据任务配置加载Spider
     """
-    def _load_spider(self, task_id):
-        task_config = self._tasks[task_id]
+    def _load_spider(self, task_config):
         return SpiderFactory.create(task_config)
 
     def _install_task(self, task_id, code_dir):

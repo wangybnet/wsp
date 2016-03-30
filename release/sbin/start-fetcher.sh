@@ -6,4 +6,5 @@
 bin=`dirname "${BASH_SOURCE-$0}"`
 bin=`cd "$bin"; pwd`
 
-$bin/../pyscripts/start-fetcher.py $bin $bin/../etc/fetcher.yaml
+home_dir=`cd "$bin"/../; pwd`
+$bin/../pyscripts/start-fetcher.py $home_dir $bin/../etc/fetcher.yaml
