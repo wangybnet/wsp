@@ -10,7 +10,7 @@ DEFAULT_RPC_ADDR = "0.0.0.0:8091"
 DEFAULT_DOWNLOADER_CLIENTS = 200
 DEFAULT_NO_WORK_SLEEP_TIME = 5
 DEFAULT_DOWNLOADER_BUSY_SLEEP_TIME = 1
-
+DEFAULT_TASK_CODE_DIR = "%s/task/code" % DEFAULT_DATA_DIR
 
 class FetcherConfig:
 
@@ -23,3 +23,4 @@ class FetcherConfig:
         self.tmp_dir = kw.get("tmp_dir", DEFAULT_TMP_DIR)
         self.no_work_sleep_time = ensure_int(kw.get("no_work_sleep_time", DEFAULT_NO_WORK_SLEEP_TIME))
         self.downloader_busy_sleep_time = ensure_int(kw.get("downloader_busy_sleep_time", DEFAULT_DOWNLOADER_BUSY_SLEEP_TIME))
+        self.task_code_dir = kw.get("task_code_dir", DEFAULT_TASK_CODE_DIR)

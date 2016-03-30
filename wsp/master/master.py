@@ -64,8 +64,8 @@ class Master(object):
 
     def create_one(self, task_info, task_config_zip):
         task = WspTask(**task_info)
-        log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
         task.status = 0
+        log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict())
         # 上传zip
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_config_tbl).insert_one(

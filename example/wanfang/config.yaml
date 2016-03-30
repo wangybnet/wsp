@@ -18,6 +18,7 @@ spider:
 
 # ------ Start URLs ------
 start_urls:
+  - http://www.iie.ac.cn
   - http://cfb.bd.gov.cn
   - http://www.iie.ac.cn
 

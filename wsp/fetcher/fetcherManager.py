@@ -28,13 +28,13 @@ class fetcherManager:
 
     def add_fetcher(self, fetcher_addr):
         if not fetcher_addr.startswith("http://"):
-            fetcher_addr = "http://%s" + fetcher_addr
+            fetcher_addr = "http://%s" % fetcher_addr
         if fetcher_addr not in self.fetcherList:
             log.debug("Add a new fetcher %s" % fetcher_addr)
             self.fetcherList.append(fetcher_addr)
 
     def _notice_change_tasks(self):
-        log.debug("Change the tasks of the fetchers %s" % self.fetcherList)
+        log.debug("Notice change the tasks")
         for f in self.fetcherList:
             rpcClient = ServerProxy(f, allow_none=True)
             rpcClient.changeTasks(self.running_tasks)
@@ -42,7 +42,7 @@ class fetcherManager:
         return True
 
     def _notice_new_task(self, task_id):
-        log.debug("Change the tasks of the fetchers %s" % self.fetcherList)
+        log.debug("Notice the new task %s" % task_id)
         for f in self.fetcherList:
             rpcClient = ServerProxy(f, allow_none=True)
             rpcClient.new_task(task_id)

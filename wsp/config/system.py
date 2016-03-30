@@ -7,7 +7,6 @@ DEFAULT_MONGO_DB = "wsp"
 DEFAULT_MONGO_TASK_TBL = "task"
 DEFAULT_MONGO_TASK_CONFIG_TBL = "task_config"
 DEFAULT_MONGO_TASK_CONFIG_ZIP = "zip"
-DEFAULT_TASK_CODE_DIR = "DEFAULT_DATA_DIR%s" % "/task/code"
 DEFAULT_TASK_CONFIG_FILE = "config.yaml"
 
 
@@ -21,5 +20,4 @@ class SystemConfig:
         self.mongo_task_tbl = kw.get("mongo_task_tbl", DEFAULT_MONGO_TASK_TBL)
         self.mongo_task_config_tbl = kw.get("mongo_task_config_tbl", DEFAULT_MONGO_TASK_CONFIG_TBL)
         self.mongo_task_config_zip = kw.get("mongo_task_config_zip", DEFAULT_MONGO_TASK_CONFIG_ZIP)
-        self.task_code_dir = kw.get("task_code_dir", DEFAULT_TASK_CODE_DIR)
         self.task_config_file = kw.get("task_config_file", DEFAULT_TASK_CONFIG_FILE)

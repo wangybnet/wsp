@@ -135,6 +135,7 @@ class TaskManager:
         return SpiderFactory.create(task_config)
 
     def _install_task(self, task_id, code_dir):
+        log.debug("Install task %s at '%s'" % (task_id, code_dir))
         zip_json = self._mongo_client[self._sys_conf.mongo_db][self._sys_conf.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
         zipb = zip_json[self._sys_conf.mongo_task_config_zip]
         if not os.path.exists(code_dir):
@@ -147,4 +148,4 @@ class TaskManager:
                 fz.extract(file, code_dir)
 
     def _get_code_dir(self, task_id):
-        return "%s/%s" % (self._sys_conf.task_code_dir, task_id)
+        return "%s/%s" % (self._local_conf.task_code_dir, task_id)
