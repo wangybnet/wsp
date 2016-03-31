@@ -29,7 +29,7 @@ class LimitLevelMiddleware:
         for r in result:
             if isinstance(r, HttpRequest):
                 if level <= self._max_level:
-                    r.meta["craw_level"] = level
+                    r.meta["crawl_level"] = level
                     yield r
                 else:
                     log.debug("The request(url=%s) will be aborted as the level of it is out of limit")
