@@ -18,6 +18,7 @@ class SearchSpider(BaseSpider):
         return self._parse(response) if url.find(self._part_url) >= 0 else ()
 
     def _parse(self, response):
+        print("SearchSpider parse the response(url=%s)" % response.url)
         html = text_from_http_body(response)
         return (HttpRequest(url) for url in self._match.findall(html))
 

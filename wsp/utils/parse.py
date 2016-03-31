@@ -34,7 +34,7 @@ def parse_request(wsp_request, http_request):
         http_request.meta.pop(reqmeta.WSP_REQUEST)
     req = WspRequest(father_id=wsp_request.father_id,
                      task_id=wsp_request.task_id,
-                     http_request=wsp_request.http_request)
+                     http_request=http_request)
     return req
 
 

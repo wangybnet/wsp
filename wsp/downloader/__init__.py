@@ -7,7 +7,6 @@ import aiohttp
 
 from wsp.http import HttpRequest, HttpResponse, HttpError
 from .asyncthread import AsyncThread
-from .middleware import DownloaderMiddlewareManager
 
 log = logging.getLogger(__name__)
 
@@ -84,7 +83,7 @@ class Downloader:
         for method in middleware.request_handlers:
             res = await method(request)
             assert res is None or isinstance(res, (HttpRequest, HttpResponse)), \
-                "Request handler must return None, HttpRequest or HttpResponse, got %s" % type(res)
+                "Request handler must return None, HttpRequest or HttpResponse, got '%s'" % type(res)
             if res:
                 return res
 
@@ -93,7 +92,7 @@ class Downloader:
         for method in middleware.response_handlers:
             res = await method(request, response)
             assert res is None or isinstance(res, HttpRequest), \
-                "Response handler must return None or HttpRequest, got %s" % type(res)
+                "Response handler must return None or HttpRequest, got '%s'" % type(res)
             if res:
                 return res
 
@@ -102,7 +101,7 @@ class Downloader:
         for method in middleware.error_handlers:
             res = await method(request, error)
             assert res is None or isinstance(res, HttpRequest), \
-                "Exception handler must return None or HttpRequest, got %s" % type(res)
+                "Exception handler must return None or HttpRequest, got '%s'" % type(res)
             if res:
                 return res
 

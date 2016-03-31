@@ -68,7 +68,7 @@ class Master(object):
         log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict())
         # 上传zip
-        log.debug("Update zip (_id=%s) to %s.%s" % (task.id,
+        log.debug("Upload zip (_id=%s) to collection '%s.%s'" % (task.id,
                                                     self._sys_config.mongo_db,
                                                     self._sys_config.mongo_task_config_tbl))
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_config_tbl).insert_one(

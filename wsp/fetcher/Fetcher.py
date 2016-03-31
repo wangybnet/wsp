@@ -164,15 +164,15 @@ class Fetcher:
             result.request = request
             task_id = "%s" % req.task_id
             spiders = self._task_manager.spiders(task_id)
-            for spider in spiders:
-                for res in (await Spider.crawl(spider,
-                                               result,
-                                               middleware=self._task_manager.spidermws(task_id))):
-                    if isinstance(res, HttpRequest):
-                        new_req = parse_request(req, res)
-                        self.pushReq(new_req)
-                    else:
-                        log.debug("Got '%s', but I will do noting here", res)
-                self.producer.flush()
+            # FIXME:
+            for res in (await Spider.crawl(spiders,
+                                           result,
+                                           middleware=self._task_manager.spidermws(task_id))):
+                if isinstance(res, HttpRequest):
+                    new_req = parse_request(req, res)
+                    self.pushReq(new_req)
+                else:
+                    log.debug("Got '%s', but I will do noting here", res)
+            self.producer.flush()
         else:
             log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
