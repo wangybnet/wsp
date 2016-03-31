@@ -15,15 +15,17 @@ class MongoDedupMiddleware:
     利用MongoDB去重
     """
 
-    def __init__(self, mongo_addr, mongo_db):
+    def __init__(self, mongo_addr, mongo_db, mongo_coll):
         self._mongo_addr = mongo_addr
         self._mongo_db = mongo_db
+        self._mongo_coll = mongo_coll
         self._mongo_client = MongoClient(self._mongo_addr)
 
     @classmethod
     def from_config(cls, config):
         return cls(config.get("dedup_mongo_addr"),
-                   config.get("dedup_mongo_db", "wsp"))
+                   config.get("dedup_mongo_db", "wsp"),
+                   config.get("dedup_mongo_coll"))
 
     async def handle_request(self, request):
         self._detect(request, False)
@@ -33,7 +35,7 @@ class MongoDedupMiddleware:
 
     def _detect(self, request, is_response):
         req = extract_request(request)
-        tbl = self._mongo_client[self._mongo_db]["dedup_%s" % req.task_id]
+        tbl = self._mongo_client[self._mongo_db][self._mongo_coll or ("dedup_%s" % req.task_id)]
         url = "%s %s" % (request.method, request.url)
         res = tbl.find_one({"url": url})
         if res is not None:
