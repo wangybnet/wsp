@@ -164,7 +164,6 @@ class Fetcher:
             result.request = request
             task_id = "%s" % req.task_id
             spiders = self._task_manager.spiders(task_id)
-            # FIXME:
             for res in (await Spider.crawl(spiders,
                                            result,
                                            middleware=self._task_manager.spidermws(task_id))):

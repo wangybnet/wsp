@@ -45,9 +45,9 @@ class Spider:
     @classmethod
     async def _handle_output(cls, response, result, middleware):
         for method in middleware.output_handlers:
-            res = await method(response, result)
+            result = await method(response, result)
             assert cls._isiterable(result), "Response handler must return an iterable object, got '%s'" % type(res)
-            return res
+        return result
 
     @staticmethod
     async def _handle_error(response, error, middleware):
