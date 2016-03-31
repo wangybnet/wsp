@@ -33,7 +33,7 @@ class TaskManager:
         self._tasks = {}
         self._downloadermws = {}
         self._spidermws = {}
-        self._spider = {}
+        self._spiders = {}
 
     """
     改变当前需要管理的任务
@@ -75,9 +75,9 @@ class TaskManager:
     """
     根据任务id获取Spider
     """
-    def spider(self, task_id):
+    def spiders(self, task_id):
         assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._spider[task_id]
+        return self._spiders[task_id]
 
     """
     根据任务id获取任务配置
@@ -98,7 +98,7 @@ class TaskManager:
         log.debug("Loaded the configuration of the task %s" % task_id)
         # 添加sys.path
         sys.path.append(code_dir)
-        self._spider[task_id] = self._load_spider(task_config)
+        self._spiders[task_id] = self._load_spiders(task_config)
         self._downloadermws[task_id] = self._load_downloadermws(task_config)
         self._spidermws[task_id] = self._load_spidermws(task_config)
         # 移除sys.path
@@ -109,7 +109,7 @@ class TaskManager:
     根据任务id加载任务配置
     """
     def _remove_task_config(self, task_id):
-        self._spider.pop(task_id)
+        self._spiders.pop(task_id)
         self._downloadermws.pop(task_id)
         self._spidermws.pop(task_id)
 
@@ -131,7 +131,7 @@ class TaskManager:
     根据任务配置加载Spider
     """
     @staticmethod
-    def _load_spider(task_config):
+    def _load_spiders(task_config):
         return SpiderFactory.create(task_config)
 
     def _install_task(self, task_id, code_dir):

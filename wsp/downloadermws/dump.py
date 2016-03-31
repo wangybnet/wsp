@@ -4,7 +4,7 @@ import logging
 
 from pymongo import MongoClient
 
-from wsp.utils.fetcher import extract_request, parse_response, parse_error
+from wsp.utils.parse import extract_request, parse_response, parse_error
 
 log = logging.getLogger(__name__)
 

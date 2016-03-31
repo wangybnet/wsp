@@ -3,12 +3,12 @@
 START_URLS = "start_urls"
 DOWNLOADER_MIDDLEWARES = "downloader_middlewares"
 SPIDER_MIDDLEWARES = "spider_middlewares"
-SPIDER = "spider"
+SPIDERS = "spiders"
 
 DEFAULT_CONFIG = {START_URLS: [],
                   DOWNLOADER_MIDDLEWARES: [],
                   SPIDER_MIDDLEWARES: [],
-                  SPIDER: None}
+                  SPIDERS: None}
 
 
 class TaskConfig:

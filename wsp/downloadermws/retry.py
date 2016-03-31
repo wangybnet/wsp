@@ -4,7 +4,7 @@ import logging
 
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp.http import HttpError
-from wsp.utils.fetcher import extract_request
+from wsp.utils.parse import extract_request
 
 log = logging.getLogger(__name__)
 

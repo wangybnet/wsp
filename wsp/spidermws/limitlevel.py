@@ -7,7 +7,7 @@ from wsp.http import HttpRequest
 log = logging.getLogger(__name__)
 
 
-class LevelLimitMiddleware:
+class LimitLevelMiddleware:
     """
     限制爬取深度
 
@@ -28,10 +28,10 @@ class LevelLimitMiddleware:
         level = response.meta.get("crawl_level", 0) + 1
         for r in result:
             if isinstance(r, HttpRequest):
-                if level > self._max_level:
-                    yield None
-                else:
+                if level <= self._max_level:
                     r.meta["craw_level"] = level
                     yield r
+                else:
+                    log.debug("The request(url=%s) will be aborted as the level of it is out of limit")
             else:
                 yield r

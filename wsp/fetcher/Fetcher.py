@@ -15,7 +15,7 @@ from wsp.config.system import SystemConfig
 from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
-from wsp.utils.fetcher import pack_request, unpack_request, parse_request
+from wsp.utils.parse import pack_request, unpack_request, parse_request
 from .config import FetcherConfig
 from .request import WspRequest
 from .taskmanager import TaskManager
@@ -98,16 +98,15 @@ class Fetcher:
     """
     def new_task(self, task_id):
         self._task_manager.add_task(task_id)
-        spider = self._task_manager.spider(task_id)
-        task_config = self._task_manager.task_config(task_id)
-        if spider is None:
-            for u in task_config.get(tc.START_URLS):
-                req = WspRequest(task_id=task_id, father_id=task_id, http_request=HttpRequest(u))
-                self.pushReq(req)
-        else:
-            for r in spider.start_requests(task_config.get(tc.START_URLS)):
-                req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
-                self.pushReq(req)
+        spiders = self._task_manager.spiders(task_id)
+        start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS)
+        if not isinstance(start_urls, list):
+            start_urls = [start_urls]
+        for spider in spiders:
+            for r in spider.start_requests(start_urls):
+                if isinstance(r, HttpRequest):
+                    req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
+                    self.pushReq(req)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id
@@ -164,8 +163,8 @@ class Fetcher:
             # bind HttpRequest
             result.request = request
             task_id = "%s" % req.task_id
-            spider = self._task_manager.spider(task_id)
-            if spider:
+            spiders = self._task_manager.spiders(task_id)
+            for spider in spiders:
                 for res in (await Spider.crawl(spider,
                                                result,
                                                middleware=self._task_manager.spidermws(task_id))):

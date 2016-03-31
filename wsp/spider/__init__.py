@@ -72,8 +72,6 @@ class BaseSpider:
         raise NotImplementedError
 
     def start_requests(self, start_urls):
-        if hasattr(self, tc.START_URLS):
-            start_urls = getattr(self, tc.START_URLS)
         return () if start_urls is None else (HttpRequest(u) for u in start_urls)
 
 
@@ -81,15 +79,21 @@ class SpiderFactory:
 
     @staticmethod
     def create(config):
-        cls_path = config.get(tc.SPIDER)
-        try:
-            spider_cls = load_object(cls_path)
-            if hasattr(spider_cls, "from_config"):
-                spider = spider_cls.from_config(config)
+        spider_list = config.get(tc.SPIDERS)
+        if not isinstance(spider_list, list):
+            spider_list = [spider_list]
+        log.debug("Spider list: %s" % spider_list)
+        spiders = []
+        for cls_path in spider_list:
+            try:
+                spider_cls = load_object(cls_path)
+                if hasattr(spider_cls, "from_config"):
+                    spider = spider_cls.from_config(config)
+                else:
+                    spider = spider_cls()
+                assert isinstance(spider, BaseSpider), "Custom spider must extend %s" % BaseSpider.__name__
+            except Exception as e:
+                log.warning("An error occurred when loading spider '%s': %s" % (cls_path, e))
             else:
-                spider = spider_cls()
-            assert isinstance(spider, BaseSpider), "Custom spider must extend %s" % BaseSpider.__name__
-        except Exception as e:
-            log.warning("An error occurred when loading spider '%s': %s" % (cls_path, e))
-            spider = None
-        return spider
+                spiders.append(spider)
+        return spider_list

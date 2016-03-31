@@ -10,16 +10,17 @@ downloader_middlewares:
 
 # ------ Spider Middlewares -------
 spider_middlewares:
-  - wsp.spidermws.levellimit.LevelLimitMiddleware
+  - project.spidermws.store.StoreMiddleware
+  - wsp.spidermws.limitlevel.LimitLevelMiddleware
 
 # ------ Spider -------
-spider: project.spider.WanFangSpider
+spiders:
+  - project.spiders.search.SearchSpider
+  - project.spiders.detail.DetailSpider
+
 
 # ------ Start URLs ------
-start_urls:
-  - http://www.iie.ac.cn
-  - http://cfb.bd.gov.cn
-  - http://www.iie.ac.cn
+start_urls: http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top
 
 # ------ Properties ------
 check:
@@ -27,7 +28,7 @@ check:
     url: "http://"
     succ: ""
     deny: ""
-max_level: 0
+max_level: 1
 max_retry_times: 3
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
 dump_mongo_addr: mongodb://wsp:wsp123456@192.168.120.181:27017
