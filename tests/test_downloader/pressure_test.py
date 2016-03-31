@@ -2,9 +2,9 @@
 
 import time
 
-from wsp.downloader import Downloader
-from wsp.downloader.http import HttpRequest, HttpError
 from tests.test_downloader.domains import GLOBAL_DOMAINS, CHINESE_DOMAINS
+from wsp.downloader import Downloader
+from wsp.http import HttpRequest, HttpError
 
 
 def save_result(request, response):
@@ -45,7 +45,7 @@ def test_chinese_sites():
     repeat = 50
     for i in range(repeat):
         for domain in CHINESE_DOMAINS:
-            req = HttpRequest("http://" + domain)
+            req = HttpRequest("http://%s" % domain)
             req._time=time.time()
             ok = False
             while not ok:

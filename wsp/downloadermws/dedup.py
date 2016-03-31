@@ -10,7 +10,7 @@ from wsp.errors import IgnoreRequest
 log = logging.getLogger(__name__)
 
 
-class MongoDedupPlugin:
+class MongoDedupMiddleware:
     """
     利用MongoDB去重
     """
@@ -26,11 +26,18 @@ class MongoDedupPlugin:
                    config.get("dedup_mongo_db", "wsp"))
 
     async def handle_request(self, request):
+        self._detect(request, False)
+
+    async def handle_response(self, request, response):
+        self._detect(request, True)
+
+    def _detect(self, request, is_response):
         req = extract_request(request)
         tbl = self._mongo_client[self._mongo_db]["dedup_%s" % req.task_id]
         url = "%s %s" % (request.method, request.url)
         res = tbl.find_one({"url": url})
         if res is not None:
-            log.debug("In task %s, the request (%s) is duplicate" % (req.task_id, url))
+            log.debug("In task %s, the request (url=%s) is duplicate" % (req.task_id, url))
             raise IgnoreRequest()
-        tbl.insert_one({"url": url})
+        if is_response:
+            tbl.insert_one({"url": url})

@@ -9,7 +9,7 @@ from wsp.utils.fetcher import extract_request, parse_response, parse_error
 log = logging.getLogger(__name__)
 
 
-class MongoDumpPlugin:
+class MongoDumpMiddleware:
     """
     将所有的request和response都存到mongo里面用于debug
     """

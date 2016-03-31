@@ -10,7 +10,7 @@ from wsp.utils.fetcher import parse_response, extract_request
 log = logging.getLogger(__name__)
 
 
-class MongoStorePlugin:
+class MongoStoreMiddleware:
     """
     将抓取的结果持久化
     """

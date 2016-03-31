@@ -1,10 +1,10 @@
 # coding=utf-8
 
-import time
 import logging
+import time
 
 from wsp.downloader import Downloader
-from wsp.downloader.http import HttpRequest, HttpError
+from wsp.http import HttpRequest, HttpError
 
 
 async def save_result(request, response):

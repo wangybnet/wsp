@@ -8,7 +8,7 @@ from wsp.errors import AccessDeny, ResponseNotMatch
 log = logging.getLogger(__name__)
 
 
-class CheckPlugin:
+class CheckMiddleware:
     """
     判断爬虫是否被封
     """

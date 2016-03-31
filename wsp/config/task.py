@@ -1,13 +1,13 @@
 # coding=utf-8
 
 START_URLS = "start_urls"
-DOWNLOADER_PLUGINS = "downloader_plugins"
-SPIDER_PLUGINS = "spider_plugins"
+DOWNLOADER_MIDDLEWARES = "downloader_middlewares"
+SPIDER_MIDDLEWARES = "spider_middlewares"
 SPIDER = "spider"
 
 DEFAULT_CONFIG = {START_URLS: [],
-                  DOWNLOADER_PLUGINS: [],
-                  SPIDER_PLUGINS: [],
+                  DOWNLOADER_MIDDLEWARES: [],
+                  SPIDER_MIDDLEWARES: [],
                   SPIDER: None}
 
 

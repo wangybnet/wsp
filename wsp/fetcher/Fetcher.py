@@ -2,23 +2,23 @@
 
 import logging
 import pickle
-import time
 import threading
-from xmlrpc.server import SimpleXMLRPCServer
+import time
 from xmlrpc.client import ServerProxy
+from xmlrpc.server import SimpleXMLRPCServer
 
-from kafka import KafkaProducer
 from kafka import KafkaConsumer
+from kafka import KafkaProducer
 
+from wsp.config import task as tc
 from wsp.config.system import SystemConfig
 from wsp.downloader import Downloader
-from wsp.downloader.http import HttpRequest, HttpResponse
-from wsp.utils.fetcher import pack_request, unpack_request, parse_request
-from .taskmanager import TaskManager
-from .config import FetcherConfig
+from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
+from wsp.utils.fetcher import pack_request, unpack_request, parse_request
+from .config import FetcherConfig
 from .request import WspRequest
-from wsp.config import task as tc
+from .taskmanager import TaskManager
 
 log = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class Fetcher:
     """
     通知添加了一个新任务
 
-    主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重插件解决。
+    主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重中间件解决。
     """
     def new_task(self, task_id):
         self._task_manager.add_task(task_id)
@@ -131,7 +131,7 @@ class Fetcher:
                     log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
                 except Exception as e:
                     # FIXME: 找到Kafka Consumer读取超时的时候的异常的特征
-                    
+
                     log.warning("An error occurred when fetch data from Kafka: %s" % e)
                 else:
                     # 添加处理该请求的fetcher的地址
@@ -149,7 +149,7 @@ class Fetcher:
         while True:
             if self.downloader.add_task(request,
                                         self.saveResult,
-                                        plugin=self._task_manager.downloader_plugins(task_id)):
+                                        middleware=self._task_manager.downloadermws(task_id)):
                 break
             sleep_time = self._config.downloader_busy_sleep_time
             log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
@@ -163,13 +163,15 @@ class Fetcher:
             self.pushReq(new_req)
             self.producer.flush()
         elif isinstance(result, HttpResponse):
+            # bind HttpRequest
+            result.request = request
             task_id = "%s" % req.task_id
             spider = self._task_manager.spider(task_id)
             if spider:
                 for res in (await Spider.crawl(spider,
                                                request,
                                                result,
-                                               plugin=self._task_manager.spider_plugins(task_id))):
+                                               middleware=self._task_manager.spidermws(task_id))):
                     if isinstance(res, HttpRequest):
                         new_req = parse_request(req, res)
                         self.pushReq(new_req)

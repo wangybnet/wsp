@@ -1,15 +1,15 @@
 # coding=utf-8
 
 
-class ProxyPlugin:
+class ProxyMiddleware:
     """
-    给Http请求添加代理的插件
+    给Http请求添加代理的中间件
     """
     def __init__(self, agent_addr):
         self._agent_addr = agent_addr
 
     """
-    根据任务配置实例化代理插件
+    根据任务配置实例化代理中间件
     """
     @classmethod
     def from_config(cls, config):

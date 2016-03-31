@@ -1,16 +1,16 @@
 #-*- coding:utf-8 -*-
 
-# ------ Downloader Plugins -------
-downloader_plugins:
-  - wsp.downloaderplugins.dedup.MongoDedupPlugin
-  - wsp.downloaderplugins.check.CheckPlugin
-  - wsp.downloaderplugins.dump.MongoDumpPlugin
-  - wsp.downloaderplugins.store.MongoStorePlugin
-  - wsp.downloaderplugins.retry.RetryPlugin
+# ------ Downloader Middlewares -------
+downloader_middlewares:
+  - wsp.downloadermws.dedup.MongoDedupMiddleware
+  - wsp.downloadermws.check.CheckMiddleware
+  - wsp.downloadermws.dump.MongoDumpMiddleware
+  - wsp.downloadermws.store.MongoStoreMiddleware
+  - wsp.downloadermws.retry.RetryMiddleware
 
-# ------ Spider Plugins -------
-spider_plugins:
-  - wsp.spiderplugins.levellimit.LevelLimitPlugin
+# ------ Spider Middlewares -------
+spider_middlewares:
+  - wsp.spidermws.levellimit.LevelLimitMiddleware
 
 # ------ Spider -------
 spider: project.spider.WanFangSpider

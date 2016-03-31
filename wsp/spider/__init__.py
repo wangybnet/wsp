@@ -1,11 +1,11 @@
 # coding=utf-8
 
-import logging
 import inspect
+import logging
 
 from wsp.config import task as tc
+from wsp.http import HttpRequest
 from wsp.utils.config import load_object
-from wsp.downloader.http import HttpRequest
 
 log = logging.getLogger(__name__)
 
@@ -13,12 +13,12 @@ log = logging.getLogger(__name__)
 class Spider:
 
     @classmethod
-    async def crawl(cls, spider, request, response, *, plugin=None):
+    async def crawl(cls, spider, response, *, middleware=None):
         try:
-            if plugin:
-                await cls._handle_input(request, response, plugin)
+            if middleware:
+                await cls._handle_input(response, middleware)
             res = []
-            for r in spider.parse(request, response):
+            for r in spider.parse(response):
                 if inspect.iscoroutine(r):
                     r = await r
                 if r:
@@ -26,30 +26,30 @@ class Spider:
         except Exception as e:
             log.debug("An error=%s has occurred when spider running" % e)
             try:
-                if plugin:
-                    await cls._handle_error(request, response, e, plugin)
+                if middleware:
+                    await cls._handle_error(response, e, middleware)
             except Exception as _e:
                 log.debug("Another error=%s has occurred when handling error=%s" % (e, _e))
         else:
             return res
 
     @staticmethod
-    async def _handle_input(request, response, plugin):
-        for method in plugin.input_handlers:
-            res = await method(request, response)
+    async def _handle_input(response, middleware):
+        for method in middleware.input_handlers:
+            res = await method(response)
             assert res is None, "Input handler must return None, got %s" % type(res)
 
     @classmethod
-    async def _handle_output(cls, request, response, result, plugin):
-        for method in plugin.output_handlers:
-            res = await method(request, response, result)
+    async def _handle_output(cls, response, result, middleware):
+        for method in middleware.output_handlers:
+            res = await method(response, result)
             assert cls._isiterable(result), "Response handler must return an iterable object, got %s" % type(res)
             return res
 
     @staticmethod
-    async def _handle_error(request, response, error, plugin):
-        for method in plugin.error_handlers:
-            res = await method(request, response, error)
+    async def _handle_error(response, error, middleware):
+        for method in middleware.error_handlers:
+            res = await method(response, error)
             assert res is None, "Exception handler must return None, got %s" % type(res)
 
     @staticmethod
@@ -68,7 +68,7 @@ class BaseSpider:
     返回一个可迭代对象，每次迭代得到的可以是Http Request，None，其他提取出来的数据。
     特别的，每次迭代得到的可以是协程（以“asnyc def”定义的函数），因此在Spider中实际上是支持协程的。
     """
-    def parse(self, request, response):
+    def parse(self, response):
         raise NotImplementedError
 
     def start_requests(self, start_urls):

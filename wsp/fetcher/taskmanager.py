@@ -9,8 +9,8 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import yaml
 
-from wsp.downloader.plugin import DownloaderPluginManager
-from wsp.spider.plugin import SpiderPluginManager
+from wsp.downloader.middleware import DownloaderMiddlewareManager
+from wsp.spider.middleware import SpiderMiddlewareManager
 from wsp.config.task import TaskConfig
 from wsp.config.system import SystemConfig
 from .config import FetcherConfig
@@ -31,8 +31,8 @@ class TaskManager:
         self._mongo_client = MongoClient(self._sys_conf.mongo_addr)
         # NOTE: tasks里面存在的是<task id, task configuration>的键值对
         self._tasks = {}
-        self._downloader_plugins = {}
-        self._spider_plugins = {}
+        self._downloadermws = {}
+        self._spidermws = {}
         self._spider = {}
 
     """
@@ -59,18 +59,18 @@ class TaskManager:
         self._tasks[task_id] = self._load_task_config(task_id)
 
     """
-    根据任务id获取下载器插件
+    根据任务id获取下载器中间件
     """
-    def downloader_plugins(self, task_id):
+    def downloadermws(self, task_id):
         assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._downloader_plugins[task_id]
+        return self._downloadermws[task_id]
 
     """
-    根据任务id获取Spider插件
+    根据任务id获取Spider中间件
     """
-    def spider_plugins(self, task_id):
+    def spidermws(self, task_id):
         assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._spider_plugins[task_id]
+        return self._spidermws[task_id]
 
     """
     根据任务id获取Spider
@@ -99,8 +99,8 @@ class TaskManager:
         # 添加sys.path
         sys.path.append(code_dir)
         self._spider[task_id] = self._load_spider(task_config)
-        self._downloader_plugins[task_id] = self._load_downloader_plugins(task_config)
-        self._spider_plugins[task_id] = self._load_spider_plugins(task_config)
+        self._downloadermws[task_id] = self._load_downloadermws(task_config)
+        self._spidermws[task_id] = self._load_spidermws(task_config)
         # 移除sys.path
         sys.path.remove(code_dir)
         return task_config
@@ -110,25 +110,28 @@ class TaskManager:
     """
     def _remove_task_config(self, task_id):
         self._spider.pop(task_id)
-        self._downloader_plugins.pop(task_id)
-        self._spider_plugins.pop(task_id)
+        self._downloadermws.pop(task_id)
+        self._spidermws.pop(task_id)
 
     """
-    根据任务配置加载下载器插件
+    根据任务配置加载下载器中间件
     """
-    def _load_downloader_plugins(self, task_config):
-        return DownloaderPluginManager.from_config(task_config)
+    @staticmethod
+    def _load_downloadermws(task_config):
+        return DownloaderMiddlewareManager.from_config(task_config)
 
     """
-    根据任务配置加载Spider插件
+    根据任务配置加载Spider中间件
     """
-    def _load_spider_plugins(self, task_config):
-        return SpiderPluginManager.from_config(task_config)
+    @staticmethod
+    def _load_spidermws(task_config):
+        return SpiderMiddlewareManager.from_config(task_config)
 
     """
     根据任务配置加载Spider
     """
-    def _load_spider(self, task_config):
+    @staticmethod
+    def _load_spider(task_config):
         return SpiderFactory.create(task_config)
 
     def _install_task(self, task_id, code_dir):

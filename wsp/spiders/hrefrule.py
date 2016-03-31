@@ -16,7 +16,7 @@ class HrefRuleSpider(BaseSpider):
         self._contains = kw.get("contains", [])
         self._regex_matches = kw.get("regex_matches", [])
 
-    def parse(self, request, response):
+    def parse(self, response):
         html = text_from_http_body(response)
         if not html:
             return []
@@ -54,6 +54,6 @@ class HrefRuleSpider(BaseSpider):
             if tag:
                 log.debug("Find a new url %s in the page %s." % (u, response.url))
                 hasNewUrl = True
-                req = request.copy()
+                req = response.request.copy()
                 req.url = u
                 yield req
