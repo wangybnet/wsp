@@ -1,7 +1,11 @@
 # coding=utf-8
 
+import logging
+
 from wsp.middleware import MiddlewareManager
 from wsp.config import task as tc
+
+log = logging.getLogger(__name__)
 
 
 class SpiderMiddlewareManager(MiddlewareManager):
@@ -37,4 +41,6 @@ class SpiderMiddlewareManager(MiddlewareManager):
 
     @classmethod
     def _middleware_list_from_config(cls, config):
-        return config.get(tc.SPIDER_MIDDLEWARES)
+        mw_list = config.get(tc.SPIDER_MIDDLEWARES)
+        log.debug("Spider middleware list: %s" % mw_list)
+        return mw_list

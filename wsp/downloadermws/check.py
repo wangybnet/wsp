@@ -26,10 +26,10 @@ class CheckMiddleware:
             flg_deny = False
             for ch in self._check:
                 if "url" in ch and response.url.startswith(ch['url']):
-                    if "succ" in ch and html.find(ch['succ']):
+                    if "succ" in ch and html.find(ch['succ']) >= 0:
                         flg_match = True
                         break
-                    if "deny" in ch and html.find(ch['deny']):
+                    if "deny" in ch and html.find(ch['deny']) >= 0:
                         flg_deny = True
                         break
             if not flg_match:

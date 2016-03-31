@@ -129,14 +129,12 @@ class Fetcher:
                         record = next(self.consumer)
                     req = pickle.loads(record.value)
                     log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
-                except Exception as e:
-                    # FIXME: 找到Kafka Consumer读取超时的时候的异常的特征
-
-                    log.warning("An error occurred when fetch data from Kafka: %s" % e)
-                else:
-                    # 添加处理该请求的fetcher的地址
                     req.fetcher = self._addr
                     self._push_task(req)
+                except StopIteration as e:
+                    log.debug("Kafka read timeout")
+                except Exception as e:
+                    log.warning("An %s error occurred when preparing request: %s" % (type(e), e))
 
     def _start_pull_req(self):
         log.info("Start to pull requests")
@@ -169,14 +167,13 @@ class Fetcher:
             spider = self._task_manager.spider(task_id)
             if spider:
                 for res in (await Spider.crawl(spider,
-                                               request,
                                                result,
                                                middleware=self._task_manager.spidermws(task_id))):
                     if isinstance(res, HttpRequest):
                         new_req = parse_request(req, res)
                         self.pushReq(new_req)
                     else:
-                        log.debug("Got %s, but I will do noting here", res)
+                        log.debug("Got '%s', but I will do noting here", res)
                 self.producer.flush()
         else:
             log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))

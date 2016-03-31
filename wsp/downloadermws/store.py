@@ -28,8 +28,10 @@ class MongoStoreMiddleware:
         req = extract_request(request)
         res = parse_response(req, response)
         res_table = self._mongo_client[self._mongo_db]["result_%s" % req.task_id]
-        res_record = {'_id': ObjectId(), 'req': req.to_dict(), 'resp': res.to_dict()}
-        log.debug("Save result record (id=%s, req_url=%s) of the task %s into mongo" % (res_record["id"],
-                                                                                        res_record["req"]["http_request"]["url"],
-                                                                                        req.task_id))
+        res_obj_id = ObjectId()
+        res_record = {'_id': res_obj_id, 'id': "%s" % res_obj_id, 'req': req.to_dict(), 'resp': res.to_dict()}
+        log.debug("Save result record (id=%s, req_id=%s, req_url=%s) of the task %s into mongo" % (res_record["id"],
+                                                                                                   res_record["req"]["id"],
+                                                                                                   res_record["req"]["http_request"]["url"],
+                                                                                                   req.task_id))
         res_table.save(res_record)

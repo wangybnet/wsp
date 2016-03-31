@@ -5,5 +5,5 @@ from wsp.spider import BaseSpider
 
 class WanFangSpider(BaseSpider):
 
-    def parse(self, request, response):
-        pass
+    def parse(self, response):
+        yield "Hello, World!"

@@ -1,7 +1,11 @@
 # coding=utf-8
 
+import logging
+
 from wsp.middleware import MiddlewareManager
 from wsp.config import task as tc
+
+log = logging.getLogger(__name__)
 
 
 class DownloaderMiddlewareManager(MiddlewareManager):
@@ -37,4 +41,6 @@ class DownloaderMiddlewareManager(MiddlewareManager):
 
     @classmethod
     def _middleware_list_from_config(cls, config):
-        return config.get(tc.DOWNLOADER_MIDDLEWARES)
+        mw_list = config.get(tc.DOWNLOADER_MIDDLEWARES)
+        log.debug("Downloader middleware list: %s" % mw_list)
+        return mw_list

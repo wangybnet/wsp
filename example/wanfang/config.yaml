@@ -2,11 +2,11 @@
 
 # ------ Downloader Middlewares -------
 downloader_middlewares:
-  - wsp.downloadermws.dedup.MongoDedupMiddleware
-  - wsp.downloadermws.check.CheckMiddleware
   - wsp.downloadermws.dump.MongoDumpMiddleware
-  - wsp.downloadermws.store.MongoStoreMiddleware
+  - wsp.downloadermws.check.CheckMiddleware
   - wsp.downloadermws.retry.RetryMiddleware
+  - wsp.downloadermws.store.MongoStoreMiddleware
+  - wsp.downloadermws.dedup.MongoDedupMiddleware
 
 # ------ Spider Middlewares -------
 spider_middlewares:
