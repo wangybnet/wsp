@@ -20,7 +20,9 @@ spiders:
 
 
 # ------ Start URLs ------
-start_urls: http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top
+start_urls:
+  - http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top
+  - http://d.wanfangdata.com.cn/Periodical/dianzixb201406020
 
 # ------ Properties ------
 check:

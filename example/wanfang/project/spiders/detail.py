@@ -6,6 +6,8 @@ from wsp.spider import BaseSpider
 from wsp.utils.parse import text_from_http_body
 from wsp.http import HttpRequest
 
+from ..utils.coding import sanitize_url
+
 
 class DetailSpider(BaseSpider):
 
@@ -20,9 +22,9 @@ class DetailSpider(BaseSpider):
     def _parse(self, response):
         print("DetailSpider parse the response(url=%s)" % response.url)
         html = text_from_http_body(response)
-        for url in self._match.findall(html):
-            if url.find("http://s.wanfangdata.com.cn/Paper.aspx") >= 0:
-                yield HttpRequest(url)
+        for u in self._match.findall(html):
+            if u.find("http://s.wanfangdata.com.cn/Paper.aspx") >= 0:
+                yield HttpRequest(sanitize_url(u))
 
     def start_requests(self, start_urls):
 

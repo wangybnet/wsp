@@ -32,6 +32,6 @@ class LimitLevelMiddleware:
                     r.meta["crawl_level"] = level
                     yield r
                 else:
-                    log.debug("The request(url=%s) will be aborted as the level of it is out of limit")
+                    log.debug("The request(url=%s) will be aborted as the level of it is out of limit" % r.url)
             else:
                 yield r

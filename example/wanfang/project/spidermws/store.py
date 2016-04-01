@@ -3,6 +3,8 @@
 import os
 import random
 
+from bson import ObjectId
+
 
 class StoreMiddleware:
 
@@ -13,6 +15,10 @@ class StoreMiddleware:
 
     async def handle_input(self, response):
         print("Response url: %s" % response.url)
-        filename = "%s/%s.html" % (self._store_path, random.randint(0, 1000000))
-        with open(filename, "wb") as f:
+        objid = "%s" % ObjectId()
+        html_file = "%s/%s.html" % (self._store_path, objid)
+        meta_file = "%s/%s.meta" % (self._store_path, objid)
+        with open(html_file, "wb") as f:
             f.write(response.body)
+        with open(meta_file, "wb") as f:
+            f.write(response.url.encode("utf-8"))
