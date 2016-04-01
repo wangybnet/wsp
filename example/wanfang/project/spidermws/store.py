@@ -9,7 +9,7 @@ from bson import ObjectId
 class StoreMiddleware:
 
     def __init__(self):
-        self._store_path = "/home/wsp/wanfang"
+        self._store_path = "/datastore/wsp/wanfang"
         if not os.path.exists(self._store_path):
             os.makedirs(self._store_path, 0o775)
 

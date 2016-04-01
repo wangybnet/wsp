@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class Downloader:
+
     def __init__(self, *, clients=1):
         self._downloader = AsyncThread()
         self._clients = clients
