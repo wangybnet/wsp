@@ -4,7 +4,7 @@ from aiohttp.client_reqrep import helpers
 
 from wsp.fetcher.request import WspRequest
 from wsp.fetcher.response import WspResponse
-from wsp import reqmeta
+from wsp.http import reqmeta
 
 
 # WspRequest --> HttpRequest

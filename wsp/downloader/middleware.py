@@ -17,7 +17,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
         self._request_handlers = []
         self._response_handlers = []
         self._error_handlers = []
-        super(DownloaderMiddlewareManager, self).__init__(*middlewares)
+        MiddlewareManager.__init__(self, *middlewares)
 
     def _add_middleware(self, middleware):
         if hasattr(middleware, "handle_request"):

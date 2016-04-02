@@ -20,7 +20,7 @@ if __name__ == "__main__":
                 fz.write("%s/%s" % (root, file))
     with open(zipf, "rb") as f:
         zipb = f.read()
-    client = ServerProxy("http://192.168.120.181:8090", allow_none=True)
+    client = ServerProxy("http://192.168.120.181:7310", allow_none=True)
     task_id = client.create_one({"desc": "万方数据"}, Binary(zipb))
     print("Task ID: ", task_id)
     client.start_one(task_id)

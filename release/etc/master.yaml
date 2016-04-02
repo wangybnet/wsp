@@ -3,7 +3,7 @@
 log_level: DEBUG
 
 # ------ Master -------
-rpc_addr: 0.0.0.0:8090
+rpc_addr: 0.0.0.0:7310
 
 # ------ System Configuration ------
 kafka_addr: 127.0.0.1:9092
