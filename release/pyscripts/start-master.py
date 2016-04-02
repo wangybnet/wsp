@@ -14,21 +14,23 @@ from wsp.config.system import SystemConfig
 
 if __name__ == "__main__":
 
-    def get_master_yaml(master_yaml):
+    def get_yaml(yaml_file):
         try:
-            with open(master_yaml, "r", encoding="utf-8") as f:
+            with open(yaml_file, "r", encoding="utf-8") as f:
                 dict = yaml.load(f)
                 return dict
         except Exception:
-            print("Loafing master.yaml is failed")
+            print("Loafing '%s' is failed" % yaml_file)
             exit(1)
 
-    conf = get_master_yaml(sys.argv[1])
-    wsp.set_logger(getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
+    master_conf = get_yaml(sys.argv[1])
+    system_conf = get_yaml(sys.argv[2])
+    wsp.set_logger(getattr(logging, master_conf.get("log_level", "INFO").upper(), "INFO"),
                    "%(asctime)s %(name)s: [%(levelname)s] %(message)s",
                    "%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
-    log.debug("master.yaml=%s" % conf)
+    log.debug("master.yaml=%s" % master_conf)
+    log.debug("system.yaml=%s" % system_conf)
 
-    master = Master(MasterConfig(**conf), SystemConfig(**conf))
+    master = Master(MasterConfig(**master_conf), SystemConfig(**system_conf))
     master.start()

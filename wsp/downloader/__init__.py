@@ -5,8 +5,8 @@ import threading
 
 import aiohttp
 
-from wsp.asyncthread import AsyncThread
 from wsp.http import HttpRequest, HttpResponse, HttpError
+from .asyncthread import AsyncThread
 
 log = logging.getLogger(__name__)
 

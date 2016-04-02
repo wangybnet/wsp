@@ -13,7 +13,6 @@ class AsyncThread:
         if self._loop is None:
             return
         self._loop.call_soon_threadsafe(self._stop)
-        self._loop = None
 
     def add_task(self, coro):
         if self._loop is None:
@@ -22,11 +21,13 @@ class AsyncThread:
             t.start()
         self._loop.call_soon_threadsafe(self._add_task, coro)
 
-    @staticmethod
-    def _start(loop):
+    def _start(self, loop):
         asyncio.set_event_loop(loop)
-        loop.run_forever()
-        loop.close()
+        try:
+            loop.run_forever()
+        finally:
+            self._loop = None
+            loop.close()
 
     @staticmethod
     def _stop():

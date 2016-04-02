@@ -21,7 +21,7 @@ if __name__ == "__main__":
     except Exception:
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
-    wsp.set_logger(getattr(logging, conf.get("log_level", "WARNING").upper(), "WARNING"),
+    wsp.set_logger(getattr(logging, conf.get("log_level", "INFO").upper(), "INFO"),
                    "%(asctime)s %(name)s: [%(levelname)s] %(message)s",
                    "%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
