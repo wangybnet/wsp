@@ -6,10 +6,10 @@ from xmlrpc.server import SimpleXMLRPCServer
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-from wsp.fetcher.fetcherManager import fetcherManager
 from wsp.config.system import SystemConfig
-from .task import WspTask
+from .fetcherManager import fetcherManager
 from .config import MasterConfig
+from .task import WspTask
 
 log = logging.getLogger(__name__)
 

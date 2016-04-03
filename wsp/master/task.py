@@ -4,6 +4,12 @@ from bson import ObjectId
 
 from wsp.utils.config import ensure_int
 
+TASK_CREATE = 0
+TASK_RUNNING = 1
+TASK_STOPPED = 2
+TASK_FINISHED = 3
+TASK_REMOVED = 4
+
 
 class WspTask:
 

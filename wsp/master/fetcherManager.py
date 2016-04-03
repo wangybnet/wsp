@@ -1,15 +1,14 @@
 # coding=utf-8
 
 import logging
-import pickle
 from xmlrpc.client import ServerProxy
 
-from kafka import KafkaProducer
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 from wsp.config.system import SystemConfig
 from wsp.master.task import WspTask
+from wsp.master.task import TASK_RUNNING, TASK_STOPPED, TASK_REMOVED
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +21,6 @@ class fetcherManager:
         self._sys_config = sys_config
         self.running_tasks = []
         self.fetcherList = []
-        self.producer = KafkaProducer(bootstrap_servers=[self._sys_config.kafka_addr, ])
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
         self.taskTable = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_tbl]
 
@@ -51,12 +49,12 @@ class fetcherManager:
 
     def delete_one(self, task_id):
         # TODO: 从kafka中删除topic
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": 3}})
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_REMOVED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
     def stop_one(self, task_id):
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": 2}})
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_STOPPED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
@@ -66,13 +64,7 @@ class fetcherManager:
         if task.status == 0:
             if not self._notice_new_task(task_id):
                 return False
-            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": 1}})
+            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_RUNNING}})
         if task_id not in self.running_tasks:
             self.running_tasks.append(task_id)
         return self._notice_change_tasks()
-
-    def _pushReq(self, req):
-        topic = '%s' % req.task_id
-        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
-        tempreq = pickle.dumps(req)
-        self.producer.send(topic, tempreq)

@@ -44,7 +44,7 @@ class Fetcher:
         self.downloader = Downloader(clients=self._config.downloader_clients)
         self._task_manager = TaskManager(self._sys_config, self._config)
         self.taskDict = {}
-        self._task_lock = threading.Lock()
+        self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
         # NOTE: Fetcher的地址在向Master注册时获取
         self._addr = None
@@ -80,7 +80,7 @@ class Fetcher:
     # NOTE: The tasks here is a list of task IDs.
     def changeTasks(self, tasks):
         topics = [t for t in tasks]
-        with self._task_lock:
+        with self._task_dict_lock:
             with self._subscribe_lock:
                 log.debug("Subscribe topics %s" % topics)
                 if topics:
@@ -116,7 +116,7 @@ class Fetcher:
 
     def _pull_req(self):
         while self.isRunning:
-            with self._task_lock:
+            with self._task_dict_lock:
                 no_work = not self.taskDict
             if no_work:
                 sleep_time = self._config.no_work_sleep_time
