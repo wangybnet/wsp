@@ -11,7 +11,7 @@ from kafka import KafkaConsumer
 from kafka import KafkaProducer
 
 from wsp.config import task as tc
-from wsp.config.system import SystemConfig
+from wsp.config import SystemConfig
 from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
@@ -19,6 +19,7 @@ from wsp.utils.parse import pack_request, unpack_request, parse_request
 from .config import FetcherConfig
 from .request import WspRequest
 from .taskmanager import TaskManager
+from .collector import CollectorManager
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class Fetcher:
                                       consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
         self.downloader = Downloader(clients=self._config.downloader_clients)
         self._task_manager = TaskManager(self._sys_config, self._config)
+        self._collector_manager = CollectorManager(self._sys_config, self._config)
         self.taskDict = {}
         self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
@@ -111,6 +113,8 @@ class Fetcher:
     def pushReq(self, req):
         topic = '%s' % req.task_id
         log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
+        # record pushed request
+        self._collector_manager.record_pushed_request(req.task_id)
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
@@ -128,8 +132,10 @@ class Fetcher:
                         record = next(self.consumer)
                     req = pickle.loads(record.value)
                     log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
+                    # record pulled request
+                    self._collector_manager.record_pulled_request(req.task_id)
                     req.fetcher = self._addr
-                    self._push_task(req)
+                    self._push_downloader_task(req)
                 except StopIteration as e:
                     log.debug("Kafka read timeout")
                 except Exception as e:
@@ -140,7 +146,7 @@ class Fetcher:
         t = threading.Thread(target=self._pull_req)
         t.start()
 
-    def _push_task(self, req):
+    def _push_downloader_task(self, req):
         request = pack_request(req)
         task_id = "%s" % req.task_id
         while True:

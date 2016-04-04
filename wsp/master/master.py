@@ -6,7 +6,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-from wsp.config.system import SystemConfig
+from wsp.config import SystemConfig
 from .fetcherManager import fetcherManager
 from .config import MasterConfig
 from .task import WspTask

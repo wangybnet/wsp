@@ -1,7 +1,7 @@
 # coding=utf-8
 
 import os
-import random
+import time
 
 from bson import ObjectId
 
@@ -21,4 +21,5 @@ class StoreMiddleware:
         with open(html_file, "wb") as f:
             f.write(response.body)
         with open(meta_file, "wb") as f:
+            f.write(time.time())
             f.write(response.url.encode("utf-8"))

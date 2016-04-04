@@ -6,7 +6,7 @@ from xmlrpc.client import ServerProxy
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-from wsp.config.system import SystemConfig
+from wsp.config import SystemConfig
 from wsp.master.task import WspTask
 from wsp.master.task import TASK_RUNNING, TASK_STOPPED, TASK_REMOVED
 

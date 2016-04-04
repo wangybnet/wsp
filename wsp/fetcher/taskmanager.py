@@ -11,8 +11,7 @@ import yaml
 
 from wsp.downloader.middleware import DownloaderMiddlewareManager
 from wsp.spider.middleware import SpiderMiddlewareManager
-from wsp.config.task import TaskConfig
-from wsp.config.system import SystemConfig
+from wsp.config import TaskConfig, SystemConfig
 from .config import FetcherConfig
 from wsp.spider import SpiderFactory
 
@@ -24,11 +23,11 @@ class TaskManager:
     用于管理任务的具体信息
     """
 
-    def __init__(self, sys_conf, local_conf):
-        assert isinstance(sys_conf, SystemConfig) and isinstance(local_conf, FetcherConfig), "Wrong configuration"
-        self._sys_conf = sys_conf
-        self._local_conf = local_conf
-        self._mongo_client = MongoClient(self._sys_conf.mongo_addr)
+    def __init__(self, sys_config, local_config):
+        assert isinstance(sys_config, SystemConfig) and isinstance(local_config, FetcherConfig), "Wrong configuration"
+        self._sys_config = sys_config
+        self._local_config = local_config
+        self._mongo_client = MongoClient(self._sys_config.mongo_addr)
         # NOTE: tasks里面存在的是<task id, task configuration>的键值对
         self._tasks = {}
         self._downloadermws = {}
@@ -56,7 +55,8 @@ class TaskManager:
     添加一个需要管理的任务
     """
     def add_task(self, task_id):
-        self._tasks[task_id] = self._load_task_config(task_id)
+        if task_id not in self._tasks:
+            self._tasks[task_id] = self._load_task_config(task_id)
 
     """
     根据任务id获取下载器中间件
@@ -92,7 +92,7 @@ class TaskManager:
     def _load_task_config(self, task_id):
         code_dir = self._get_code_dir(task_id)
         self._install_task(task_id, code_dir)
-        config_yaml = "%s/%s" % (code_dir, self._sys_conf.task_config_file)
+        config_yaml = "%s/%s" % (code_dir, self._sys_config.task_config_file)
         with open(config_yaml, "r", encoding="utf-8") as f:
             task_config = TaskConfig(**yaml.load(f))
         log.debug("Loaded the configuration of the task %s" % task_id)
@@ -136,8 +136,8 @@ class TaskManager:
 
     def _install_task(self, task_id, code_dir):
         log.debug("Install task %s at '%s'" % (task_id, code_dir))
-        zip_json = self._mongo_client[self._sys_conf.mongo_db][self._sys_conf.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
-        zipb = zip_json[self._sys_conf.mongo_task_config_zip]
+        zip_json = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
+        zipb = zip_json[self._sys_config.mongo_task_config_zip]
         if not os.path.exists(code_dir):
             os.makedirs(code_dir, mode=0o775)
         zipf = "%s/%s.zip" % (code_dir, task_id)
@@ -148,4 +148,4 @@ class TaskManager:
                 fz.extract(file, code_dir)
 
     def _get_code_dir(self, task_id):
-        return "%s/%s" % (self._local_conf.task_code_dir, task_id)
+        return "%s/%s" % (self._local_config.task_code_dir, task_id)
