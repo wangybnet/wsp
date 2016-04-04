@@ -62,29 +62,25 @@ class TaskManager:
     根据任务id获取下载器中间件
     """
     def downloadermws(self, task_id):
-        assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._downloadermws[task_id]
+        return self._downloadermws.get(task_id, [])
 
     """
     根据任务id获取Spider中间件
     """
     def spidermws(self, task_id):
-        assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._spidermws[task_id]
+        return self._spidermws.get(task_id, [])
 
     """
     根据任务id获取Spider
     """
     def spiders(self, task_id):
-        assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._spiders[task_id]
+        return self._spiders.get(task_id, [])
 
     """
     根据任务id获取任务配置
     """
     def task_config(self, task_id):
-        assert task_id in self._tasks, "The task (id=%s) is not under the control" % task_id
-        return self._tasks[task_id]
+        return self._tasks.get(task_id, None)
 
     """
     根据任务id加载任务配置

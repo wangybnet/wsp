@@ -59,7 +59,8 @@ class MonitorClient:
             self._report(data)
 
     def _remove_handler(self, handler_id):
-        self._handlers.pop(handler_id)
+        if handler_id in self._handlers:
+            self._handlers.pop(handler_id)
 
     def _report(self, data):
         self._transport.sendto(json.dumps(data).encode("utf-8"))

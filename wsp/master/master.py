@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 import logging
+import threading
 from xmlrpc.server import SimpleXMLRPCServer
 
 from bson.objectid import ObjectId
@@ -10,6 +11,7 @@ from wsp.config import SystemConfig
 from .fetcherManager import fetcherManager
 from .config import MasterConfig
 from .task import WspTask
+from .monitor import MonitorManager
 
 log = logging.getLogger(__name__)
 
@@ -40,20 +42,22 @@ class Master(object):
         log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (master_config.rpc_addr,
                                                                                       sys_config.kafka_addr,
                                                                                       sys_config.mongo_addr))
-        self._master_config = master_config
+        self._config = master_config
         self._sys_config = sys_config
         self.fetcher_manager = fetcherManager(self._sys_config)
         self._rpc_server = self._create_rpc_server()
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
+        self._monitor_manager = MonitorManager(self._config)
 
     def _create_rpc_server(self):
-        host, port = self._master_config.rpc_addr.split(":")
+        host, port = self._config.rpc_addr.split(":")
         port = int(port)
         server = MasterRpcServer((host, port), allow_none=True)
         server.register_function(self.create_one)
         server.register_function(self.delete_one)
         server.register_function(self.start_one)
         server.register_function(self.stop_one)
+        server.register_function(self.finish_one)
         server.register_function(self.get_sys_config)
         server.register_function(self.register_fetcher)
         return server
@@ -78,9 +82,6 @@ class Master(object):
     def delete_one(self, task_id):
         log.info("Delete the task %s" % task_id)
         flag = self.fetcher_manager.delete_one(task_id)
-        if not flag:
-            return False
-        flag = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).remove({'_id': ObjectId(task_id)})
         return flag
 
     def start_one(self, task_id):
@@ -104,5 +105,15 @@ class Master(object):
         return fetcher_addr
 
     def start(self):
-        log.info("Start master RPC at %s" % self._master_config.rpc_addr)
-        self._rpc_server.serve_forever()
+        self._start_rpc_server()
+        # open monitor manager
+        self._monitor_manager.open()
+
+    def _start_rpc_server(self):
+        log.info("Start master RPC at %s" % self._config.rpc_addr)
+        t = threading.Thread(target=self._rpc_server.serve_forever)
+        t.start()
+
+    def finish_one(self):
+        # TODO
+        pass

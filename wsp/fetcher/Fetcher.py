@@ -70,6 +70,8 @@ class Fetcher:
 
     def start(self):
         self.isRunning = True
+        # open collector manager
+        self._collector_manager.open()
         self._start_pull_req()
         self._start_rpc_server()
         self._register_on_master()
