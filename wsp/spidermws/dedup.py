@@ -30,15 +30,24 @@ class MongoDedupMiddleware:
 
     async def handle_input(self, response):
         request = response.request
-        if self._is_dup(request, True):
+        if self._is_dup(self._get_dedup_tbl_name(request), request, True):
             raise IgnoreRequest("The request (method=%s, url=%s) is duplicated" % (request.method, request.url))
 
     async def handle_output(self, response, result):
         return self._handle_output(response, result)
 
-    def _is_dup(self, request, is_input):
-        req = extract_request(request)
-        tbl = self._mongo_client[self._mongo_db][self._mongo_coll or ("dedup_%s" % req.task_id)]
+    def _handle_output(self, response, result):
+        for r in result:
+            if isinstance(r, HttpRequest):
+                if not self._is_dup(self._get_dedup_tbl_name(response.request), r, False):
+                    yield r
+                else:
+                    log.debug("The request (method=%s, url=%s) is duplicated" % (r.method, r.url))
+            else:
+                yield r
+
+    def _is_dup(self, tbl_name, request, is_input):
+        tbl = self._mongo_client[self._mongo_db][tbl_name]
         url = "%s %s" % (request.method, request.url)
         res = tbl.find_one({"url": url})
         if res is None:
@@ -47,12 +56,6 @@ class MongoDedupMiddleware:
             return False
         return True
 
-    def _handle_output(self, reponse, result):
-        for r in result:
-            if isinstance(r, HttpRequest):
-                if not self._is_dup(r, False):
-                    yield r
-                else:
-                    log.debug("The request (method=%s, url=%s) is duplicated" % (r.method, r.url))
-            else:
-                yield r
+    def _get_dedup_tbl_name(self, request):
+        req = extract_request(request)
+        return self._mongo_coll or ("dedup_%s" % req.task_id)

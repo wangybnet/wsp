@@ -33,6 +33,7 @@ class Spider:
                     await cls._handle_error(response, e, middleware)
             except Exception as _e:
                 log.debug("Another %s error has occurred when handling %s error: %s" % (type(_e), e, _e))
+            return ()
         else:
             return res
 
