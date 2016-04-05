@@ -66,8 +66,8 @@ class TaskProgressCollector:
             for t in self._tasks.keys():
                 data.append({"task_id": t,
                              "signature": self._tasks[t],
-                             "pulled_count": self._pulled_count,
-                             "pushed_count": self._pushed_count})
+                             "pulled_count": self._pulled_count[t],
+                             "pushed_count": self._pushed_count[t]})
         return {"task_progress": data}
 
     def _add_task(self, task_id):

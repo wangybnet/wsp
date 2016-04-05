@@ -124,10 +124,11 @@ class Master(object):
 
     def get_task_info(self, task_id):
         task_info = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).find_one({"_id": ObjectId(task_id)})
-        log.debug("Return the status of task %s: %s" % (task_id, task_info))
+        task_info.pop("_id")
+        log.debug("Return the information of task %s: %s" % (task_id, task_info))
         return task_info
 
-    def get_running_tasks(self, task_id):
+    def get_running_tasks(self):
         running_tasks = self.fetcher_manager.running_tasks
         log.debug("Return the running tasks: %s" % running_tasks)
         return running_tasks

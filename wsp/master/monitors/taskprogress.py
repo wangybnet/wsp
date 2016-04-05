@@ -2,17 +2,18 @@
 
 import asyncio
 import time
+import logging
 from xmlrpc.client import ServerProxy
-
 from pymongo import MongoClient
 from bson import ObjectId
 
 from wsp.config import SystemConfig
 from ..config import MasterConfig
 
+log = logging.getLogger(__name__)
+
 
 class TaskProgressMonitor:
-
     def __init__(self, sys_config, local_config):
         assert isinstance(sys_config, SystemConfig) and isinstance(local_config, MasterConfig), "Wrong configuration"
         self._sys_config = sys_config
@@ -29,6 +30,7 @@ class TaskProgressMonitor:
     """
     处理采集的数据
     """
+
     def handle_data(self, data, addr):
         progress_list = data.get("task_progress")
         if not progress_list:
@@ -52,14 +54,19 @@ class TaskProgressMonitor:
         await asyncio.sleep(self._inspect_time)
         t = time.time()
         for task_id in self._tasks.keys():
-            if t - self._tasks[task_id] > self._inspect_time:
+            log.debug("Current time is %s, last modified time of task %s is %s" % (time.strftime("%b.%d,%Y %H:%M:%S", time.localtime(t)),
+                                                                                   task_id,
+                                                                                   time.strftime("%b.%d,%Y %H:%M:%S",
+                                                                                                 time.localtime(self._tasks[task_id].last_modified))))
+            if t - self._tasks[task_id].last_modified > self._inspect_time:
                 self._remove_task(task_id)
-                client = ServerProxy("http://127.0.0.1")
+                client = ServerProxy(self._master_addr)
                 client.finish_task(task_id)
 
     """
     更新增量
     """
+
     def _update_increament(self, progress):
         pulled_insc, pushed_insc = 0, 0
         task_id = progress["task_id"]
@@ -88,7 +95,6 @@ class TaskProgressMonitor:
 
 
 class _TaskProgress:
-
     def __init__(self, **kw):
         self.pulled_count = kw.get("pulled_count", 0)
         self.pushed_count = kw.get("pushed_count", 0)

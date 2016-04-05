@@ -94,6 +94,8 @@ class Fetcher:
                     self.taskDict[t] = None
                 # set current tasks of task manager
                 self._task_manager.set_tasks(*tasks)
+                # set current tasks of collector managter
+                self._collector_manager.set_tasks(*tasks)
 
     """
     通知添加了一个新任务
@@ -101,7 +103,10 @@ class Fetcher:
     主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重中间件解决。
     """
     def new_task(self, task_id):
+        # notice task manager the new task
         self._task_manager.add_task(task_id)
+        # notice collector manager the new task
+        self._collector_manager.add_task(task_id)
         spiders = self._task_manager.spiders(task_id)
         start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS)
         if not isinstance(start_urls, list):
