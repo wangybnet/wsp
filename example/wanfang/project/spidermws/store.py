@@ -21,5 +21,5 @@ class StoreMiddleware:
         with open(html_file, "wb") as f:
             f.write(response.body)
         with open(meta_file, "wb") as f:
-            f.write(time.time())
+            f.write(("%s" % time.time()).encode("utf-8"))
             f.write(response.url.encode("utf-8"))

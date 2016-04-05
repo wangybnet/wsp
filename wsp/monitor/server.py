@@ -100,7 +100,6 @@ class _MonitorServerProtocol(asyncio.DatagramProtocol):
 
     def datagram_received(self, data, addr):
         data = json.loads(data.decode("utf-8"))
-        log.debug("Received data: %s" % dict)
         if self._callback:
             self._callback(data, addr)
 

@@ -41,7 +41,7 @@ class RetryMiddleware:
         if retry_times <= self._max_retry_times:
             log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, request.url, reason))
             request.meta["_retry_times"] = retry_times
-            return request
+            return request.copy()
         else:
             log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))
             raise IgnoreRequest()

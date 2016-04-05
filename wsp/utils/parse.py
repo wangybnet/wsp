@@ -30,8 +30,6 @@ def extract_request(http_request):
 
 # HttpRequest --> WspRequest
 def parse_request(wsp_request, http_request):
-    if reqmeta.WSP_REQUEST in http_request.meta:
-        http_request.meta.pop(reqmeta.WSP_REQUEST)
     req = WspRequest(father_id=wsp_request.father_id,
                      task_id=wsp_request.task_id,
                      http_request=http_request)
