@@ -133,7 +133,7 @@ class TaskManager:
     def _install_task(self, task_id, code_dir):
         log.debug("Install task %s at '%s'" % (task_id, code_dir))
         zip_json = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
-        zipb = zip_json[self._sys_config.mongo_task_config_zip]
+        zipb = zip_json["zip"]
         if not os.path.exists(code_dir):
             os.makedirs(code_dir, mode=0o775)
         zipf = "%s/%s.zip" % (code_dir, task_id)

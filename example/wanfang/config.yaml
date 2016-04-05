@@ -7,18 +7,17 @@ downloader_middlewares:
 #  - wsp.downloadermws.check.CheckMiddleware
   - wsp.downloadermws.retry.RetryMiddleware
 #  - wsp.downloadermws.store.MongoStoreMiddleware
-  - wsp.downloadermws.dedup.MongoDedupMiddleware
 
 # ------ Spider Middlewares -------
 spider_middlewares:
-  - project.spidermws.store.StoreMiddleware
+  - wsp.spidermws.dedup.MongoDedupMiddleware
   - wsp.spidermws.limitlevel.LimitLevelMiddleware
+  - project.spidermws.store.StoreMiddleware
 
 # ------ Spider -------
 spiders:
   - project.spiders.search.SearchSpider
   - project.spiders.detail.DetailSpider
-
 
 # ------ Start URLs ------
 start_urls:

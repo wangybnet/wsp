@@ -15,7 +15,7 @@ from wsp.config import SystemConfig
 from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
-from wsp.utils.parse import pack_request, unpack_request, parse_request
+from wsp.utils.parse import pack_request, extract_request, parse_request, unpack_request
 from .config import FetcherConfig
 from .request import WspRequest
 from .taskmanager import TaskManager
@@ -53,7 +53,7 @@ class Fetcher:
 
     def _pull_sys_config_from_master(self):
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        conf = SystemConfig(**rpc_client.get_sys_config())
+        conf = SystemConfig(**rpc_client.system_config())
         log.debug("Get the system configuration={kafka_addr=%s, mongo_addr=%s}" % (conf.kafka_addr, conf.mongo_addr))
         return conf
 
@@ -161,8 +161,7 @@ class Fetcher:
             time.sleep(sleep_time)
 
     async def saveResult(self, request, result):
-        # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
-        req = unpack_request(request)
+        req = extract_request(request)
         if isinstance(result, HttpRequest):
             new_req = parse_request(req, result)
             self.pushReq(new_req)
@@ -183,3 +182,5 @@ class Fetcher:
             self.producer.flush()
         else:
             log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
+        # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
+        unpack_request(request)

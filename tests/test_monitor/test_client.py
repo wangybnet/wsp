@@ -12,6 +12,7 @@ class TimeHandler:
         await asyncio.sleep(1)
         t = time.time()
         fmt_t = time.strftime("%b.%d,%Y %H:%M:%S")
+        print(fmt_t)
         return {"key": "timed task", "time": t, "fmt_time": fmt_t}
 
 

@@ -57,7 +57,7 @@ class ProxyMiddleware:
 
     async def _update_proxy_list(self):
         t = time.time()
-        if t - self._last_update >= self._update_time:
+        if t - self._last_update > self._update_time:
             self._last_update = t
             with aiohttp.ClientSession() as session:
                 async with session.get(self._agent_addr) as resp:

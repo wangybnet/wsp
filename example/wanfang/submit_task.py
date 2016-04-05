@@ -23,4 +23,4 @@ if __name__ == "__main__":
     client = ServerProxy("http://192.168.120.181:7310", allow_none=True)
     task_id = client.create_one({"desc": "万方数据"}, Binary(zipb))
     print("Task ID: ", task_id)
-    client.start_one(task_id)
+    client.create_task(task_id)

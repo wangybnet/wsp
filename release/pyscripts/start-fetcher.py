@@ -22,9 +22,11 @@ if __name__ == "__main__":
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
     wsp.set_logger(getattr(logging, conf.get("log_level", "INFO").upper(), "INFO"),
-                   "%(asctime)s %(name)s: [%(levelname)s] %(message)s",
-                   "%b.%d,%Y %H:%M:%S")
+                   format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
+                   date_format="%b.%d,%Y %H:%M:%S",
+                   log_file=conf.get("log_file"))
     log = logging.getLogger("wsp")
     log.debug("fetcher.yaml=%s" % conf)
+
     fetcher = Fetcher(FetcherConfig(home_dir, **conf))
     fetcher.start()

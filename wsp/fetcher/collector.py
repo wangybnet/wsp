@@ -17,7 +17,7 @@ class CollectorManager:
         self._local_config = local_config
         self._monitor_client = MonitorClient(self._sys_config.monitor_addr)
         self._handlers = None
-        self._task_progress_collector = TaskProgressCollector(self._local_config.task_progress_report_time)
+        self._task_progress_collector = TaskProgressCollector(self._local_config)
 
     def open(self):
         self._handlers = [self._monitor_client.add_handler(self._task_progress_collector)]

@@ -6,6 +6,7 @@ from pymongo import MongoClient
 
 from wsp.utils.parse import extract_request
 from wsp.errors import IgnoreRequest
+from wsp.http import HttpRequest
 
 log = logging.getLogger(__name__)
 
@@ -27,19 +28,31 @@ class MongoDedupMiddleware:
                    config.get("dedup_mongo_db", "wsp"),
                    config.get("dedup_mongo_coll"))
 
-    async def handle_request(self, request):
-        self._detect(request, False)
+    async def handle_input(self, response):
+        request = response.request
+        if self._is_dup(request, True):
+            raise IgnoreRequest("The request (method=%s, url=%s) is duplicated" % (request.method, request.url))
 
-    async def handle_response(self, request, response):
-        self._detect(request, True)
+    async def handle_output(self, response, result):
+        return self._handle_output(response, result)
 
-    def _detect(self, request, is_response):
+    def _is_dup(self, request, is_input):
         req = extract_request(request)
         tbl = self._mongo_client[self._mongo_db][self._mongo_coll or ("dedup_%s" % req.task_id)]
         url = "%s %s" % (request.method, request.url)
         res = tbl.find_one({"url": url})
-        if res is not None:
-            log.debug("In task %s, the request (url=%s) is duplicate" % (req.task_id, url))
-            raise IgnoreRequest()
-        if is_response:
-            tbl.insert_one({"url": url})
+        if res is None:
+            if is_input:
+                tbl.insert_one({"url": url})
+            return False
+        return True
+
+    def _handle_output(self, reponse, result):
+        for r in result:
+            if isinstance(r, HttpRequest):
+                if not self._is_dup(r, False):
+                    yield r
+                else:
+                    log.debug("The request (method=%s, url=%s) is duplicated" % (r.method, r.url))
+            else:
+                yield r

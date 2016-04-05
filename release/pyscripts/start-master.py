@@ -26,8 +26,9 @@ if __name__ == "__main__":
     master_conf = get_yaml(sys.argv[1])
     system_conf = get_yaml(sys.argv[2])
     wsp.set_logger(getattr(logging, master_conf.get("log_level", "INFO").upper(), "INFO"),
-                   "%(asctime)s %(name)s: [%(levelname)s] %(message)s",
-                   "%b.%d,%Y %H:%M:%S")
+                   format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
+                   date_format="%b.%d,%Y %H:%M:%S",
+                   log_file=master_conf.get("log_file"))
     log = logging.getLogger("wsp")
     log.debug("master.yaml=%s" % master_conf)
     log.debug("system.yaml=%s" % system_conf)

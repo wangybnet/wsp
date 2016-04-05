@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 
 from wsp.config import SystemConfig
 from wsp.master.task import WspTask
-from wsp.master.task import TASK_RUNNING, TASK_STOPPED, TASK_REMOVED
+from wsp.master.task import TASK_RUNNING, TASK_STOPPED, TASK_REMOVED, TASK_FINISHED
 
 log = logging.getLogger(__name__)
 
@@ -47,18 +47,23 @@ class fetcherManager:
         # FIXME: 默认返回True，之后可能根据RPC连接情况修改
         return True
 
-    def delete_one(self, task_id):
-        # TODO: 从kafka中删除topic
+    def delete_task(self, task_id):
+        # TODO: 从Kafka中删除topic
         self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_REMOVED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
-    def stop_one(self, task_id):
+    def stop_task(self, task_id):
         self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_STOPPED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
-    def start_one(self, task_id):
+    def finish_task(self, task_id):
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_FINISHED}})
+        self.running_tasks.remove(task_id)
+        return self._notice_change_tasks()
+
+    def start_task(self, task_id):
         task_dict = self.taskTable.find_one({"_id": ObjectId(task_id)})
         task = WspTask(**task_dict)
         if task.status == 0:
@@ -68,3 +73,6 @@ class fetcherManager:
         if task_id not in self.running_tasks:
             self.running_tasks.append(task_id)
         return self._notice_change_tasks()
+
+    def get_running_tasks(self):
+        return self.running_tasks
