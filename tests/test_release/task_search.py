@@ -8,3 +8,4 @@ if __name__ == "__main__":
     print(tasks)
     for task_id in tasks:
         print(client.task_info(task_id))
+        print(client.task_progress(task_id))

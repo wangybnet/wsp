@@ -109,7 +109,7 @@ class Fetcher:
         self._collector_manager.add_task(task_id)
         spiders = self._task_manager.spiders(task_id)
         start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS)
-        if (start_urls is not None) and (not isinstance(start_urls, list)):
+        if not isinstance(start_urls, list):
             start_urls = [start_urls]
         for spider in spiders:
             for r in spider.start_requests(start_urls):

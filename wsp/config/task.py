@@ -18,7 +18,7 @@ class TaskConfig:
     def get(self, name, default=None):
         res = self._config.get(name, default)
         if res is None and name in DEFAULT_CONFIG:
-            res = DEFAULT_CONFIG[res]
+            res = DEFAULT_CONFIG[name]
         return res
 
     def set(self, name, value):

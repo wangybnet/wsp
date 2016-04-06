@@ -38,8 +38,6 @@ class TaskProgressMonitor:
             completed_insc, total_insc = self._update_increament(progress)
             if completed_insc > 0 or total_insc > 0:
                 task_id = progress["task_id"]
-                self._tasks[task_id].completed += completed_insc
-                self._tasks[task_id].total += total_insc
                 tp = self._tasks[task_id]
                 obj_id = ObjectId(task_id)
                 otp_json = self._task_progress_tbl.find_one({"_id": obj_id})
@@ -73,13 +71,12 @@ class TaskProgressMonitor:
         completed_insc, total_insc = 0, 0
         task_id = progress["task_id"]
         signature = progress["signature"]
+        tp = _TaskProgress(**progress)
         if task_id not in self._tasks:
-            tp = _TaskProgress(**progress)
             self._tasks[task_id] = tp
             self._tasks_parts[task_id] = {signature: tp}
             completed_insc, total_insc = tp.completed, tp.total
         else:
-            tp = self._tasks[task_id]
             parts = self._tasks_parts[task_id]
             if signature in parts:
                 otp = parts[signature]
@@ -89,6 +86,10 @@ class TaskProgressMonitor:
             else:
                 parts[signature] = tp
                 completed_insc, total_insc = tp.completed, tp.total
+            if completed_insc > 0 or total_insc > 0:
+                self._tasks[task_id].completed += completed_insc
+                self._tasks[task_id].total += total_insc
+                self._tasks[task_id].last_modified = tp.last_modified
         return completed_insc, total_insc
 
     def _remove_task(self, task_id):

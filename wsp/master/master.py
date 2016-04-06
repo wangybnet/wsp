@@ -77,6 +77,7 @@ class Master(object):
         server.register_function(self.get_system_config, "system_config")
         server.register_function(self.register_fetcher)
         server.register_function(self.get_task_info, "task_info")
+        server.register_function(self.get_task_progress, "task_progress")
         server.register_function(self.get_running_tasks, "running_tasks")
         return server
 
@@ -85,7 +86,7 @@ class Master(object):
         task.status = TASK_CREATE
         if task.create_time is None:
             task.create_time = int(time.time())
-        log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
+        log.info("Create the task %s" % task.to_dict())
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict())
         # 上传zip
         log.debug("Upload zip (_id=%s) to collection '%s.%s'" % (task.id,
@@ -131,12 +132,13 @@ class Master(object):
         log.debug("Return the information of task %s: %s" % (task_id, task_info))
         return task_info
 
+    def get_task_progress(self, task_id):
+        task_progress = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_progress_tbl).find_one({"_id": ObjectId(task_id)})
+        task_progress.pop("_id")
+        log.debug("Return the progress of task %s: %s" % (task_id, task_progress))
+        return task_progress
+
     def get_running_tasks(self):
         running_tasks = self.fetcher_manager.running_tasks
         log.debug("Return the running tasks: %s" % running_tasks)
         return running_tasks
-
-    def get_task_progress(self, task_id):
-        task_progress = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_progress_tbl).find_one({"_id": ObjectId(task_id)})
-        log.debug("Return the status of task %s: %s" % (task_id, task_progress))
-        return task_progress
