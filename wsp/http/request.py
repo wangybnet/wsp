@@ -36,7 +36,7 @@ class HttpRequest:
         for x in ["url", "method", "proxy", "params", "headers", "body", "cookies", "meta"]:
             kw.setdefault(x, getattr(self, x))
         req = HttpRequest(**kw)
-        for k in req.meta.keys():
+        for k in [i for i in req.meta.keys()]:
             if k.startswith(reqmeta.META_PREFIX):
                 req.meta.pop(k)
         return req

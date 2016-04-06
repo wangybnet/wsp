@@ -146,7 +146,7 @@ class Fetcher:
                 except StopIteration as e:
                     log.debug("Kafka read timeout")
                 except Exception as e:
-                    log.warning("An %s error occurred when preparing request: %s" % (type(e), e))
+                    log.warning("An error occurred when preparing request", exc_info=True)
 
     def _start_pull_req(self):
         log.info("Start to pull requests")

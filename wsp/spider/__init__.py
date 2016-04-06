@@ -6,6 +6,7 @@ import logging
 from wsp.config import task as tc
 from wsp.http import HttpRequest
 from wsp.utils.config import load_object
+from wsp import errors
 
 log = logging.getLogger(__name__)
 
@@ -27,12 +28,14 @@ class Spider:
             if middleware:
                 res = await cls._handle_output(response, res, middleware)
         except Exception as e:
-            log.debug("An %s error has occurred when spider running: %s" % (type(e), e))
+            if not isinstance(e, errors.ERRORS):
+                log.warning("Unexpected error occurred in spider", exc_info=True)
             try:
                 if middleware:
                     await cls._handle_error(response, e, middleware)
             except Exception as _e:
-                log.debug("Another %s error has occurred when handling %s error: %s" % (type(_e), e, _e))
+                if not isinstance(_e, errors.ERRORS):
+                    log.warning("Unexpected error occurred when handling error in spider", exc_info=True)
             return ()
         else:
             return res
@@ -97,7 +100,7 @@ class SpiderFactory:
                     spider = spider_cls()
                 assert isinstance(spider, BaseSpider), "Custom spider must extend %s" % BaseSpider.__name__
             except Exception as e:
-                log.warning("An error occurred when loading spider '%s': %s" % (cls_path, e))
+                log.warning("An error occurred when loading spider '%s'" % cls_path, exc_info=True)
             else:
                 spiders.append(spider)
         return spiders

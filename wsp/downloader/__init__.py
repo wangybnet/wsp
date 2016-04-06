@@ -7,6 +7,7 @@ import aiohttp
 
 from wsp.http import HttpRequest, HttpResponse, HttpError
 from .asyncthread import AsyncThread
+from wsp import errors
 
 log = logging.getLogger(__name__)
 
@@ -60,13 +61,15 @@ class Downloader:
                 if _res:
                     res = _res
         except Exception as e:
-            log.debug("An %s error occurred when downloader running: %s" % (type(e), e))
+            if not isinstance(e, errors.ERRORS):
+                log.warning("Unexpected error occurred in downloader", exc_info=True)
             try:
                 res = None
                 if middleware:
                     res = await self._handle_error(request, e, middleware)
             except Exception as _e:
-                log.debug("Another %s error occurred when handling %s error: %s" % (type(_e), type(e), _e))
+                if not isinstance(_e, errors.ERRORS):
+                    log.warning("Unexpected error occurred when handling error in downloader", exc_info=True)
                 await callback(request, _e)
             else:
                 if res:

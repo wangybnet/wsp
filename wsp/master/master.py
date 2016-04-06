@@ -3,6 +3,7 @@
 import logging
 import threading
 from xmlrpc.server import SimpleXMLRPCServer
+import time
 
 from bson.objectid import ObjectId
 from pymongo import MongoClient
@@ -82,6 +83,8 @@ class Master(object):
     def create_task(self, task_info, task_config_zip):
         task = WspTask(**task_info)
         task.status = TASK_CREATE
+        if task.create_time is None:
+            task.create_time = int(time.time())
         log.info("Create the task %s with id=%s" % (task.to_dict(), task.id))
         self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).insert_one(task.to_dict())
         # 上传zip

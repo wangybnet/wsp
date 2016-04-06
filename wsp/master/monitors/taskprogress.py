@@ -30,64 +30,67 @@ class TaskProgressMonitor:
     """
     处理采集的数据
     """
-
     def handle_data(self, data, addr):
         progress_list = data.get("task_progress")
         if not progress_list:
             return
         for progress in progress_list:
-            pulled_insc, pushed_insc = self._update_increament(progress)
-            if pulled_insc > 0 or pushed_insc > 0:
+            completed_insc, total_insc = self._update_increament(progress)
+            if completed_insc > 0 or total_insc > 0:
                 task_id = progress["task_id"]
-                self._tasks[task_id].pulled_count += pulled_insc
-                self._tasks[task_id].pushed_count += pushed_insc
+                self._tasks[task_id].completed += completed_insc
+                self._tasks[task_id].total += total_insc
                 tp = self._tasks[task_id]
                 obj_id = ObjectId(task_id)
-                self._task_progress_tbl.update_one({"_id": obj_id},
-                                                   {"$set": {"_id": obj_id,
-                                                             "completed": tp.pulled_count,
-                                                             "total": tp.pushed_count,
-                                                             "last_modified": tp.last_modified}},
-                                                   upsert=True)
+                otp_json = self._task_progress_tbl.find_one({"_id": obj_id})
+                if otp_json is None:
+                    self._task_progress_tbl.insert_one({"_id": obj_id,
+                                                        "completed": tp.completed,
+                                                        "total": tp.total,
+                                                        "last_modified": tp.last_modified})
+                else:
+                    otp = _TaskProgress(**otp_json)
+                    self._task_progress_tbl.update_one({"_id": obj_id},
+                                                       {"$set": {"completed": otp.completed + completed_insc,
+                                                                 "total": otp.total + total_insc,
+                                                                 "last_modified": tp.last_modified}})
 
     async def inspect(self):
         await asyncio.sleep(self._inspect_time)
         t = time.time()
         for task_id in self._tasks.keys():
-            log.debug("Current time is %s, last modified time of task %s is %s" % (time.strftime("%b.%d,%Y %H:%M:%S", time.localtime(t)),
-                                                                                   task_id,
-                                                                                   time.strftime("%b.%d,%Y %H:%M:%S",
-                                                                                                 time.localtime(self._tasks[task_id].last_modified))))
-            if t - self._tasks[task_id].last_modified > self._inspect_time:
-                self._remove_task(task_id)
+            log.debug("The task %s has not been updated for %s seconds" % (int(t - self._tasks[task_id].last_modified)))
+            delta_t = t - self._tasks[task_id].last_modified
+            if delta_t > self._inspect_time:
                 client = ServerProxy(self._master_addr)
                 client.finish_task(task_id)
+            elif delta_t > 2 * self._inspect_time:
+                self._remove_task(task_id)
 
     """
     更新增量
     """
-
     def _update_increament(self, progress):
-        pulled_insc, pushed_insc = 0, 0
+        completed_insc, total_insc = 0, 0
         task_id = progress["task_id"]
         signature = progress["signature"]
         if task_id not in self._tasks:
             tp = _TaskProgress(**progress)
             self._tasks[task_id] = tp
             self._tasks_parts[task_id] = {signature: tp}
-            pulled_insc, pushed_insc = tp.pulled_count, tp.pushed_count
+            completed_insc, total_insc = tp.completed, tp.total
         else:
             tp = self._tasks[task_id]
             parts = self._tasks_parts[task_id]
             if signature in parts:
                 otp = parts[signature]
-                if tp.pulled_count >= otp.pulled_count and tp.pushed_count >= otp.pushed_count:
+                if tp.completed >= otp.completed and tp.total >= otp.total:
                     parts[signature] = tp
-                    pulled_insc, pushed_insc = tp.pulled_count - otp.pulled_count, tp.pushed_count - otp.pushed_count
+                    completed_insc, total_insc = tp.completed - otp.completed, tp.total - otp.total
             else:
                 parts[signature] = tp
-                pulled_insc, pushed_insc = tp.pulled_count, tp.pushed_count
-        return pulled_insc, pushed_insc
+                completed_insc, total_insc = tp.completed, tp.total
+        return completed_insc, total_insc
 
     def _remove_task(self, task_id):
         self._tasks.pop(task_id)
@@ -96,8 +99,8 @@ class TaskProgressMonitor:
 
 class _TaskProgress:
     def __init__(self, **kw):
-        self.pulled_count = kw.get("pulled_count", 0)
-        self.pushed_count = kw.get("pushed_count", 0)
+        self.completed = kw.get("completed", 0)
+        self.total = kw.get("total", 0)
         self.last_modified = kw.get("last_modified")
         if self.last_modified is None:
             self.last_modified = time.time()
