@@ -3,6 +3,10 @@
 import sys
 import logging
 
+# Add patch to avoid 'TIME_WAIT'
+from . import _patch
+del _patch
+
 # Check minimum required Python version
 assert sys.version_info >= (3, 5), "Python 3.5+ is required."
 

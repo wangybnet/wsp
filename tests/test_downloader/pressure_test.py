@@ -7,7 +7,7 @@ from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpError
 
 
-def save_result(request, response):
+async def save_result(request, response):
     print("Cost Time: %f" % (time.time() - request._time))
     if isinstance(response, HttpError):
         print("Error:", response.error)
