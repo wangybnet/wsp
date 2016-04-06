@@ -128,13 +128,15 @@ class Master(object):
 
     def get_task_info(self, task_id):
         task_info = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_tbl).find_one({"_id": ObjectId(task_id)})
-        task_info.pop("_id")
+        if task_info:
+            task_info.pop("_id")
         log.debug("Return the information of task %s: %s" % (task_id, task_info))
         return task_info
 
     def get_task_progress(self, task_id):
         task_progress = self._get_col(self._sys_config.mongo_db, self._sys_config.mongo_task_progress_tbl).find_one({"_id": ObjectId(task_id)})
-        task_progress.pop("_id")
+        if task_progress:
+            task_progress.pop("_id")
         log.debug("Return the progress of task %s: %s" % (task_id, task_progress))
         return task_progress
 

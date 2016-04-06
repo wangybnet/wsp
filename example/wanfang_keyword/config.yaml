@@ -3,7 +3,7 @@
 # ------ Downloader Middlewares -------
 downloader_middlewares:
   - wsp.downloadermws.proxy.ProxyMiddleware
-  - wsp.downloadermws.retry.RetryMiddleware
+  - project.downloadermws.retry.RetryMiddleware
 
 # ------ Spider Middlewares -------
 spider_middlewares:

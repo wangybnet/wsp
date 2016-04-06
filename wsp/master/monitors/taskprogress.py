@@ -32,10 +32,12 @@ class TaskProgressMonitor:
     """
     def handle_data(self, data, addr):
         progress_list = data.get("task_progress")
+        log.debug("Handle data: %s" % progress_list)
         if not progress_list:
             return
         for progress in progress_list:
-            completed_insc, total_insc = self._update_increament(progress)
+            completed_insc, total_insc = self._update_increment(progress)
+            log.debug("Completed increment: %s, total increment: %s" % (completed_insc, total_insc))
             if completed_insc > 0 or total_insc > 0:
                 task_id = progress["task_id"]
                 tp = self._tasks[task_id]
@@ -67,7 +69,7 @@ class TaskProgressMonitor:
     """
     更新增量
     """
-    def _update_increament(self, progress):
+    def _update_increment(self, progress):
         completed_insc, total_insc = 0, 0
         task_id = progress["task_id"]
         signature = progress["signature"]

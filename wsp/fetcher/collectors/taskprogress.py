@@ -18,8 +18,8 @@ class TaskProgressCollector:
         self._local_config = local_config
         self._report_time = self._local_config.task_progress_report_time
         self._tasks = {}
-        self._pushed_count = {}
-        self._pulled_count = {}
+        self._total = {}
+        self._completed = {}
         self._data_lock = threading.Lock()
 
     """
@@ -49,12 +49,12 @@ class TaskProgressCollector:
     def record_pulled_request(self, task_id):
         if task_id in self._tasks:
             with self._data_lock:
-                self._pulled_count[task_id] += 1
+                self._completed[task_id] += 1
 
     def record_pushed_request(self, task_id):
         if task_id in self._tasks:
             with self._data_lock:
-                self._pushed_count[task_id] += 1
+                self._total[task_id] += 1
 
     """
     获取上报数据
@@ -66,16 +66,16 @@ class TaskProgressCollector:
             for t in self._tasks.keys():
                 data.append({"task_id": t,
                              "signature": self._tasks[t],
-                             "pulled_count": self._pulled_count[t],
-                             "pushed_count": self._pushed_count[t]})
+                             "completed": self._completed[t],
+                             "total": self._total[t]})
         return {"task_progress": data}
 
     def _add_task(self, task_id):
         signature = "%s" % ObjectId()
-        self._pulled_count[task_id] = 0
-        self._pushed_count[task_id] = 0
+        self._completed[task_id] = 0
+        self._total[task_id] = 0
         return signature
 
     def _remove_task(self, task_id):
-        self._pulled_count.pop(task_id)
-        self._pushed_count.pop(task_id)
+        self._completed.pop(task_id)
+        self._total.pop(task_id)
