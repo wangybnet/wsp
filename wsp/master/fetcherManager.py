@@ -60,9 +60,12 @@ class fetcherManager:
         return self._notice_change_tasks()
 
     def finish_task(self, task_id):
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_FINISHED,
-                                                                        "finish_time": int(time.time())}})
-        self.running_tasks.remove(task_id)
+        if task_id in self.taskTable:
+            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_FINISHED,
+                                                                            "finish_time": int(time.time())}})
+            self.running_tasks.remove(task_id)
+        else:
+            self.start_task(task_id)
         return self._notice_change_tasks()
 
     def start_task(self, task_id):

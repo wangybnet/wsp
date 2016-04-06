@@ -58,13 +58,12 @@ class TaskProgressMonitor:
     async def inspect(self):
         await asyncio.sleep(self._inspect_time)
         t = time.time()
-        for task_id in self._tasks.keys():
+        for task_id in [i for i in self._tasks.keys()]:
             log.debug("The task %s has not been updated for %s seconds" % (task_id, int(t - self._tasks[task_id].last_modified)))
             delta_t = t - self._tasks[task_id].last_modified
             if delta_t > self._inspect_time:
                 client = ServerProxy(self._master_addr)
                 client.finish_task(task_id)
-            elif delta_t > 2 * self._inspect_time:
                 self._remove_task(task_id)
 
     """
