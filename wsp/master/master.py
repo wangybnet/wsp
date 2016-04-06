@@ -111,7 +111,7 @@ class Master(object):
         return flag
 
     def finish_task(self, task_id):
-        log.info("Task %s is finished %s" % task_id)
+        log.info("Task %s is finished" % task_id)
         flag = self.fetcher_manager.finish_task(task_id)
         return flag
 

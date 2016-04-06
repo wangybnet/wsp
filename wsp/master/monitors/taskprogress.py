@@ -59,7 +59,7 @@ class TaskProgressMonitor:
         await asyncio.sleep(self._inspect_time)
         t = time.time()
         for task_id in self._tasks.keys():
-            log.debug("The task %s has not been updated for %s seconds" % (int(t - self._tasks[task_id].last_modified)))
+            log.debug("The task %s has not been updated for %s seconds" % (task_id, int(t - self._tasks[task_id].last_modified)))
             delta_t = t - self._tasks[task_id].last_modified
             if delta_t > self._inspect_time:
                 client = ServerProxy(self._master_addr)

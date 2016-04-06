@@ -72,7 +72,7 @@ def create_connection(self, protocol_factory, host=None, port=None, *,
         for family, type, proto, cname, address in infos:
             try:
                 sock = socket.socket(family=family, type=type, proto=proto)
-                # --- PATCH ----
+                # --- PATCH ---
                 sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
                 # -------------
                 sock.setblocking(False)

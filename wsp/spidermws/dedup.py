@@ -31,6 +31,7 @@ class MongoDedupMiddleware:
     async def handle_input(self, response):
         request = response.request
         if self._is_dup(self._get_dedup_tbl_name(request), request, True):
+            log.debug("Find the request (method=%s, url=%s) is duplicated when handling input" % (request.method, request.url))
             raise IgnoreRequest("The request (method=%s, url=%s) is duplicated" % (request.method, request.url))
 
     async def handle_output(self, response, result):
@@ -42,7 +43,7 @@ class MongoDedupMiddleware:
                 if not self._is_dup(self._get_dedup_tbl_name(response.request), r, False):
                     yield r
                 else:
-                    log.debug("The request (method=%s, url=%s) is duplicated" % (r.method, r.url))
+                    log.debug("Find the request (method=%s, url=%s) is duplicated when handling output" % (r.method, r.url))
             else:
                 yield r
 
