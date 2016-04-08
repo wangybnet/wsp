@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import platform
-
 from wsp.utils.config import ensure_int
 
 DEFAULT_RPC_ADDR = "0.0.0.0:8091"

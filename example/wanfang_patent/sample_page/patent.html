@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=1170" />
+    <title>基于大数据的地区舆情监控及决策辅助系统和方法</title>
+    <link href="http://static.wanfangdata.com.cn/wfks/css/animate.min.css?v=201512211715" rel="stylesheet"/>
+    <link href="http://static.wanfangdata.com.cn/wfks/css/global.min.css?v=201512211715" rel="stylesheet"/>
+    <!--[if lt IE 9 ]><link href="http://static.wanfangdata.com.cn/wfks/css/ltie9.min.css?v=201512211715" rel="stylesheet"/><![endif]-->
+    <link href="/Content/css/detail.min.css?v=201509250900" rel="stylesheet"/>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <meta content='' name="keywords" />
+    <meta content='' name="description" />
+    
+</head>
+<body>
+    <div class="header">
+        <div class="nav clear">
+            <a href="http://www.wanfangdata.com.cn/">
+                <img class="logo" src="http://static.wanfangdata.com.cn/wfks/img/logo.png" alt="" /></a>
+            <ul>
+                <li class="active fixed" data-target="search-wrap">检索</li>
+                <li id="navResource" data-target="resource-wrap">资源</li>
+                <li id="navService" data-target="service-wrap">服务</li>
+                <li class="profile"></li>
+            </ul>
+        </div>
+        <div class="width-wrap search-wrap active fixed">
+            <div class="panel search-panel clear">
+                <div class="drp res-drp clear">
+                    <div class="res-lb">
+                        <span id="res" class="lb">学术论文</span>
+                        <i class="icon-more"></i>
+                    </div>
+                    <div class="res-list bd pop" data-open=".res-lb">
+                        <span class="clear-shadow"></span>
+                        <ul class="resource clear"></ul>
+                        <ul class="library clear"></ul>
+                    </div>
+                </div>
+                <input class="search-input" type="search" name="q" autocomplete="off" />
+                <div id="adSearchBtn" class="icon-search-ad" type="button">
+		<div class="search-ad pop">
+                    <a target="_blank" id="adSearchLink" href="http://librarian.wanfangdata.com.cn/">跨库检索</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/NewGuide?helpitem=searchepaper">检索帮助</a>
+                </div>
+		</div>
+                <button class="btn icon-search search-btn" type="submit"></button>
+                <div class="search-tip-field pop"></div>
+            </div>
+        </div>
+        <div class="width-wrap resource-wrap">
+            <div class="panel resource-panel"></div>
+        </div>
+        <div class="width-wrap service-wrap">
+            <div class="panel service-panel clear">
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-zzfu"></i>
+                        <h6 class="tt">增值服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://social.wanfangdata.com.cn/">万方学术圈</a>
+                        <a target="_blank" href="http://trend.wanfangdata.com.cn/">知识脉络分析</a>
+                        <a target="_blank" href="http://librarian.wanfangdata.com.cn/">查新/跨库检索</a>
+                        <a target="_blank" href="http://librarian.wanfangdata.com.cn/ScientificLiterature">科技文献分析</a>                        
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-gjlfu"></i>
+                        <h6 class="tt">工具类服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://check.wanfangdata.com.cn/">论文相似性检测</a>
+                        <a target="_blank" href="http://stats.wanfangdata.com.cn/">国家经济统计数据库</a>
+                        <a target="_blank" href="http://patentool.wanfangdata.com.cn/">专利工具</a>
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-bjbzyfu"></i>
+                        <h6 class="tt">编辑部专用服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://stats.editors.wanfangdata.com.cn/">期刊统计分析与评价</a>
+                        <a target="_blank" href="http://www.wanfangdata.com.cn/ResourceDescription/DOI">中文DOI</a>
+                        <a target="_blank" href="http://publish.wanfangdata.com.cn/">优先出版</a>
+                        <a target="_blank" href="http://publish.wanfangdata.com.cn/Regular">同步出版</a>
+                        <a target="_blank" href="http://editors.wanfangdata.com.cn/">编审平台</a>
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-zzzyff"></i>
+                        <h6 class="tt">作者专用服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=citenotice">引用通知</a>
+                        <a target="_blank" href="http://contribute.wanfangdata.com.cn/">投稿</a>
+                        <a target="_blank" href="http://oa.wanfangdata.com.cn/">OA论文托管</a>
+                    </div>
+                </div>
+                <div class="md last-md">
+                    <div class="hd clear">
+                        <i class="icon icon-yqzl"></i>
+                        <h6 class="tt">舆情专栏</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://subject.wanfangdata.com.cn/">专题</a>
+                        <a target="_blank" href="http://message.wanfangdata.com.cn/">科技动态</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="width-wrap account-wrap">
+            <div class="panel account-panel clear">
+                <div class="top-link">
+                    <a class="login-link">登录</a>
+                    <a href="http://login.wanfangdata.com.cn/Register/Index">注册</a>
+                    <a href="http://login.wanfangdata.com.cn/Logout.aspx">退出</a>
+                </div>
+                <div class="account-container">
+                    <div class="account person-account">
+                        <i class="icon icon-point"></i>
+                        <span class="display-name"></span>
+                        <span class="my-link">
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=myorder">查看订单</a>
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=citenotice">引用通知</a>
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=mywallet">我的钱包</a>
+                            <a target="_blank" href="http://tran.wanfangdata.com.cn/Charge.aspx">充值</a>
+                            <a target="_blank" class="last-item" href="http://www.wanfangdata.com.cn/UserService?tab=edituser">个人信息管理</a>
+                        </span>
+                    </div>
+                    <div class="account group-account">
+                        <i class="icon icon-point"></i>
+                        <span class="display-name"></span>
+                        <span class="my-link">
+                            <a target="_blank" class="order-link" href="http://istic.wanfangdata.com.cn/Order">查看订单</a>
+                            <a target="_blank" class="last-item group-center" href="http://www.wanfangdata.com.cn/Organization">服务站</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="breadcrumbs-wrap">
+        <div class="breadcrumbs">
+            <a href="http://et.wanfangdata.com.cn/">首页</a>
+                 <span class="joiner">></span>   
+
+                        <a href="http://c.wanfangdata.com.cn/Patent.aspx">专利首页</a>     <span class="joiner">></span>   
+                            <span>基于大数据的地区舆情监控及决策辅助系统和方法</span>
+        </div>
+    </div>    
+
+<div class="fixed-width baseinfo clear">
+    <div class="section-baseinfo">
+        <h1>基于大数据的地区舆情监控及决策辅助系统和方法</h1>
+        <div class="record-action-link clear">
+    <a class="view" href="http://f.wanfangdata.com.cn/view/基于大数据的地区舆情监控及决策辅助系统和方法.aspx?ID=Patent_CN201510255995.0" title="查看全文" target="_blank">
+        <i class="icon iconfont icon-view ">&#xe606;</i>
+    </a>
+    <a class="download" href="http://f.wanfangdata.com.cn/Patent.ashx?Type=download&amp;ID=Patent_CN201510255995.0" title="下载全文" target="_blank">
+        <i class="icon iconfont icon-download ">&#xe605;</i>
+    </a>
+
+                <a class="export exportLink" data-resourceid="Patent_CN201510255995.0" title="导出">
+        <i class="icon iconfont icon-export ">&#xe607;</i>
+    </a>
+
+        </div>
+        <div class="baseinfo-feild abstract">
+            <div class="row clear zh">
+                <div class="text">一种基于大数据的地区舆情监控及决策辅助系统：信息采集存储模块，用于对采集的舆情源信息进行结构化存储管理，形成实时更新的地区大数据舆情知识库；数据预处理模块，用于对地区大数据舆情知识库中的数据进行预处理，形成完整有序的数据集；大数据舆情分析模块，用于对指定条件的热点话题等进行舆情分析及趋势预测得到舆情分析及趋势预测结果；舆情监控预警、决策辅助模块，用于对预定义的敏感词库中的敏感词对挖掘和分析的定制舆情进行实时的监控跟踪、管理和疏导；通过站内消息、短信、邮件方式将定制舆情通知给决策者；后台管理模块，用于对舆情信息分类管理、用户与权限管理、关键词管理、采集管理、内容管理、专题管理及分析报告管理。</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="fixed-width-wrap fixed-width-wrap-feild">
+    <div class="fixed-width baseinfo-feild baseinfo-feild-patent">
+            <div class="row">
+        <span class="pre" >专利类型：</span>
+        <span class="text">发明专利</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >申请（专利）号：</span>
+        <span class="text">CN201510255995.0</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >申请日期：</span>
+        <span class="text">2015年5月19日</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >公开(公告)日：</span>
+        <span class="text">2015年9月23日</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >公开(公告)号：</span>
+        <span class="text">CN104933093A</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >主分类号：</span>
+        <span class="text">G06F17/30,G06F17/00,G,G06,G06F,G06F17</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >分类号：</span>
+        <span class="text">G06F17/30,G06F17/00,G06F17/27,G06F17/00,G,G06,G06F,G06F17,G06F17/30,G06F17/00,G06F17/27,G06F17/00</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >申请（专利权）人：</span>
+        <span class="text">武汉泰迪智慧科技有限公司</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >发明（设计）人：</span>
+        <span class="text">刘丽君,李成华</span>
+    </div>    
+
+         
+            <div class="row">
+        <span class="pre" >主申请人地址：</span>
+        <span class="text">430074 湖北省武汉市东湖新技术开发区高新大道999号A5北2-509</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >专利代理机构：</span>
+        <span class="text">武汉河山金堂专利事务所(普通合伙) 42212</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >代理人：</span>
+        <span class="text">覃波</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >国别省市代码：</span>
+        <span class="text">湖北;42</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >主权项：</span>
+        <span class="text">一种基于大数据的地区舆情监控及决策辅助系统，其特征在于，其包括如下模块：信息采集存储模块，用于实时采集特定区域内的舆情源信息，并对采集的舆情源信息进行结构化存储管理，形成实时更新的地区大数据舆情知识库；数据预处理模块，用于对地区大数据舆情知识库中的数据进行预处理，形成完整有序的数据集，为后续的大数据舆情分析模块提供可用的待分析的数据；大数据舆情分析模块，用于根据地区舆情监控分析的特点，针对舆情相关的影响因子，建立分析组件库、分析模型库，通过分析模型库中配置器进行数据模型配置，并通过数据挖掘算法对配置的数据模型进行挖掘分析，对指定条件的热点话题、媒体类型传播角度、媒体报道重要度角度、媒体正负面声音角度、媒体间的转载关系角度、媒体区域分布角度等进行舆情分析及趋势预测得到舆情分析及趋势预测结果；舆情监控预警、决策辅助模块，用于预定义敏感词库中的敏感词，根据预定义的敏感词库中的敏感词对地区舆情分析所关注的各个方面的定制舆情进行定向挖掘、分析；并根据舆情分析及趋势预测结果，预定义的敏感词库中的敏感词对挖掘和分析的定制舆情进行实时的监控跟踪、管理和疏导；并用于通过站内消息、短信、邮件方式将定制舆情通知给决策者；后台管理模块，用于对舆情信息分类管理、用户与权限管理、关键词管理、采集管理、内容管理、专题管理及分析报告管理。</span>
+    </div>    
+
+    <div class="row">
+        <span class="pre" >法律状态：</span>
+        <span class="text">公开，实质审查的生效，实质审查的生效</span>
+    </div>    
+    </div>
+</div>
+    <div class="md related">
+            <div class="hd-wrap wrap-expend wrap-expended clear">
+        <div class="hd clear">
+            <span class="title">相关知识</span>
+            <span class="expend expended clear">
+                <span class="text">收起</span>
+                <i class="icon iconfont icon-arrow-down ">&#xe602;</i>
+            </span>
+        </div>
+    </div> 
+
+        <div class="bd">
+            <div class="tab-wrap">
+                <div class="tab">
+                    <img src="../Content/img/ajax-loader.gif" alt="" />
+    <span class="tab-item" data-target="relatedPatent">
+        <span class="text">相关专利</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="relatedword">
+        <span class="text">相关检索词</span>
+        <span class="count"></span>
+    </span>    
+                </div>
+            </div>
+            <div class="tab-target">
+                    <div class="related-item" id="relatedPatent" data-url="/RelatedResource/RelatedPatent" data-param="{&quot;ID&quot;:&quot;Patent_CN201510255995.0&quot;,&quot;Q&quot;:&quot;F_ClassMain+exact%22G06F17%2f30%22+and+F_ClassMain+exact%22G06F17%2f00%22+and+F_ClassMain+exact%22G%22+and+F_ClassMain+exact%22G06%22+and+F_ClassMain+exact%22G06F%22+and+F_ClassMain+exact%22G06F17%22&quot;}"></div>
+                    <div class="related-item" id="relatedword" data-url="/RelatedResource/RelatedWord" data-param="{&quot;seed&quot;:&quot;%e4%b8%80%e7%a7%8d%e5%9f%ba%e4%ba%8e%e5%a4%a7%e6%95%b0%e6%8d%ae%e7%9a%84%e5%9c%b0%e5%8c%ba%e8%88%86%e6%83%85%e7%9b%91%e6%8e%a7%e5%8f%8a%e5%86%b3%e7%ad%96%e8%be%85%e5%8a%a9%e7%b3%bb%e7%bb%9f%ef%bc%9a%e4%bf%a1%e6%81%af%e9%87%87%e9%9b%86%e5%ad%98%e5%82%a8%e6%a8%a1%e5%9d%97%ef%bc%8c%e7%94%a8%e4%ba%8e%e5%af%b9%e9%87%87%e9%9b%86%e7%9a%84%e8%88%86%e6%83%85%e6%ba%90%e4%bf%a1%e6%81%af%e8%bf%9b%e8%a1%8c%e7%bb%93%e6%9e%84%e5%8c%96%e5%ad%98%e5%82%a8%e7%ae%a1%e7%90%86%ef%bc%8c%e5%bd%a2%e6%88%90%e5%ae%9e%e6%97%b6%e6%9b%b4%e6%96%b0%e7%9a%84%e5%9c%b0%e5%8c%ba%e5%a4%a7%e6%95%b0%e6%8d%ae%e8%88%86%e6%83%85%e7%9f%a5%e8%af%86%e5%ba%93%ef%bc%9b%e6%95%b0%e6%8d%ae%e9%a2%84%e5%a4%84%e7%90%86%e6%a8%a1%e5%9d%97%ef%bc%8c%e7%94%a8%e4%ba%8e%e5%af%b9%e5%9c%b0%e5%8c%ba%e5%a4%a7%e6%95%b0%e6%8d%ae%e8%88%86%e6%83%85%e7%9f%a5%e8%af%86%e5%ba%93%e4%b8%ad%e7%9a%84%e6%95%b0%e6%8d%ae%e8%bf%9b%e8%a1%8c%e9%a2%84%e5%a4%84%e7%90%86%ef%bc%8c%e5%bd%a2%e6%88%90%e5%ae%8c%e6%95%b4%e6%9c%89%e5%ba%8f%e7%9a%84%e6%95%b0%e6%8d%ae%e9%9b%86%ef%bc%9b%e5%a4%a7%e6%95%b0%e6%8d%ae%e8%88%86%e6%83%85%e5%88%86%e6%9e%90%e6%a8%a1%e5%9d%97%ef%bc%8c%e7%94%a8%e4%ba%8e%e5%af%b9%e6%8c%87%e5%ae%9a%e6%9d%a1%e4%bb%b6%e7%9a%84%e7%83%ad%e7%82%b9%e8%af%9d%e9%a2%98%e7%ad%89%e8%bf%9b%e8%a1%8c%e8%88%86%e6%83%85%e5%88%86%e6%9e%90%e5%8f%8a%e8%b6%8b%e5%8a%bf%e9%a2%84%e6%b5%8b%e5%be%97%e5%88%b0%e8%88%86%e6%83%85%e5%88%86%e6%9e%90%e5%8f%8a%e8%b6%8b%e5%8a%bf%e9%a2%84%e6%b5%8b%e7%bb%93%e6%9e%9c%ef%bc%9b%e8%88%86%e6%83%85%e7%9b%91%e6%8e%a7%e9%a2%84%e8%ad%a6%e3%80%81%e5%86%b3%e7%ad%96%e8%be%85%e5%8a%a9%e6%a8%a1%e5%9d%97%ef%bc%8c%e7%94%a8%e4%ba%8e%e5%af%b9%e9%a2%84%e5%ae%9a%e4%b9%89%e7%9a%84%e6%95%8f%e6%84%9f%e8%af%8d%e5%ba%93%e4%b8%ad%e7%9a%84%e6%95%8f%e6%84%9f%e8%af%8d%e5%af%b9%e6%8c%96%e6%8e%98%e5%92%8c%e5%88%86%e6%9e%90%e7%9a%84%e5%ae%9a%e5%88%b6%e8%88%86%e6%83%85%e8%bf%9b%e8%a1%8c%e5%ae%9e%e6%97%b6%e7%9a%84%e7%9b%91%e6%8e%a7%e8%b7%9f%e8%b8%aa%e3%80%81%e7%ae%a1%e7%90%86%e5%92%8c%e7%96%8f%e5%af%bc%ef%bc%9b%e9%80%9a%e8%bf%87%e7%ab%99%e5%86%85%e6%b6%88%e6%81%af%e3%80%81%e7%9f%ad%e4%bf%a1%e3%80%81%e9%82%ae%e4%bb%b6%e6%96%b9%e5%bc%8f%e5%b0%86%e5%ae%9a%e5%88%b6%e8%88%86%e6%83%85%e9%80%9a%e7%9f%a5%e7%bb%99%e5%86%b3%e7%ad%96%e8%80%85%ef%bc%9b%e5%90%8e%e5%8f%b0%e7%ae%a1%e7%90%86%e6%a8%a1%e5%9d%97%ef%bc%8c%e7%94%a8%e4%ba%8e%e5%af%b9%e8%88%86%e6%83%85%e4%bf%a1%e6%81%af%e5%88%86%e7%b1%bb%e7%ae%a1%e7%90%86%e3%80%81%e7%94%a8%e6%88%b7%e4%b8%8e%e6%9d%83%e9%99%90%e7%ae%a1%e7%90%86%e3%80%81%e5%85%b3%e9%94%ae%e8%af%8d%e7%ae%a1%e7%90%86%e3%80%81%e9%87%87%e9%9b%86%e7%ae%a1%e7%90%86%e3%80%81%e5%86%85%e5%ae%b9%e7%ae%a1%e7%90%86%e3%80%81%e4%b8%93%e9%a2%98%e7%ae%a1%e7%90%86%e5%8f%8a%e5%88%86%e6%9e%90%e6%8a%a5%e5%91%8a%e7%ae%a1%e7%90%86%e3%80%82&quot;,&quot;pagename&quot;:&quot;Patent.aspx&quot;}"></div>
+            </div>
+        </div>
+    </div>  
+
+    <div class="footer-wrap">
+        <div class="lt-bg"></div>
+        <div class="rt-bg"></div>
+        <div class="footer clear">
+            <div class="lt">
+                <div class="top">
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/NewGuide">帮助</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/CustomerService/Services">客户服务</a>
+                    <a target="_blank" href="http://www.sojump.com/jq/4550749.aspx">问卷调查</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/AboutUs/index">关于我们</a>
+                    <a target="_blank" href="http://www.wanfang.com.cn/">公司首页</a>
+                    <a target="_blank" href="http://weibo.com/wanfangdata">平台微博</a>
+                    <a target="_blank" href="http://wanfangdata.zhiye.com/">加入我们</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/Sitemap">网站地图</a>
+                    <a id="langCN" data-lang="zn-CN" class="lang">简</a>
+                    <a id="langTW" data-lang="zn-TW" class="lang">繁</a>
+                    <a id="langEN" data-lang="EN" href="http://www.wanfangdata.com/" target="_blank">ENG</a>
+                </div>
+                <div class="bottom">
+                    <div>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/hlwcb.jpg">互联网出版许可证：新出网证(京)字042号</a>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/zhengshu_2.jpg">互联网药品信息服务资格证书号：(京)-经营性-2011-0017</a>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/stjmxkz2.jpg">信息网络传播视听节目许可证 许可证号：0108284 </a>
+                    </div>
+                    <div>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/icp.jpg">京ICP证：010071</a>
+                        <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802020237" ><img src="http://ad.wanfangdata.com.cn/images/gabeian.png" style="margin-right:2px;"/>京公网安备11010802020237号</a>
+<a target="_blank" href="http://ad.wanfangdata.com.cn/images/yunicp.jpg">万方数据知识资源云服务系统[简称：知识云服务平台]V1.0 证书号：软著登字第1016589号</a>
+                    </div>
+                    <p>万方数据知识服务平台--国家科技支撑计划资助项目（编号：2006BAH03B01）©北京万方数据股份有限公司  万方数据电子出版社</p>
+                </div>
+            </div>
+            <div class="rt">
+                <div class="top">
+                    <i class="icon icon-service"></i>
+                    <span>联系客服</span>
+                </div>
+                <div class="mid">4000-115-888</div>
+                <div class="service-email">service@wanfangdata.com.cn</div>
+            </div>
+        </div>
+    </div>
+                            
+                            
+    <script src="http://static.wanfangdata.com.cn/wfks/lib/jquery-1.11.3.min.js?v=201512211715" type="text/javascript"></script>
+    <script src="http://static.wanfangdata.com.cn/wfks/lib/jquery-ui-1.11.4.custom.min.js?v=201512211715" type="text/javascript"></script>
+    <!--[if lt IE 9 ]><script src="http://static.wanfangdata.com.cn/wfks/lib/json2.min.js?v=201512211715" type="text/javascript"></script><![endif]-->
+    <script src="http://www.wanfangdata.com.cn/Config/index"></script>
+    <script src="http://static.wanfangdata.com.cn/wfks/js/global.min.js?v=201512211715" type="text/javascript"></script>
+    <script type="text/javascript">
+        (function () {
+            wf.header.resource.init({ id: 'patent' });
+            wf.exporter.init();
+            wf.fixbox.init();
+            wf.share.init();
+            wf.related.init();
+            var changeText = function () {
+                this.text(this.text() === '展开' ? '收起' : '展开');
+            }
+            $('.abstract .expend').click(function () {
+                $(this).toggleClass('expended').next('.text').slideToggle(300);
+            });
+            $('.abstract-short .expend-short').click(function () {
+                var $this = $(this),
+                    $text = $this.find('span');
+                changeText.call($text);
+                $this.parent().prev('.row').toggle();
+                $this.toggleClass('expended').prev('.text').toggle();
+            });
+            $('.related .expend').click(function () {
+                var $this = $(this),
+                    $text = $this.find('.text'),
+                    $hd = $this.toggleClass('expended').parent().parent();
+                if (!$hd.hasClass('wrap-expend')) { $hd.addClass('wrap-expend'); }
+                $hd.toggleClass('wrap-expended').next('.bd').slideToggle(300);
+                changeText.call($text);
+            });
+        })();
+    </script>
+    
+    <script src="http://static.wanfangdata.com.cn/wfks/module/userSuggestion/userSuggestion.min.js?v=201512211715" type="text/javascript"></script>
+</body>
+</html>

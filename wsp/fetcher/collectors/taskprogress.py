@@ -71,7 +71,7 @@ class TaskProgressCollector:
 
 class _TaskProgress:
     def __init__(self, **kw):
-        self.signature = kw.get("signature", ObjectId())
+        self.signature = kw.get("signature", "%s" % ObjectId())
         self.completed = kw.get("completed", 0)
         self.total = kw.get("total", 0)
         self.updated = kw.get("updated", False)

@@ -63,6 +63,8 @@ class TaskProgressMonitor:
                 client = ServerProxy(self._master_addr)
                 client.finish_task(task_id)
                 asyncio.ensure_future(self._remove_task_delay(task_id))
+            else:
+                self._tasks[task_id].updated = False
 
     async def _remove_task_delay(self, task_id):
         await asyncio.sleep(10 * self._inspect_time)
