@@ -21,6 +21,8 @@ class HttpRequest:
         self.proxy = proxy
         self.params = params
         self.headers = headers
+        if self.headers is None:
+            self.headers = {}
         self.body = body
         self.cookies = cookies
         self._meta = dict(meta) if meta else None

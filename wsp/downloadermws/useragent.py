@@ -2,7 +2,7 @@
 
 import logging
 
-from bson import ObjectId
+import random
 
 from wsp.utils.parse import extract_request
 
@@ -21,8 +21,8 @@ class UserAgentMiddleware:
 
     @classmethod
     def from_config(cls, config):
-        return cls(config.get("user-agent", "Mozilla/5.0 (Windows NT 6.1; WOW64)"),
-                   config.get("random-user-agent", False))
+        return cls(config.get("user_agent", "Mozilla/5.0 (Windows NT 6.1; WOW64)"),
+                   config.get("random_user_agent", False))
 
     """
     给请求添加代理
@@ -31,6 +31,6 @@ class UserAgentMiddleware:
         req = extract_request(request)
         user_agent = self._user_agent
         if self._is_random:
-            user_agent = "%s %s" % (user_agent, ObjectId())
+            user_agent = "%s %s" % (user_agent, random.randint(0, 999999999))
         log.debug("Assign User-Agent '%s' to request (id=%s, url=%s)" % (user_agent, req.id, request.url))
         request.headers["User-Agent"] = user_agent
