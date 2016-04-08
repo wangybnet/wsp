@@ -2,7 +2,8 @@
 
 # ------ Downloader Middlewares -------
 downloader_middlewares:
-  - wsp.downloadermws.proxy.ProxyMiddleware
+#  - wsp.downloadermws.proxy.ProxyMiddleware
+  - wsp.downloadermws.useragent.UserAgentMiddleware
   - project.downloadermws.retry.RetryMiddleware
 
 # ------ Spider Middlewares -------
@@ -18,8 +19,8 @@ spiders:
 start_urls:
 
 # ------ Properties ------
-max_level: 1
 max_retry_times: 10
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
 store_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
 proxy_agent_addr: 192.168.120.181:1234
+random_user_agent: True
