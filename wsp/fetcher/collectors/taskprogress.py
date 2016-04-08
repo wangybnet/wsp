@@ -18,8 +18,6 @@ class TaskProgressCollector:
         self._local_config = local_config
         self._report_time = self._local_config.task_progress_report_time
         self._tasks = {}
-        self._total = {}
-        self._completed = {}
         self._data_lock = threading.Lock()
 
     """
@@ -29,32 +27,29 @@ class TaskProgressCollector:
     """
     def set_tasks(self, *tasks):
         new_tasks = {}
-        for t in tasks:
-            if t in self._tasks:
-                new_tasks[t] = self._tasks[t]
-            else:
-                new_tasks[t] = self._add_task(t)
-        for t in self._tasks.keys():
-            if t not in new_tasks:
-                self._remove_task(t)
-        self._tasks = new_tasks
-
-    """
-    添加任务
-    """
-    def add_task(self, task_id):
-        if task_id not in self._tasks:
-            self._tasks[task_id] = self._add_task(task_id)
+        with self._data_lock:
+            for t in tasks:
+                if t in self._tasks:
+                    new_tasks[t] = self._tasks[t]
+                else:
+                    new_tasks[t] = _TaskProgress()
+            self._tasks = new_tasks
 
     def record_pulled_request(self, task_id):
-        if task_id in self._tasks:
-            with self._data_lock:
-                self._completed[task_id] += 1
+        with self._data_lock:
+            if task_id not in self._tasks:
+                self._tasks[task_id] = _TaskProgress()
+            tp = self._tasks[task_id]
+            tp.completed += 1
+            tp.updated = True
 
     def record_pushed_request(self, task_id):
-        if task_id in self._tasks:
-            with self._data_lock:
-                self._total[task_id] += 1
+        with self._data_lock:
+            if task_id not in self._tasks:
+                self._tasks[task_id] = _TaskProgress()
+            tp = self._tasks[task_id]
+            tp.total += 1
+            tp.updated = True
 
     """
     获取上报数据
@@ -64,18 +59,19 @@ class TaskProgressCollector:
         data = []
         with self._data_lock:
             for t in self._tasks.keys():
-                data.append({"task_id": t,
-                             "signature": self._tasks[t],
-                             "completed": self._completed[t],
-                             "total": self._total[t]})
+                tp = self._tasks[t]
+                if tp.updated:
+                    data.append({"task_id": t,
+                                 "signature": tp.signature,
+                                 "completed": tp.completed,
+                                 "total": tp.total})
+                    tp.updated = False
         return {"task_progress": data}
 
-    def _add_task(self, task_id):
-        signature = "%s" % ObjectId()
-        self._completed[task_id] = 0
-        self._total[task_id] = 0
-        return signature
 
-    def _remove_task(self, task_id):
-        self._completed.pop(task_id)
-        self._total.pop(task_id)
+class _TaskProgress:
+    def __init__(self, **kw):
+        self.signature = kw.get("signature", ObjectId())
+        self.completed = kw.get("completed", 0)
+        self.total = kw.get("total", 0)
+        self.updated = kw.get("updated", False)

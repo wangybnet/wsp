@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import os
 import sys
 import logging
 
@@ -20,6 +21,13 @@ def set_logger(level, format=None, date_format=None, *, log_file=None):
     console.setFormatter(formatter)
     log.addHandler(console)
     if log_file:
+        try:
+            i = log_file.rindex("/")
+            log_dir = log_file[:i]
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir, mode=0o775)
+        except ValueError:
+            pass
         file = logging.FileHandler(log_file)
         file.setFormatter(formatter)
         log.addHandler(file)

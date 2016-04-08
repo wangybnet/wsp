@@ -33,12 +33,6 @@ class CollectorManager:
     def set_tasks(self, *tasks):
         self._task_progress_collector.set_tasks(*tasks)
 
-    """
-    添加任务
-    """
-    def add_task(self, task_id):
-        self._task_progress_collector.add_task(task_id)
-
     def record_pulled_request(self, task_id):
         self._task_progress_collector.record_pulled_request(task_id)
 

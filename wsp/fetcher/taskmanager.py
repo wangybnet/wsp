@@ -52,29 +52,28 @@ class TaskManager:
         self._tasks = new_tasks
 
     """
-    添加一个需要管理的任务
-    """
-    def add_task(self, task_id):
-        if task_id not in self._tasks:
-            self._tasks[task_id] = self._load_task_config(task_id)
-
-    """
     根据任务id获取下载器中间件
     """
     def downloadermws(self, task_id):
-        return self._downloadermws.get(task_id, [])
+        if task_id not in self._tasks:
+            self._tasks[task_id] = self._load_task_config(task_id)
+        return self._downloadermws[task_id]
 
     """
     根据任务id获取Spider中间件
     """
     def spidermws(self, task_id):
-        return self._spidermws.get(task_id, [])
+        if task_id not in self._tasks:
+            self._tasks[task_id] = self._load_task_config(task_id)
+        return self._spidermws[task_id]
 
     """
     根据任务id获取Spider
     """
     def spiders(self, task_id):
-        return self._spiders.get(task_id, [])
+        if task_id not in self._tasks:
+            self._tasks[task_id] = self._load_task_config(task_id)
+        return self._spiders[task_id]
 
     """
     根据任务id获取任务配置
@@ -87,18 +86,12 @@ class TaskManager:
     """
     def _load_task_config(self, task_id):
         code_dir = self._get_code_dir(task_id)
-        self._install_task(task_id, code_dir)
+        self._unzip_task(task_id, code_dir)
         config_yaml = "%s/%s" % (code_dir, self._sys_config.task_config_file)
         with open(config_yaml, "r", encoding="utf-8") as f:
             task_config = TaskConfig(**yaml.load(f))
         log.debug("Loaded the configuration of the task %s" % task_id)
-        # 添加sys.path
-        sys.path.append(code_dir)
-        self._spiders[task_id] = self._load_spiders(task_config)
-        self._downloadermws[task_id] = self._load_downloadermws(task_config)
-        self._spidermws[task_id] = self._load_spidermws(task_config)
-        # 移除sys.path
-        sys.path.remove(code_dir)
+        self._load_custom_objects(task_id, task_config, code_dir)
         return task_config
 
     """
@@ -108,6 +101,19 @@ class TaskManager:
         self._spiders.pop(task_id)
         self._downloadermws.pop(task_id)
         self._spidermws.pop(task_id)
+
+    def _load_custom_objects(self, task_id, task_config, code_dir):
+        # 添加sys.path
+        sys.path.append(code_dir)
+        # 备份sys.modules
+        modules_backup = dict(sys.modules)
+        self._spiders[task_id] = self._load_spiders(task_config)
+        self._downloadermws[task_id] = self._load_downloadermws(task_config)
+        self._spidermws[task_id] = self._load_spidermws(task_config)
+        # 恢复sys.modules
+        sys.modules = modules_backup
+        # 移除sys.path
+        sys.path.remove(code_dir)
 
     """
     根据任务配置加载下载器中间件
@@ -130,8 +136,8 @@ class TaskManager:
     def _load_spiders(task_config):
         return SpiderFactory.create(task_config)
 
-    def _install_task(self, task_id, code_dir):
-        log.debug("Install the code of the task %s at '%s'" % (task_id, code_dir))
+    def _unzip_task(self, task_id, code_dir):
+        log.debug("Unzip the code of the task %s at '%s'" % (task_id, code_dir))
         zip_json = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
         zipb = zip_json["zip"]
         if not os.path.exists(code_dir):
