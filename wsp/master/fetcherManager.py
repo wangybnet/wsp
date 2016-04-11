@@ -31,12 +31,17 @@ class fetcherManager:
         if fetcher_addr not in self.fetcherList:
             log.debug("Add a new fetcher %s" % fetcher_addr)
             self.fetcherList.append(fetcher_addr)
+            self._notice_change_tasks(fetcher_addr)
 
-    def _notice_change_tasks(self):
-        log.debug("Notice change the tasks")
-        for f in self.fetcherList:
-            rpcClient = ServerProxy(f, allow_none=True)
+    def _notice_change_tasks(self, fetcher_addr=None):
+        log.debug("Notice %s to change the tasks" % (fetcher_addr if fetcher_addr else "all the fetchers"))
+        if fetcher_addr:
+            rpcClient = ServerProxy(fetcher_addr, allow_none=True)
             rpcClient.changeTasks(self.running_tasks)
+        else:
+            for f in self.fetcherList:
+                rpcClient = ServerProxy(f, allow_none=True)
+                rpcClient.changeTasks(self.running_tasks)
         # FIXME: 默认返回True，之后可能根据RPC连接情况修改
         return True
 

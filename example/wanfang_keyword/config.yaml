@@ -2,7 +2,7 @@
 
 # ------ Downloader Middlewares -------
 downloader_middlewares:
-  - wsp.downloadermws.proxy.ProxyMiddleware
+  - wsp.downloadermws.useragent.UserAgentMiddleware
   - project.downloadermws.retry.RetryMiddleware
 
 # ------ Spider Middlewares -------
@@ -18,10 +18,11 @@ spiders:
 
 # ------ Start URLs ------
 start_urls:
+  - http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top
+  - http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top&p=3
 
 # ------ Properties ------
+random_user_agent: True
 max_level: 1
 max_retry_times: 10
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
-store_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
-proxy_agent_addr: 192.168.120.181:1234

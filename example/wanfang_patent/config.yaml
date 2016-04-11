@@ -20,5 +20,4 @@ start_urls:
 # ------ Properties ------
 max_retry_times: 10
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
-store_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
 random_user_agent: True
