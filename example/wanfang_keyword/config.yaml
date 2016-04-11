@@ -8,21 +8,21 @@ downloader_middlewares:
 # ------ Spider Middlewares -------
 spider_middlewares:
   - wsp.spidermws.dedup.MongoDedupMiddleware
-  - wsp.spidermws.limitlevel.LimitLevelMiddleware
+#  - wsp.spidermws.limitlevel.LimitLevelMiddleware
   - project.spidermws.store.StoreMiddleware
 
 # ------ Spider -------
 spiders:
   - project.spiders.search.SearchSpider
-  - project.spiders.detail.DetailSpider
+#  - project.spiders.detail.DetailSpider
 
 # ------ Start URLs ------
 start_urls:
-  - http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top
-  - http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top&p=3
 
 # ------ Properties ------
 random_user_agent: True
-max_level: 1
+#max_level: 1
 max_retry_times: 10
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
+#dedup_mongo_db: wanfang_dedup
+#dedup_mongo_coll: iie_dedup

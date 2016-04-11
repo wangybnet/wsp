@@ -26,6 +26,5 @@ class DetailSpider(BaseSpider):
             if u.find("http://s.wanfangdata.com.cn/Paper.aspx") >= 0:
                 yield HttpRequest(sanitize_url(u))
 
-    # def start_requests(self, start_urls):
-    #     return (HttpRequest("http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top"),
-    #             HttpRequest("http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top&p=3"))
+    def start_requests(self, start_urls):
+        return ()
