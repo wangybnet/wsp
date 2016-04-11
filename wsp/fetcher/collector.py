@@ -2,7 +2,6 @@
 
 from wsp.config import SystemConfig
 from wsp.monitor import MonitorClient
-from .config import FetcherConfig
 from .collectors import TaskProgressCollector
 
 
@@ -11,13 +10,12 @@ class CollectorManager:
     管理采集器
     """
 
-    def __init__(self, sys_config, local_config):
-        assert isinstance(sys_config, SystemConfig) and isinstance(local_config, FetcherConfig), "Wrong configuration"
+    def __init__(self, sys_config):
+        assert isinstance(sys_config, SystemConfig), "Wrong configuration"
         self._sys_config = sys_config
-        self._local_config = local_config
         self._monitor_client = MonitorClient(self._sys_config.monitor_addr)
         self._handlers = None
-        self._task_progress_collector = TaskProgressCollector(self._local_config)
+        self._task_progress_collector = TaskProgressCollector(self._sys_config)
 
     def open(self):
         self._handlers = [self._monitor_client.add_handler(self._task_progress_collector)]

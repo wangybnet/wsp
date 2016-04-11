@@ -5,18 +5,15 @@ import asyncio
 
 from bson import ObjectId
 
-from ..config import FetcherConfig
+from wsp.config import SystemConfig
 
 
 class TaskProgressCollector:
-    """
-    针对每个task有一个handler
-    """
 
-    def __init__(self, local_config):
-        assert isinstance(local_config, FetcherConfig), "Wrong configuration"
-        self._local_config = local_config
-        self._report_time = self._local_config.task_progress_report_time
+    def __init__(self, sys_config):
+        assert isinstance(sys_config, SystemConfig), "Wrong configuration"
+        self._sys_config = sys_config
+        self._report_time = self._sys_config.task_progress_report_time
         self._tasks = {}
         self._data_lock = threading.Lock()
 

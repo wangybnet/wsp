@@ -4,5 +4,4 @@ log_level: DEBUG
 
 # ------ Fetcher ------
 rpc_addr: 0.0.0.0:7320
-downloader_clients: 200
-master_rpc_addr: 192.168.120.181:7310
+master_rpc_addr: 192.168.120.113:7310

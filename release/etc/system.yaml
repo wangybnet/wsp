@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
 
 # ------ System Configuration ------
-kafka_addr: 192.168.120.181:9092
+kafka_addr: 192.168.120.90:9092
 mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
-monitor_addr: 192.168.120.181:7311
+monitor_addr: 192.168.120.113:7311
+downloader_clients: 200
+task_progress_inspect_time: 60

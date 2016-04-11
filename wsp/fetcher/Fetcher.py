@@ -28,7 +28,7 @@ class Fetcher:
     # FIXME: 根据任务设置spider
     def __init__(self, config):
         assert isinstance(config, FetcherConfig), "Wrong configuration"
-        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s, downloader_clients=%d" % (config.master_rpc_addr, config.rpc_addr, config.downloader_clients))
+        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s" % (config.master_rpc_addr, config.rpc_addr))
         self._config = config
         self.master_addr = self._config.master_rpc_addr
         if not self.master_addr.startswith("http://"):
@@ -42,9 +42,9 @@ class Fetcher:
         self.consumer = KafkaConsumer(bootstrap_servers=[self._sys_config.kafka_addr, ],
                                       auto_offset_reset='earliest',
                                       consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
-        self.downloader = Downloader(clients=self._config.downloader_clients)
+        self.downloader = Downloader(clients=self._sys_config.downloader_clients)
         self._task_manager = TaskManager(self._sys_config, self._config)
-        self._collector_manager = CollectorManager(self._sys_config, self._config)
+        self._collector_manager = CollectorManager(self._sys_config)
         self.taskDict = {}
         self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
@@ -126,7 +126,7 @@ class Fetcher:
             with self._task_dict_lock:
                 no_work = not self.taskDict
             if no_work:
-                sleep_time = self._config.no_work_sleep_time
+                sleep_time = self._sys_config.no_work_sleep_time
                 log.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
             else:
@@ -139,9 +139,9 @@ class Fetcher:
                     self._collector_manager.record_pulled_request(req.task_id)
                     req.fetcher = self._addr
                     self._push_downloader_task(req)
-                except StopIteration as e:
+                except StopIteration:
                     log.debug("Kafka read timeout")
-                except Exception as e:
+                except Exception:
                     log.warning("An error occurred when preparing request", exc_info=True)
 
     def _start_pull_req(self):
@@ -157,7 +157,7 @@ class Fetcher:
                                         self.saveResult,
                                         middleware=self._task_manager.downloadermws(task_id)):
                 break
-            sleep_time = self._config.downloader_busy_sleep_time
+            sleep_time = self._sys_config.downloader_busy_sleep_time
             log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
             time.sleep(sleep_time)
 

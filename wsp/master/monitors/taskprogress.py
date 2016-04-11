@@ -18,7 +18,7 @@ class TaskProgressMonitor:
         assert isinstance(sys_config, SystemConfig) and isinstance(local_config, MasterConfig), "Wrong configuration"
         self._sys_config = sys_config
         self._local_config = local_config
-        self._inspect_time = self._local_config.task_progress_inspect_time
+        self._inspect_time = self._sys_config.task_progress_inspect_time
         master_addr = self._local_config.rpc_addr
         colon = master_addr.rindex(":")
         self._master_addr = "http://127.0.0.1%s" % master_addr[colon:]
