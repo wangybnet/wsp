@@ -49,7 +49,7 @@ class StoreMiddleware:
         except Exception:
             pass
         else:
-            self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
             self._cur.execute(sql, (id, page_id, url, t))
+            self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
             data_dict = {"id": id, "crawl_time": t, "html": text_from_http_body(response)}
             self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))

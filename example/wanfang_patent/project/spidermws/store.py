@@ -10,7 +10,7 @@ class StoreMiddleware:
 
     def __init__(self):
         self._url_part = "d.wanfangdata.com.cn/Patent"
-        self._store_path = "/root/wanfang_patent"
+        self._store_path = "/home/wsp/wanfang_patent"
         self._store_file = "patent.txt"
         self._match_title = re.compile(r"""<h1>(.*?)</h1>""")
         self._match_text = re.compile(r"""<div class="text">(.*?)</div>""")
