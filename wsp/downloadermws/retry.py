@@ -24,7 +24,7 @@ class RetryMiddleware:
 
     @classmethod
     def from_config(cls, config):
-        return cls(config.get("max_retry_times", 5))
+        return cls(config.get("max_retry_times", 10))
 
     async def handle_response(self, request, response):
         if response.status in self.RETRY_HTTP_STATUS:
@@ -43,5 +43,5 @@ class RetryMiddleware:
             request.meta["_retry_times"] = retry_times
             return request.copy()
         else:
-            log.debug("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))
+            log.info("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))
             raise IgnoreRequest()
