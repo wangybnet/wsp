@@ -15,12 +15,12 @@ class StoreMiddleware:
     match_url = "d.wanfangdata.com.cn"
     mongo_addr = "mongodb://wsp:wsp123456@192.168.120.90:27017"
     mongo_db = "ScholarInfoBase"
-    mongo_collection = "WanfangMetaSource"
+    mongo_collection = "iie_paper"
     mysql_host = "192.168.120.90"
     mysql_user = "root"
     mysql_pwd = "123456"
     kafka_addr = "192.168.120.90:9092"
-    kafka_topic = "WanfangMetaSource"
+    kafka_topic = "iie_paper"
 
     def __init__(self):
         self._mongo_client = MongoClient(self.mongo_addr)
@@ -33,7 +33,7 @@ class StoreMiddleware:
         self._producer = KafkaProducer(bootstrap_servers=[self.kafka_addr, ])
 
     async def handle_input(self, response):
-        print("Response url: %s" % response.url)
+        print("%s Response url: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), response.url))
         if response.url.find(self.match_url) >= 0:
             self._store(response)
 

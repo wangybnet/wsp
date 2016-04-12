@@ -53,8 +53,7 @@ class MonitorServer:
             self._add_inspect_task(handler_id, handler.inspect)
 
     def _add_inspect_task(self, handler_id, coro_func):
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._inspect_task(handler_id, coro_func))
+        asyncio.ensure_future(self._inspect_task(handler_id, coro_func))
 
     async def _inspect_task(self, handler_id, coro_func):
         while handler_id in self._handlers:

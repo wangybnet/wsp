@@ -78,9 +78,9 @@ class fetcherManager:
         if task.status == 0:
             if not self._notice_new_task(task_id):
                 return False
-            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_RUNNING}})
         if task_id not in self.running_tasks:
             self.running_tasks.append(task_id)
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_RUNNING}})
         return self._notice_change_tasks()
 
     def get_running_tasks(self):

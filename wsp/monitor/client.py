@@ -50,8 +50,7 @@ class MonitorClient:
             self._add_report_task(handler_id, handler.fetch_data)
 
     def _add_report_task(self, handler_id, coro_func):
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._report_task(handler_id, coro_func))
+        asyncio.ensure_future(self._report_task(handler_id, coro_func))
 
     async def _report_task(self, handler_id, coro_func):
         while handler_id in self._handlers:

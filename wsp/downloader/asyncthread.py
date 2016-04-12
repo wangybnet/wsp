@@ -36,5 +36,4 @@ class AsyncThread:
 
     @staticmethod
     def _add_task(coro):
-        loop = asyncio.get_event_loop()
-        loop.create_task(coro)
+        asyncio.ensure_future(coro)

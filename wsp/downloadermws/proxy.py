@@ -58,8 +58,9 @@ class ProxyMiddleware:
         return proxy
 
     async def _update_proxy_list(self):
-        if self._update_slot:
+        if self._update_slot > 0:
             self._update_slot -= 1
+            log.debug("Updating proxy list")
             with aiohttp.ClientSession() as session:
                 async with session.get(self._agent_addr) as resp:
                     json = await resp.json()
