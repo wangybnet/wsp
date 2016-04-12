@@ -16,24 +16,16 @@ class Downloader:
 
     def __init__(self, clients):
         self._downloader = AsyncThread()
-        self._clients = clients
-        self._clients_lock = threading.Lock()
+        self._clients = threading.Semaphore(clients)
 
     """
     添加下载任务
 
     在未启动下载线程之前添加下载任务会自动启动下载线程。
-    返回True表示已添加该下载任务，False表示当前已经满负荷，请过段时间再添加任务。
     """
     def add_task(self, request, callback, *, middleware=None):
-        ok = False
-        with self._clients_lock:
-            if self._clients > 0:
-                self._clients -= 1
-                ok = True
-        if ok:
-            self._downloader.add_task(self._handle(request, callback, middleware=middleware))
-        return ok
+        self._clients.acquire()
+        self._downloader.add_task(self._handle(request, callback, middleware=middleware))
 
     """
     停止下载线程
@@ -79,8 +71,7 @@ class Downloader:
         else:
             await callback(request, res)
         finally:
-            with self._clients_lock:
-                self._clients += 1
+            self._clients.release()
 
     @staticmethod
     async def _handle_request(request, middleware):

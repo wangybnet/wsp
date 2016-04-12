@@ -152,36 +152,35 @@ class Fetcher:
     def _push_downloader_task(self, req):
         request = pack_request(req)
         task_id = "%s" % req.task_id
-        while True:
-            if self.downloader.add_task(request,
-                                        self.saveResult,
-                                        middleware=self._task_manager.downloadermws(task_id)):
-                break
-            sleep_time = self._sys_config.downloader_busy_sleep_time
-            log.debug("Downloader is busy, and I will sleep %s seconds" % sleep_time)
-            time.sleep(sleep_time)
+        self.downloader.add_task(request,
+                                 self.saveResult,
+                                 middleware=self._task_manager.downloadermws(task_id))
 
     async def saveResult(self, request, result):
         req = extract_request(request)
-        if isinstance(result, HttpRequest):
-            new_req = parse_request(req, result)
-            self.pushReq(new_req)
-            self.producer.flush()
-        elif isinstance(result, HttpResponse):
-            # bind HttpRequest
-            result.request = request
-            task_id = "%s" % req.task_id
-            spiders = self._task_manager.spiders(task_id)
-            for res in (await Spider.crawl(spiders,
-                                           result,
-                                           middleware=self._task_manager.spidermws(task_id))):
-                if isinstance(res, HttpRequest):
-                    new_req = parse_request(req, res)
-                    self.pushReq(new_req)
-                else:
-                    log.debug("Got '%s', but I will do noting here", res)
-            self.producer.flush()
-        else:
-            log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
-        # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
-        unpack_request(request)
+        try:
+            if isinstance(result, HttpRequest):
+                new_req = parse_request(req, result)
+                self.pushReq(new_req)
+                self.producer.flush()
+            elif isinstance(result, HttpResponse):
+                # bind HttpRequest
+                result.request = request
+                task_id = "%s" % req.task_id
+                spiders = self._task_manager.spiders(task_id)
+                for res in (await Spider.crawl(spiders,
+                                               result,
+                                               middleware=self._task_manager.spidermws(task_id))):
+                    if isinstance(res, HttpRequest):
+                        new_req = parse_request(req, res)
+                        self.pushReq(new_req)
+                    else:
+                        log.debug("Got '%s', but I will do noting here", res)
+                self.producer.flush()
+            else:
+                log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
+        except Exception:
+            log.warning("An error occurred when handing result of downloader", exc_info=True)
+        finally:
+            # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
+            unpack_request(request)
