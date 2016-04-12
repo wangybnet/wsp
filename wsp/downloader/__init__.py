@@ -14,9 +14,10 @@ log = logging.getLogger(__name__)
 
 class Downloader:
 
-    def __init__(self, clients):
+    def __init__(self, clients, timeout):
         self._downloader = AsyncThread()
         self._clients = threading.Semaphore(clients)
+        self._timeout = timeout
 
     """
     添加下载任务
@@ -44,7 +45,7 @@ class Downloader:
                     response = await self._download(request)
                     log.debug("Http Response: %s %s" % (response.url, response.status))
                 except Exception as e:
-                    log.debug("Http Error: %s" % e)
+                    log.debug("Http Error (%s): %s" % (type(e), e))
                     raise HttpError(e)
                 else:
                     res = response
@@ -100,20 +101,20 @@ class Downloader:
             if res:
                 return res
 
-    @staticmethod
-    async def _download(request):
+    async def _download(self, request):
         log.debug("Http Request: %s %s" % (request.method, request.url))
         with aiohttp.ClientSession(connector=None if (request.proxy is None) else aiohttp.ProxyConnector(proxy=request.proxy),
                                    cookies=request.cookies) as session:
-            async with session.request(request.method,
-                                       request.url,
-                                       params=request.params,
-                                       headers=request.headers,
-                                       data=request.body) as resp:
-                body = await resp.read()
-                response = HttpResponse(resp.url,
-                                        resp.status,
-                                        headers=resp.headers,
-                                        body=body,
-                                        cookies=resp.cookies)
+            with aiohttp.Timeout(self._timeout):
+                async with session.request(request.method,
+                                           request.url,
+                                           params=request.params,
+                                           headers=request.headers,
+                                           data=request.body) as resp:
+                    body = await resp.read()
+        response = HttpResponse(resp.url,
+                                resp.status,
+                                headers=resp.headers,
+                                body=body,
+                                cookies=resp.cookies)
         return response

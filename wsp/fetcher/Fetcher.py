@@ -42,7 +42,7 @@ class Fetcher:
         self.consumer = KafkaConsumer(bootstrap_servers=[self._sys_config.kafka_addr, ],
                                       auto_offset_reset='earliest',
                                       consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
-        self.downloader = Downloader(clients=self._sys_config.downloader_clients)
+        self.downloader = Downloader(clients=self._sys_config.downloader_clients, timeout=self._sys_config.downloader_timeout)
         self._task_manager = TaskManager(self._sys_config, self._config)
         self._collector_manager = CollectorManager(self._sys_config)
         self.taskDict = {}

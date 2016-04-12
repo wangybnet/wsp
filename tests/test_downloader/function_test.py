@@ -22,16 +22,10 @@ async def save_result(request, response):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    d = Downloader(clients=2)
+    d = Downloader(clients=2, timeout=1)
     for url in ["https://github.com", "http://www.haosou.com", "http://error-domain-0x00.com", "http://www.baidu.com.com", "http://www.iie.ac.cn"]:
         req = HttpRequest(url)
         ok = False
-        while not ok:
-            ok = d.add_task(req, save_result)
-            if ok:
-                break
-            else:
-                print("Downloader is busy, so it cannot handle %s" % url)
-            time.sleep(1)
+        d.add_task(req, save_result)
     time.sleep(5)
     d.stop()
