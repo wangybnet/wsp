@@ -61,13 +61,11 @@ class TaskProgressMonitor:
                 log.debug("The task %s has not been updated in the last %s seconds" % (task_id, self._inspect_time))
                 client = ServerProxy(self._master_addr)
                 client.finish_task(task_id)
-                self._remove_task(task_id)
+                self._tasks.pop(task_id)
+                self._tasks_parts.pop(task_id)
             else:
                 self._tasks[task_id].updated = False
 
-    def _remove_task(self, task_id):
-        self._tasks.pop(task_id)
-        self._tasks_parts.pop(task_id)
 
     """
     更新增量

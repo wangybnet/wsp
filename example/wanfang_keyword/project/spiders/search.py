@@ -11,11 +11,10 @@ from ..utils.coding import sanitize_url
 
 class SearchSpider(BaseSpider):
 
-    url_prefix = """http://s.wanfangdata.com.cn/Paper.aspx?q=%E4%BF%A1%E5%B7%A5%E6%89%80&f=top&p="""
+    url_prefix = """http://s.wanfangdata.com.cn/Paper.aspx?q=0&f=top&p="""
 
     part_url = "s.wanfangdata.com.cn/Paper.aspx"
     match_detail = re.compile(r"""<a class="title" href='(.*?)' target=""")
-    match_page = re.compile(r"""<a href="(.*?)" class="page">""")
 
     def parse(self, response):
         url = response.url
@@ -26,12 +25,9 @@ class SearchSpider(BaseSpider):
         html = text_from_http_body(response)
         for u in self.match_detail.findall(html):
             yield HttpRequest(sanitize_url(u))
-            has_paper = True
-        # for u in self.match_page.findall(html):
-        #     yield HttpRequest("http://s.wanfangdata.com.cn/Paper.aspx%s" % sanitize_url(u))
 
     def start_requests(self, start_urls):
-        # 85119
-        for i in range(85119):
+        # 823494
+        for i in range(1):
             k = i + 1
             yield HttpRequest("%s%s" % (self.url_prefix, k))
