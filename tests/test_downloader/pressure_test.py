@@ -10,7 +10,7 @@ from wsp.http import HttpRequest, HttpError
 async def save_result(request, response):
     print("Cost Time: %f" % (time.time() - request._time))
     if isinstance(response, HttpError):
-        print("Error:", response.error)
+        print("Error (%s): %s" % (type(response.error), response.error))
     else:
         print("URL:", request.url, "Status:", response.status)
 
@@ -40,19 +40,14 @@ def test_global_sites():
 
 def test_chinese_sites():
     clients = 200
-    d = Downloader(clients=clients)
+    d = Downloader(clients=clients, timeout=30)
     begin = time.time()
     repeat = 50
     for i in range(repeat):
         for domain in CHINESE_DOMAINS:
             req = HttpRequest("http://%s" % domain)
             req._time=time.time()
-            ok = False
-            while not ok:
-                ok = d.add_task(req, save_result)
-                if not ok:
-                    print("Downloader is busy, so it cannot handle %s" % domain)
-                    time.sleep(1)
+            d.add_task(req, save_result)
     duration = time.time() - begin
     print("Duration: %f" % duration)
     print("QPS: %f" % ((len(CHINESE_DOMAINS) * repeat - clients) / duration))

@@ -33,7 +33,7 @@ class StoreMiddleware:
         self._producer = KafkaProducer(bootstrap_servers=[self.kafka_addr, ])
 
     async def handle_input(self, response):
-        print("%s Response url: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), response.url))
+        # print("%s Response url: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), response.url))
         if response.url.find(self.match_url) >= 0:
             self._store(response)
 

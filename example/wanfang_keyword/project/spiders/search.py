@@ -22,28 +22,16 @@ class SearchSpider(BaseSpider):
         return self._parse(response) if url.find(self.part_url) >= 0 else ()
 
     def _parse(self, response):
-        print("SearchSpider parse the response(url=%s)" % response.url)
+        # print("SearchSpider parse the response(url=%s)" % response.url)
         html = text_from_http_body(response)
-        has_paper = False
         for u in self.match_detail.findall(html):
             yield HttpRequest(sanitize_url(u))
             has_paper = True
         # for u in self.match_page.findall(html):
         #     yield HttpRequest("http://s.wanfangdata.com.cn/Paper.aspx%s" % sanitize_url(u))
-        if has_paper:
-            url = response.url
-            try:
-                k = url.rindex("=")
-                page = int(url[k + 1:])
-            except Exception:
-                pass
-            else:
-                yield HttpRequest("%s%s" % (self.url_prefix, page + 1))
-                if page > 1:
-                    yield HttpRequest("%s%s" % (self.url_prefix, page - 1))
 
     def start_requests(self, start_urls):
-        # 851
-        for i in range(851):
-            k = i * 100 + 1
+        # 85119
+        for i in range(85119):
+            k = i + 1
             yield HttpRequest("%s%s" % (self.url_prefix, k))

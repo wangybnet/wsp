@@ -30,7 +30,7 @@ if __name__ == "__main__":
                    "%(asctime)s %(name)s: [%(levelname)s] %(message)s",
                    "%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
-    d = Downloader(clients=200)
+    d = Downloader(clients=200, timeout=30)
     cnt = 0
     tot = 2
     d.add_task(new_http_request("../../sample_page/patent.html",

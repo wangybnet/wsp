@@ -61,13 +61,17 @@ class ProxyMiddleware:
         if self._update_slot > 0:
             self._update_slot -= 1
             log.debug("Updating proxy list")
-            with aiohttp.ClientSession() as session:
-                async with session.get(self._agent_addr) as resp:
-                    json = await resp.json()
-                    proxy_list = json["result"]
-                    if proxy_list:
-                        self._proxy_list = proxy_list
-            asyncio.ensure_future(self._update_slot_delay())
+            try:
+                with aiohttp.ClientSession() as session:
+                    async with session.get(self._agent_addr) as resp:
+                        json = await resp.json()
+                        proxy_list = json["result"]
+                        if proxy_list:
+                            self._proxy_list = proxy_list
+            except Exception:
+                pass
+            finally:
+                asyncio.ensure_future(self._update_slot_delay())
 
     async def _update_slot_delay(self):
         await asyncio.sleep(self._update_time)
