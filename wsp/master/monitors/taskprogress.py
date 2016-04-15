@@ -66,7 +66,6 @@ class TaskProgressMonitor:
             else:
                 self._tasks[task_id].updated = False
 
-
     """
     更新增量
     """

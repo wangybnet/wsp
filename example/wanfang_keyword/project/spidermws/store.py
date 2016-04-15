@@ -7,7 +7,9 @@ from bson import ObjectId
 import pymysql
 from pymongo import MongoClient
 from kafka.producer import KafkaProducer
+
 from wsp.utils.parse import text_from_http_body
+from wsp.errors import ResponseNotMatch
 
 
 class StoreMiddleware:
@@ -43,13 +45,15 @@ class StoreMiddleware:
         sql = "insert into `WanfangMetaSource` (ID, detailPageId, detailPageUrl, crawlTime) values (%s, %s, %s, %s)"
         page_id = "%s" % obj_id
         t = time.strftime("%Y-%m-%d %H:%M:%S")
-        try:
-            slash = url.index(self.match_url)
+        slash = url.find(self.match_url)
+        if slash >= 0:
             id = url[slash + len(self.match_url):]
-        except Exception:
-            pass
-        else:
-            self._cur.execute(sql, (id, page_id, url, t))
-            self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
-            data_dict = {"id": id, "crawl_time": t, "html": text_from_http_body(response)}
-            self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
+            try:
+                self._cur.execute(sql, (id, page_id, url, t))
+                self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
+                data_dict = {"id": id, "crawl_time": t, "html": text_from_http_body(response)}
+                self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
+            except pymysql.IntegrityError:
+                pass
+            except UnicodeDecodeError as e:
+                raise ResponseNotMatch("%s" % e)

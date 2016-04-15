@@ -28,6 +28,6 @@ class SearchSpider(BaseSpider):
 
     def start_requests(self, start_urls):
         # 823494
-        for i in range(1):
+        for i in range(823494):
             k = i + 1
             yield HttpRequest("%s%s" % (self.url_prefix, k))
