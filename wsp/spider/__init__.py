@@ -82,6 +82,7 @@ class Spider:
         for method in middleware.start_requests_handlers:
             result = await method(result)
             assert cls._isiterable(result), "Start requests handler must return an iterable object, got '%s'" % type(result)
+        return result
 
     @staticmethod
     def _isiterable(obj):

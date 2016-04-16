@@ -12,7 +12,10 @@ class TaskConfig:
         self._config = dict(kw)
 
     def get(self, name, default=None):
-        return self._config.get(name, default)
+        res = self._config.get(name)
+        if res is None:
+            return default
+        return res
 
     def setdefault(self, name, value):
         self._config.setdefault(name, value)

@@ -106,8 +106,7 @@ class Fetcher:
     def new_task(self, task_id):
         try:
             loop = asyncio.get_event_loop()
-        except Exception as e:
-            print(e)
+        except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         loop.run_until_complete(self._new_task(task_id))
