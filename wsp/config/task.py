@@ -1,14 +1,10 @@
 # coding=utf-8
 
+TASK_ID = "task_id"
 START_URLS = "start_urls"
 DOWNLOADER_MIDDLEWARES = "downloader_middlewares"
 SPIDER_MIDDLEWARES = "spider_middlewares"
 SPIDERS = "spiders"
-
-DEFAULT_CONFIG = {START_URLS: [],
-                  DOWNLOADER_MIDDLEWARES: [],
-                  SPIDER_MIDDLEWARES: [],
-                  SPIDERS: None}
 
 
 class TaskConfig:
@@ -16,13 +12,13 @@ class TaskConfig:
         self._config = dict(kw)
 
     def get(self, name, default=None):
-        res = self._config.get(name, default)
-        if res is None and name in DEFAULT_CONFIG:
-            res = DEFAULT_CONFIG[name]
-        return res
+        return self._config.get(name, default)
 
-    def set(self, name, value):
-        self._config[name] = value
-
-    def set_default(self, name, value):
+    def setdefault(self, name, value):
         self._config.setdefault(name, value)
+
+    def __getitem__(self, item):
+        return self._config.get(item)
+
+    def __setitem__(self, key, value):
+        self._config[key] = value

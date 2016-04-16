@@ -7,7 +7,9 @@ from bson import ObjectId
 import pymysql
 from pymongo import MongoClient
 from kafka.producer import KafkaProducer
+
 from wsp.utils.parse import text_from_http_body
+from wsp.errors import ResponseNotMatch
 
 
 class StoreMiddleware:
@@ -44,12 +46,9 @@ class StoreMiddleware:
         sql = "insert into `IEEEMetaSource` (ID, detailPageId, detailPageUrl, crawlTime) values (%s, %s, %s, %s)"
         page_id = "%s" % obj_id
         t = time.strftime("%Y-%m-%d %H:%M:%S")
+        eq = url.rindex("=")
+        id = url[eq + 1:]
         try:
-            eq = url.rindex("=")
-            id = url[eq + 1:]
-        except Exception:
-            pass
-        else:
             html = text_from_http_body(response)
             if html.find(self.not_found_feature) >= 0:
                 return
@@ -57,3 +56,7 @@ class StoreMiddleware:
             self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
             data_dict = {"id": id, "crawl_time": t, "html": html}
             self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
+        except pymysql.IntegrityError:
+            pass
+        except UnicodeDecodeError as e:
+            raise ResponseNotMatch("%s" % e)

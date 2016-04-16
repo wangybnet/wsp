@@ -4,9 +4,8 @@ import logging
 
 from pymongo import MongoClient
 
-from wsp.utils.parse import extract_request
-from wsp.errors import IgnoreRequest
 from wsp.http import HttpRequest
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -16,47 +15,38 @@ class MongoDedupMiddleware:
     利用MongoDB去重
     """
 
-    def __init__(self, mongo_addr, mongo_db, mongo_coll):
-        self._mongo_addr = mongo_addr
-        self._mongo_db = mongo_db
-        self._mongo_coll = mongo_coll
-        self._mongo_client = MongoClient(self._mongo_addr)
+    def __init__(self, mongo_addr, mongo_db, mongo_tbl):
+        self._mongo_client = MongoClient(mongo_addr)
+        self._dedup_tbl = self._mongo_client[mongo_db][mongo_tbl]
+        self._dedup_tbl.create_index("url")
 
     @classmethod
     def from_config(cls, config):
+        task_id = config.get(tc.TASK_ID)
         return cls(config.get("dedup_mongo_addr"),
                    config.get("dedup_mongo_db", "wsp"),
-                   config.get("dedup_mongo_coll"))
-
-    async def handle_input(self, response):
-        request = response.request
-        if self._is_dup(self._get_dedup_tbl_name(request), request, True):
-            log.debug("Find the request (method=%s, url=%s) is duplicated when handling input" % (request.method, request.url))
-            raise IgnoreRequest("The request (method=%s, url=%s) is duplicated" % (request.method, request.url))
+                   config.get("dedup_mongo_tbl", "dedup_%s" % task_id))
 
     async def handle_output(self, response, result):
-        return self._handle_output(response, result)
+        return self._handle_result(result)
 
-    def _handle_output(self, response, result):
+    async def handle_start_requests(self, result):
+        return self._handle_result(result)
+
+    def _handle_result(self, result):
         for r in result:
             if isinstance(r, HttpRequest):
-                if not self._is_dup(self._get_dedup_tbl_name(response.request), r, False):
+                if not self._is_dup(r):
                     yield r
                 else:
-                    log.debug("Find the request (method=%s, url=%s) is duplicated when handling output" % (r.method, r.url))
+                    log.debug("Find the request (method=%s, url=%s) is duplicated" % (r.method, r.url))
             else:
                 yield r
 
-    def _is_dup(self, tbl_name, request, is_input):
-        tbl = self._mongo_client[self._mongo_db][tbl_name]
+    def _is_dup(self, request):
         url = "%s %s" % (request.method, request.url)
-        res = tbl.find_one({"url": url})
+        res = self._dedup_tbl.find_one({"url": url})
         if res is None:
-            if is_input:
-                tbl.insert_one({"url": url})
+            self._dedup_tbl.insert_one({"url": url})
             return False
         return True
-
-    def _get_dedup_tbl_name(self, request):
-        req = extract_request(request)
-        return self._mongo_coll or ("dedup_%s" % req.task_id)

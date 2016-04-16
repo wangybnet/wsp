@@ -41,7 +41,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
 
     @classmethod
     def _middleware_list_from_config(cls, config):
-        mw_list = config.get(tc.DOWNLOADER_MIDDLEWARES)
+        mw_list = config.get(tc.DOWNLOADER_MIDDLEWARES, [])
         if not isinstance(mw_list, list):
             mw_list = [mw_list]
         log.debug("Downloader middleware list: %s" % mw_list)

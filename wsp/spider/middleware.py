@@ -17,6 +17,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
         self._input_handlers = []
         self._output_handlers = []
         self._error_handlers = []
+        self._start_requests_handlers = []
         MiddlewareManager.__init__(self, *middlewares)
 
     def _add_middleware(self, middleware):
@@ -26,6 +27,8 @@ class SpiderMiddlewareManager(MiddlewareManager):
             self._output_handlers.append(middleware.handle_output)
         if hasattr(middleware, "handle_error"):
             self._error_handlers.append(middleware.handle_error)
+        if hasattr(middleware, "handle_start_requests"):
+            self._start_requests_handlers.append(middleware.handle_start_requests)
 
     @property
     def input_handlers(self):
@@ -39,9 +42,13 @@ class SpiderMiddlewareManager(MiddlewareManager):
     def error_handlers(self):
         return self._error_handlers
 
+    @property
+    def start_requests_handlers(self):
+        return self._start_requests_handlers
+
     @classmethod
     def _middleware_list_from_config(cls, config):
-        mw_list = config.get(tc.SPIDER_MIDDLEWARES)
+        mw_list = config.get(tc.SPIDER_MIDDLEWARES, [])
         if not isinstance(mw_list, list):
             mw_list = [mw_list]
         log.debug("Spider middleware list: %s" % mw_list)

@@ -14,6 +14,7 @@ from wsp.spider.middleware import SpiderMiddlewareManager
 from wsp.config import TaskConfig, SystemConfig
 from .config import FetcherConfig
 from wsp.spider import SpiderFactory
+from wsp.config import task as tc
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class TaskManager:
         self._sys_config = sys_config
         self._local_config = local_config
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
+        self._task_config_tbl = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_config_tbl]
         # NOTE: tasks里面存在的是<task id, task configuration>的键值对
         self._tasks = {}
         self._downloadermws = {}
@@ -79,7 +81,9 @@ class TaskManager:
     根据任务id获取任务配置
     """
     def task_config(self, task_id):
-        return self._tasks.get(task_id, None)
+        if task_id not in self._tasks:
+            self._tasks[task_id] = self._load_task_config(task_id)
+        return self._tasks[task_id]
 
     """
     根据任务id加载任务配置
@@ -90,6 +94,7 @@ class TaskManager:
         config_yaml = "%s/%s" % (code_dir, self._sys_config.task_config_file)
         with open(config_yaml, "r", encoding="utf-8") as f:
             task_config = TaskConfig(**yaml.load(f))
+            task_config[tc.TASK_ID] = task_id
         log.debug("Loaded the configuration of the task %s" % task_id)
         self._load_custom_objects(task_id, task_config, code_dir)
         return task_config
@@ -138,7 +143,7 @@ class TaskManager:
 
     def _unzip_task(self, task_id, code_dir):
         log.debug("Unzip the code of the task %s at '%s'" % (task_id, code_dir))
-        zip_json = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_config_tbl].find_one({"_id": ObjectId(task_id)})
+        zip_json = self._task_config_tbl.find_one({"_id": ObjectId(task_id)})
         zipb = zip_json["zip"]
         if not os.path.exists(code_dir):
             os.makedirs(code_dir, mode=0o775)

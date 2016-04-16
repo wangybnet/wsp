@@ -29,13 +29,31 @@ class Spider:
                 res = await cls._handle_output(response, res, middleware)
         except Exception as e:
             if not isinstance(e, errors.ERRORS):
-                log.warning("Unexpected error occurred in spider", exc_info=True)
+                log.warning("Unexpected error occurred when crawling", exc_info=True)
             try:
                 if middleware:
                     await cls._handle_error(response, e, middleware)
             except Exception as _e:
                 if not isinstance(_e, errors.ERRORS):
-                    log.warning("Unexpected error occurred when handling error in spider", exc_info=True)
+                    log.warning("Unexpected error occurred when handling the error occurred when crawling", exc_info=True)
+            return ()
+        else:
+            return res
+
+    @classmethod
+    async def start_requests(cls, spiders, start_urls, *, middleware=None):
+        try:
+            res = []
+            for spider in spiders:
+                for r in spider.start_requests(start_urls):
+                    if inspect.iscoroutine(r):
+                        r = await r
+                    if r:
+                        res.append(r)
+            if middleware:
+                res = await cls._handle_start_requests(res, middleware)
+        except Exception:
+            log.warning("Unexpected error occurred when generating start requests", exc_info=True)
             return ()
         else:
             return res
@@ -50,7 +68,7 @@ class Spider:
     async def _handle_output(cls, response, result, middleware):
         for method in middleware.output_handlers:
             result = await method(response, result)
-            assert cls._isiterable(result), "Response handler must return an iterable object, got '%s'" % type(res)
+            assert cls._isiterable(result), "Response handler must return an iterable object, got '%s'" % type(result)
         return result
 
     @staticmethod
@@ -58,6 +76,12 @@ class Spider:
         for method in middleware.error_handlers:
             res = await method(response, error)
             assert res is None, "Exception handler must return None, got '%s'" % type(res)
+
+    @classmethod
+    async def _handle_start_requests(cls, result, middleware):
+        for method in middleware.start_requests_handlers:
+            result = await method(result)
+            assert cls._isiterable(result), "Start requests handler must return an iterable object, got '%s'" % type(result)
 
     @staticmethod
     def _isiterable(obj):
@@ -86,7 +110,7 @@ class SpiderFactory:
 
     @staticmethod
     def create(config):
-        spider_list = config.get(tc.SPIDERS)
+        spider_list = config.get(tc.SPIDERS, [])
         if not isinstance(spider_list, list):
             spider_list = [spider_list]
         log.debug("Spider list: %s" % spider_list)
@@ -99,7 +123,7 @@ class SpiderFactory:
                 else:
                     spider = spider_cls()
                 assert isinstance(spider, BaseSpider), "Custom spider must extend %s" % BaseSpider.__name__
-            except Exception as e:
+            except Exception:
                 log.warning("An error occurred when loading spider '%s'" % cls_path, exc_info=True)
             else:
                 spiders.append(spider)

@@ -4,6 +4,7 @@ import logging
 import pickle
 import threading
 import time
+import asyncio
 from xmlrpc.client import ServerProxy
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -103,15 +104,25 @@ class Fetcher:
     主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重中间件解决。
     """
     def new_task(self, task_id):
+        try:
+            loop = asyncio.get_event_loop()
+        except Exception as e:
+            print(e)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        loop.run_until_complete(self._new_task(task_id))
+
+    async def _new_task(self, task_id):
         spiders = self._task_manager.spiders(task_id)
-        start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS)
+        start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS, [])
         if not isinstance(start_urls, list):
             start_urls = [start_urls]
-        for spider in spiders:
-            for r in spider.start_requests(start_urls):
-                if isinstance(r, HttpRequest):
-                    req = WspRequest(task_id=task_id, father_id=task_id, http_request=r)
-                    self.pushReq(req)
+        for res in (await Spider.start_requests(spiders,
+                                                start_urls,
+                                                middleware=self._task_manager.spidermws(task_id))):
+            if isinstance(res, HttpRequest):
+                req = WspRequest(task_id=task_id, father_id=task_id, http_request=res)
+                self.pushReq(req)
 
     def pushReq(self, req):
         topic = '%s' % req.task_id
@@ -174,8 +185,6 @@ class Fetcher:
                     if isinstance(res, HttpRequest):
                         new_req = parse_request(req, res)
                         self.pushReq(new_req)
-                    else:
-                        log.debug("Got '%s', but I will do noting here", res)
                 self.producer.flush()
             else:
                 log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
