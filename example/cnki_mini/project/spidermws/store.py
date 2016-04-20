@@ -31,7 +31,6 @@ class StoreMiddleware:
                                      user=self.mysql_user,
                                      password=self.mysql_pwd,
                                      db="ScholarInfoBase")
-        self._cur = self._conn.cursor()
         self._producer = KafkaProducer(bootstrap_servers=[self.kafka_addr, ])
         self._id_match = re.compile(r"wap\.cnki\.net/(.*?)\.html")
 
@@ -54,7 +53,9 @@ class StoreMiddleware:
         if id:
             try:
                 html = text_from_http_body(response)
-                self._cur.execute(sql, (id, page_id, url, t))
+                self._conn.ping(True)
+                with self._conn.cursor() as cursor:
+                    cursor.execute(sql, (id, page_id, url, t))
                 self._tbl.insert_one({"_id": obj_id, "url": url, "body": response.body})
                 data_dict = {"id": id, "crawl_time": t, "html": html}
                 self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))

@@ -13,7 +13,7 @@ if __name__ == "__main__":
     with open("config.yaml", "r", encoding="utf-8") as f:
         config_yaml = yaml.load(f)
     print(config_yaml)
-    zipf = "cnki.zip"
+    zipf = "cnki_mini.zip"
     with zipfile.ZipFile(zipf, "w", zipfile.ZIP_DEFLATED) as fz:
         fz.write("config.yaml")
         for root, dirs, files in os.walk("project"):

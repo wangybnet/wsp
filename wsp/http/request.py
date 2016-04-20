@@ -11,15 +11,13 @@ class HttpRequest:
         proxy: 字符串，代理地址，仅支持HTTP代理，proxy需要以"http://"开头
         headers: 字典，HTTP头
         body: 字节数组，HTTP body
-        params: 字典，参数
         cookies: Cookie
         meta: 放一些配置信息
     """
-    def __init__(self, url, method="GET", *, proxy=None, params=None, headers=None, body=None, cookies=None, meta=None):
+    def __init__(self, url, method="GET", *, proxy=None, headers=None, body=None, cookies=None, meta=None):
         self.url = url
         self.method = method
         self.proxy = proxy
-        self.params = params
         self.headers = headers
         if self.headers is None:
             self.headers = {}
@@ -35,7 +33,7 @@ class HttpRequest:
 
     def copy(self):
         kw = {}
-        for x in ["url", "method", "proxy", "params", "headers", "body", "cookies", "meta"]:
+        for x in ["url", "method", "proxy", "headers", "body", "cookies", "meta"]:
             kw.setdefault(x, getattr(self, x))
         req = HttpRequest(**kw)
         for k in [i for i in req.meta.keys()]:

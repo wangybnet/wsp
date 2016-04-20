@@ -27,7 +27,7 @@ class SearchSpider(BaseSpider):
             yield HttpRequest(sanitize_url(u))
 
     def start_requests(self, start_urls):
-        # 823494
-        for i in range(823494):
+        # 823953
+        for i in range(823953):
             k = i + 1
             yield HttpRequest("%s%s" % (self.url_prefix, k))

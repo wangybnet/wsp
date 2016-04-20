@@ -17,12 +17,12 @@ class StoreMiddleware:
     match_url = "d.wanfangdata.com.cn"
     mongo_addr = "mongodb://wsp:wsp123456@192.168.120.90:27017"
     mongo_db = "ScholarInfoBase"
-    mongo_collection = "iie_paper"
+    mongo_collection = "wanfang"
     mysql_host = "192.168.120.90"
     mysql_user = "root"
     mysql_pwd = "123456"
     kafka_addr = "192.168.120.90:9092"
-    kafka_topic = "iie_paper"
+    kafka_topic = "wanfang"
 
     def __init__(self):
         self._mongo_client = MongoClient(self.mongo_addr)
@@ -31,7 +31,6 @@ class StoreMiddleware:
                                      user=self.mysql_user,
                                      password=self.mysql_pwd,
                                      db="ScholarInfoBase")
-        self._cur = self._conn.cursor()
         self._producer = KafkaProducer(bootstrap_servers=[self.kafka_addr, ])
 
     async def handle_input(self, response):
@@ -50,7 +49,9 @@ class StoreMiddleware:
             id = url[slash + len(self.match_url):]
             try:
                 html = text_from_http_body(response)
-                self._cur.execute(sql, (id, page_id, url, t))
+                self._conn.ping(True)
+                with self._conn.cursor() as cursor:
+                    cursor.execute(sql, (id, page_id, url, t))
                 self._coll.insert_one({"_id": obj_id, "url": url, "body": response.body})
                 data_dict = {"id": id, "crawl_time": t, "html": html}
                 self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
