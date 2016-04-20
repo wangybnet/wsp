@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=1170" />
+    <title>一种基于扩展加减覆盖集的隐写方法  Steganography Based on Extended Sum and Difference Covering Set</title>
+    <link href="http://static.wanfangdata.com.cn/wfks/css/animate.min.css?v=201512211715" rel="stylesheet"/>
+    <link href="http://static.wanfangdata.com.cn/wfks/css/global.min.css?v=201512211715" rel="stylesheet"/>
+    <!--[if lt IE 9 ]><link href="http://static.wanfangdata.com.cn/wfks/css/ltie9.min.css?v=201512211715" rel="stylesheet"/><![endif]-->
+    <link href="/Content/css/detail.min.css?v=201509250900" rel="stylesheet"/>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <meta content='扩展加减覆盖集 LSB匹配 隐写 嵌入效率 extended sum and difference covering set LSB matching steganography embedding efficiency' name="keywords" />
+    <meta content='G-LSB-M隐写方法是一种&amp;#177;1隐写嵌入方法，通过减少嵌入时的修改次数提高隐写的嵌入效率。该方法嵌入时所用的加减覆盖集只能通过穷举搜索构造，当嵌入消息分段长度 n较大时，穷举搜索的计算代价过高导致无法实现。为了解决这一问题，本文提出了基于扩展加减覆盖集的隐写方法，通过从基础加减覆盖集中去除若干非必需的元素，能够以较小的计算代价构造出扩展加减覆盖集，避免了G-LSB-M方法中的穷举搜索困难，使得使用更长的信息分段进行嵌入成为可能。该方法降低了隐写时的平均修改次数，提高了嵌入效率和隐写的隐蔽性。 Generalized least significant bit matching (G-LSB-M) steganography scheme is a &amp;#177; 1 embedding method which minimizes the number of modifications per pixel to improve the embedding efficiency .The sum and difference covering set (SDCS ) used for embedding can only be obtained through exhaustive search ,which is hard to implement when the number of message bits increases .To solve this problem ,we provide a novel steganography method based on the extended SDCS (ESDCS ) .The ESDCS is constructed by removing redundant elements from the so-called basic SDCS without exhaustive search ,which implies that longer message segments could be used in the embedding process .The proposed method reduces the expect number of modifications and thus improves the embedding efficiency as well as the security of steganography .' name="description" />
+    
+    <!--[if lt IE 9 ]><style>
+        .citeRelation .refciteMap .map-item{filter:progid:DXImageTransform.Microsoft.Matrix(M11=1.4142135623730951, M12=-1.414213562373095, M21=1.414213562373095, M22=1.4142135623730951, SizingMethod='auto expand') progid:DXImageTransform.Microsoft.Alpha(Opacity=80);}
+        .citeRelation .refciteMap .map-item div{*font-size:8px;*filter:progid:DXImageTransform.Microsoft.Matrix(M11=0.707107, M12=0.707107, M21=-0.707107, M22=0.707107,0,0, SizingMethod='auto expand');}
+        .citeRelation .refciteMap .same,.citeRelation .refciteMap .text{width:50px;height:50px}
+        .citeRelation .refciteMap .cite1,.citeRelation .refciteMap .ref1{width:60px;height:60px}
+        .citeRelation .refciteMap .cite2,.citeRelation .refciteMap .ref2{width:40px;height:40px}
+    </style><link href="/Content/css/citeRelation.ltie9.min.css" rel="stylesheet" /><![endif]-->
+
+</head>
+<body>
+    <div class="header">
+        <div class="nav clear">
+            <a href="http://www.wanfangdata.com.cn/">
+                <img class="logo" src="http://static.wanfangdata.com.cn/wfks/img/logo.png" alt="" /></a>
+            <ul>
+                <li class="active fixed" data-target="search-wrap">检索</li>
+                <li id="navResource" data-target="resource-wrap">资源</li>
+                <li id="navService" data-target="service-wrap">服务</li>
+                <li class="profile"></li>
+            </ul>
+        </div>
+        <div class="width-wrap search-wrap active fixed">
+            <div class="panel search-panel clear">
+                <div class="drp res-drp clear">
+                    <div class="res-lb">
+                        <span id="res" class="lb">学术论文</span>
+                        <i class="icon-more"></i>
+                    </div>
+                    <div class="res-list bd pop" data-open=".res-lb">
+                        <span class="clear-shadow"></span>
+                        <ul class="resource clear"></ul>
+                        <ul class="library clear"></ul>
+                    </div>
+                </div>
+                <input class="search-input" type="search" name="q" autocomplete="off" />
+                <div id="adSearchBtn" class="icon-search-ad" type="button">
+		<div class="search-ad pop">
+                    <a target="_blank" id="adSearchLink" href="http://librarian.wanfangdata.com.cn/">跨库检索</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/NewGuide?helpitem=searchepaper">检索帮助</a>
+                </div>
+		</div>
+                <button class="btn icon-search search-btn" type="submit"></button>
+                <div class="search-tip-field pop"></div>
+            </div>
+        </div>
+        <div class="width-wrap resource-wrap">
+            <div class="panel resource-panel"></div>
+        </div>
+        <div class="width-wrap service-wrap">
+            <div class="panel service-panel clear">
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-zzfu"></i>
+                        <h6 class="tt">增值服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://social.wanfangdata.com.cn/">万方学术圈</a>
+                        <a target="_blank" href="http://trend.wanfangdata.com.cn/">知识脉络分析</a>
+                        <a target="_blank" href="http://librarian.wanfangdata.com.cn/">查新/跨库检索</a>
+                        <a target="_blank" href="http://librarian.wanfangdata.com.cn/ScientificLiterature">科技文献分析</a>                        
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-gjlfu"></i>
+                        <h6 class="tt">工具类服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://check.wanfangdata.com.cn/">论文相似性检测</a>
+                        <a target="_blank" href="http://stats.wanfangdata.com.cn/">国家经济统计数据库</a>
+                        <a target="_blank" href="http://patentool.wanfangdata.com.cn/">专利工具</a>
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-bjbzyfu"></i>
+                        <h6 class="tt">编辑部专用服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://stats.editors.wanfangdata.com.cn/">期刊统计分析与评价</a>
+                        <a target="_blank" href="http://www.wanfangdata.com.cn/ResourceDescription/DOI">中文DOI</a>
+                        <a target="_blank" href="http://publish.wanfangdata.com.cn/">优先出版</a>
+                        <a target="_blank" href="http://publish.wanfangdata.com.cn/Regular">同步出版</a>
+                        <a target="_blank" href="http://editors.wanfangdata.com.cn/">编审平台</a>
+                    </div>
+                </div>
+                <div class="md">
+                    <div class="hd clear">
+                        <i class="icon icon-zzzyff"></i>
+                        <h6 class="tt">作者专用服务</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=citenotice">引用通知</a>
+                        <a target="_blank" href="http://contribute.wanfangdata.com.cn/">投稿</a>
+                        <a target="_blank" href="http://oa.wanfangdata.com.cn/">OA论文托管</a>
+                    </div>
+                </div>
+                <div class="md last-md">
+                    <div class="hd clear">
+                        <i class="icon icon-yqzl"></i>
+                        <h6 class="tt">舆情专栏</h6>
+                    </div>
+                    <div class="bd">
+                        <a target="_blank" href="http://subject.wanfangdata.com.cn/">专题</a>
+                        <a target="_blank" href="http://message.wanfangdata.com.cn/">科技动态</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="width-wrap account-wrap">
+            <div class="panel account-panel clear">
+                <div class="top-link">
+                    <a class="login-link">登录</a>
+                    <a href="http://login.wanfangdata.com.cn/Register/Index">注册</a>
+                    <a href="http://login.wanfangdata.com.cn/Logout.aspx">退出</a>
+                </div>
+                <div class="account-container">
+                    <div class="account person-account">
+                        <i class="icon icon-point"></i>
+                        <span class="display-name"></span>
+                        <span class="my-link">
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=myorder">查看订单</a>
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=citenotice">引用通知</a>
+                            <a target="_blank" href="http://www.wanfangdata.com.cn/UserService?tab=mywallet">我的钱包</a>
+                            <a target="_blank" href="http://tran.wanfangdata.com.cn/Charge.aspx">充值</a>
+                            <a target="_blank" class="last-item" href="http://www.wanfangdata.com.cn/UserService?tab=edituser">个人信息管理</a>
+                        </span>
+                    </div>
+                    <div class="account group-account">
+                        <i class="icon icon-point"></i>
+                        <span class="display-name"></span>
+                        <span class="my-link">
+                            <a target="_blank" class="order-link" href="http://istic.wanfangdata.com.cn/Order">查看订单</a>
+                            <a target="_blank" class="last-item group-center" href="http://www.wanfangdata.com.cn/Organization">服务站</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="breadcrumbs-wrap">
+        <div class="breadcrumbs">
+            <a href="http://et.wanfangdata.com.cn/">首页</a>
+                 <span class="joiner">></span>   
+
+                        <a href="http://c.wanfangdata.com.cn/Periodical.aspx">期刊首页</a>     <span class="joiner">></span>   
+                        <a href="http://c.wanfangdata.com.cn/Periodical-dianzixb.aspx">电子学报</a>     <span class="joiner">></span>   
+                        <a href="http://c.wanfangdata.com.cn/periodical/dianzixb/2014-6.aspx">2014年6期</a>     <span class="joiner">></span>   
+                            <span>一种基于扩展加减覆盖集的隐写方法</span>
+        </div>
+    </div>    
+
+<div class="fixed-width baseinfo clear">
+    <div class="section-baseinfo">
+            <h1>一种基于扩展加减覆盖集的隐写方法
+            </h1>
+            <h2>Steganography Based on Extended Sum and Difference Covering Set</h2>
+        <div class="record-action-link clear">
+    <a class="download" href="http://f.wanfangdata.com.cn/download/Periodical_dianzixb201406020.aspx" title="下载全文" target="_blank">
+        <i class="icon iconfont icon-download ">&#xe605;</i>
+    </a>
+    <a class="view" href="http://f.wanfangdata.com.cn/view/一种基于扩展加减覆盖集的隐写方法.aspx?ID=Periodical_dianzixb201406020" title="查看全文" target="_blank">
+        <i class="icon iconfont icon-view ">&#xe606;</i>
+    </a>
+                                        <a class="export exportLink" data-resourceid="Periodical_dianzixb201406020" title="导出">
+        <i class="icon iconfont icon-export ">&#xe607;</i>
+    </a>
+
+    <a  class="citenotice" target="_blank" data-resourceid="Periodical_dianzixb201406020" data-href="http://www.wanfangdata.com.cn/UserService?tab=citenotice" title="想第一时间知道自己论文被引用的次数吗？想随时知道牛人的论文又被谁引用了吗？用我们的新功能吧！（目前限于中文期刊和学位论文）">
+        <i class="icon iconfont icon-citeNotice ">&#xe60c;</i>
+    </a>
+                <a class="share">
+        <i class="icon iconfont icon-share ">&#xe610;</i>
+        <div class="share-md">
+            <div class="share-item share-weibo clear" data-target="weibo">
+                <i class="icon iconfont icon-weibo ">&#xe612;</i>
+                <span class="text">新浪微博</span>
+            </div>
+            <div class="share-item share-tenxun clear" data-target="tenxun">
+                <i class="icon iconfont icon-tenxun ">&#xe60a;</i>
+                <span class="text">腾讯微博</span>
+            </div>
+            <div class="share-item share-douban clear" data-target="douban">
+                <i class="icon iconfont icon-douban ">&#xe611;</i>
+                <span class="text">豆瓣</span>
+            </div>
+            <div class="share-item share-renren clear" data-target="renren">
+                <i class="icon iconfont icon-renren ">&#xe613;</i>
+                <span class="text">人人网</span>
+            </div>
+            <input type="hidden" name="shareContent" value="推荐阅读：一种基于扩展加减覆盖集的隐写方法 来自 @万方数据知识服务平台" />
+            <input type="hidden" name="sharelogo" value="http://static.wanfangdata.com.cn/wfks/img/sharewflogo.gif" />
+        </div>
+    </a>
+
+        </div>
+            <div class="baseinfo-feild abstract">
+                    <div class="row clear zh">
+                        <div class="pre ">
+                            <span>摘要：</span>
+                        </div>
+                        <div class="text">G-LSB-M隐写方法是一种&#177;1隐写嵌入方法，通过减少嵌入时的修改次数提高隐写的嵌入效率。该方法嵌入时所用的加减覆盖集只能通过穷举搜索构造，当嵌入消息分段长度 n较大时，穷举搜索的计算代价过高导致无法实现。为了解决这一问题，本文提出了基于扩展加减覆盖集的隐写方法，通过从基础加减覆盖集中去除若干非必需的元素，能够以较小的计算代价构造出扩展加减覆盖集，避免了G-LSB-M方法中的穷举搜索困难，使得使用更长的信息分段进行嵌入成为可能。该方法降低了隐写时的平均修改次数，提高了嵌入效率和隐写的隐蔽性。</div>
+                    </div>
+                    <div class="row clear fl">
+                        <div class="pre expend">
+                            <span>Abstract：</span>
+<i class="icon iconfont icon-arrow-down ">&#xe602;</i>                        </div>
+                        <div class="text">Generalized least significant bit matching (G-LSB-M) steganography scheme is a &#177; 1 embedding method which minimizes the number of modifications per pixel to improve the embedding efficiency .The sum and difference covering set (SDCS ) used for embedding can only be obtained through exhaustive search ,which is hard to implement when the number of message bits increases .To solve this problem ,we provide a novel steganography method based on the extended SDCS (ESDCS ) .The ESDCS is constructed by removing redundant elements from the so-called basic SDCS without exhaustive search ,which implies that longer message segments could be used in the embedding process .The proposed method reduces the expect number of modifications and thus improves the embedding efficiency as well as the security of steganography .</div>
+                    </div>
+            </div>
+    </div>
+</div>
+<div class="fixed-width-wrap fixed-width-wrap-feild">
+    <div class="fixed-width baseinfo-feild">
+            <div class="row">
+        <span class="pre" >doi：</span>
+        <span class="text"><a href="http://dx.chinadoi.cn/10.3969%2fj.issn.0372-2112.2014.06.020" target="_blank">10.3969/j.issn.0372-2112.2014.06.020</a></span>
+    </div>    
+
+            <div class="row row-author">
+                <span class="pre">作者：</span>
+                <span class="text">
+<a href="http://s.wanfangdata.com.cn/Paper.aspx?q=%e4%bd%9c%e8%80%85%3a%22%e5%a4%8f%e5%86%b0%e5%86%b0%22">夏冰冰</a>                        <sup></sup>
+<a href="http://s.wanfangdata.com.cn/Paper.aspx?q=%e4%bd%9c%e8%80%85%3a%22%e8%b5%b5%e9%99%a9%e5%b3%b0%22">赵险峰</a>                        <sup></sup>
+<a href="http://s.wanfangdata.com.cn/Paper.aspx?q=%e4%bd%9c%e8%80%85%3a%22%e7%8e%8b%e6%98%8e%e7%94%9f%22">王明生</a>                        <sup></sup>
+                </span>
+            </div>
+                    <div class="row row-author">
+                <span class="pre">Author：</span>
+                <span class="text">
+                        <span>XIA Bing-bing</span>
+                        <sup></sup>
+                        <span>ZHAO Xian-feng</span>
+                        <sup></sup>
+                        <span>WANG Ming-sheng</span>
+                        <sup></sup>
+                </span>
+            </div>
+        <div class="row">
+            <span class="pre">作者单位：</span>
+            <span class="text">
+                    中国科学院信息工程研究所,北京,100093
+            </span>
+        </div>
+        
+            <div class="row row-magazineName">
+                <span class="pre">刊  名：</span>
+                <span class="text">
+                    <a href="http://c.wanfangdata.com.cn/Periodical-dianzixb.aspx">电子学报</a>
+<span class="core-box"><span title="被中信所《中国科技期刊引证报告》收录">ISTIC</span><span title="被EI收录">EI</span><span title="被北京大学《中文核心期刊要目总览》收录">PKU</span></span>                </span>
+            </div>
+            <div class="row row-magazineName">
+                <span class="pre">Journal：</span>
+                <span class="text">
+                    <a href="http://c.wanfangdata.com.cn/Periodical-dianzixb.aspx">Acta Electronica Sinica</a>
+                </span>
+            </div>
+            <div class="row">
+        <span class="pre" >年，卷(期)：</span>
+        <span class="text"><a href="http://c.wanfangdata.com.cn/periodical/dianzixb/2014-6.aspx">2014, (6)</a></span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >分类号：</span>
+        <span class="text">TN918</span>
+    </div>    
+
+
+            <div class="row row-keyword">
+                <span class="pre">关键词：</span>
+                <span class="text">
+<a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%22DBID%3aWF_QK">扩展加减覆盖集</a><a href="http://trend.wanfangdata.com.cn/vein?wd=%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86" title="扩展加减覆盖集的知识脉络"><img alt="知识脉络" src="../Images/zsml.jpg"></img></a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22LSB%e5%8c%b9%e9%85%8d%22DBID%3aWF_QK">LSB匹配</a><a href="http://trend.wanfangdata.com.cn/vein?wd=LSB%e5%8c%b9%e9%85%8d" title="LSB匹配的知识脉络"><img alt="知识脉络" src="../Images/zsml.jpg"></img></a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22%e9%9a%90%e5%86%99%22DBID%3aWF_QK">隐写</a><a href="http://trend.wanfangdata.com.cn/vein?wd=%e9%9a%90%e5%86%99" title="隐写的知识脉络"><img alt="知识脉络" src="../Images/zsml.jpg"></img></a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87%22DBID%3aWF_QK">嵌入效率</a><a href="http://trend.wanfangdata.com.cn/vein?wd=%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87" title="嵌入效率的知识脉络"><img alt="知识脉络" src="../Images/zsml.jpg"></img></a>                    
+                </span>
+            </div>
+            <div class="row row-keyword">
+                <span class="pre">Keywords：</span>
+                <span class="text">
+<a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22extended+sum+and+difference+covering+set%22DBID%3aWF_QK">extended sum and difference covering set</a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22LSB+matching%22DBID%3aWF_QK">LSB matching</a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22steganography%22DBID%3aWF_QK">steganography</a><a href="http://s.wanfangdata.com.cn/Paper.aspx?f=detail&amp;q=%e5%85%b3%e9%94%ae%e8%af%8d%3a%22embedding+efficiency%22DBID%3aWF_QK">embedding efficiency</a>                    
+                </span>
+            </div>
+            <div class="row">
+        <span class="pre" >机标分类号：</span>
+        <span class="text">TN4 R77</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" title=&quot;论文在万方数据网站上(Online)公开出版的日期，即上线日期&quot;>在线出版日期：</span>
+        <span class="text">2014年8月5日</span>
+    </div>    
+
+            <div class="row">
+        <span class="pre" >基金项目：</span>
+        <span class="text">北京市自然科学基金课题(No ．4112063)；国家自然科学基金课题(No ．61170281，No ．61303259)；中国科学院战略性先导科技专项课题(No ．XDA06030600)；中科院信工所密码基金</span>
+    </div>    
+
+    </div>
+</div>
+    <div class="citeRelation clear" data-url="/CiteRelation/Map" data-id="dianzixb201406020"></div>
+    <div class="md related">
+            <div class="hd-wrap wrap-expend wrap-expended clear">
+        <div class="hd clear">
+            <span class="title">相关知识</span>
+            <span class="expend expended clear">
+                <span class="text">收起</span>
+                <i class="icon iconfont icon-arrow-down ">&#xe602;</i>
+            </span>
+        </div>
+    </div> 
+
+        <div class="bd">
+            <div class="tab-wrap">
+                <div class="tab">
+                    <img src="../Content/img/ajax-loader.gif" alt="" />
+    <span class="tab-item" data-target="recommand">
+        <span class="text">本文读者也读过</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="similar">
+        <span class="text">相似文献</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="blog">
+        <span class="text">相关博文</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="hudongword">
+        <span class="text">相关词条</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="relatedResearcher">
+        <span class="text">相关学者</span>
+        <span class="count"></span>
+    </span>    
+    <span class="tab-item" data-target="relatedword">
+        <span class="text">相关检索词</span>
+        <span class="count"></span>
+    </span>    
+                </div>
+            </div>
+            <div class="tab-target">
+                    <div class="related-item" id="recommand" data-url="/RelatedResource/Recommand" data-param="{&quot;id&quot;:&quot;Periodical_dianzixb201406020&quot;}"></div>
+                    <div class="related-item" id="similar" data-url="/RelatedResource/Similar" data-param="{&quot;id&quot;:&quot;Periodical_dianzixb201406020&quot;,&quot;Keywords&quot;:&quot;%5b%22%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%22%2c%22LSB%e5%8c%b9%e9%85%8d%22%2c%22%e9%9a%90%e5%86%99%22%2c%22%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87%22%2c%22extended+sum+and+difference+covering+set%22%2c%22LSB+matching%22%2c%22steganography%22%2c%22embedding+efficiency%22%5d&quot;}"></div>
+                    <div class="related-item" id="blog" data-url="/RelatedResource/Blog" data-param="{&quot;id&quot;:&quot;Periodical_dianzixb201406020&quot;,&quot;Keywords&quot;:&quot;%5b%22%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%22%2c%22LSB%e5%8c%b9%e9%85%8d%22%2c%22%e9%9a%90%e5%86%99%22%2c%22%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87%22%2c%22extended+sum+and+difference+covering+set%22%2c%22LSB+matching%22%2c%22steganography%22%2c%22embedding+efficiency%22%5d&quot;}"></div>
+                    <div class="related-item" id="hudongword" data-url="/RelatedResource/HuDongRelatedWord" data-param="{&quot;word&quot;:&quot;扩展加减覆盖集；LSB匹配；隐写；嵌入效率；extended sum and difference covering set；LSB matching；steganography；embedding efficiency&quot;}"></div>
+                    <div class="related-item" id="relatedResearcher" data-url="" data-param="[&quot;扩展加减覆盖集&quot;,&quot;LSB匹配&quot;]"></div>
+                    <div class="related-item" id="relatedword" data-url="/RelatedResource/RelatedWord" data-param="{&quot;seed&quot;:&quot;G-LSB-M%e9%9a%90%e5%86%99%e6%96%b9%e6%b3%95%e6%98%af%e4%b8%80%e7%a7%8d%c2%b11%e9%9a%90%e5%86%99%e5%b5%8c%e5%85%a5%e6%96%b9%e6%b3%95%ef%bc%8c%e9%80%9a%e8%bf%87%e5%87%8f%e5%b0%91%e5%b5%8c%e5%85%a5%e6%97%b6%e7%9a%84%e4%bf%ae%e6%94%b9%e6%ac%a1%e6%95%b0%e6%8f%90%e9%ab%98%e9%9a%90%e5%86%99%e7%9a%84%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87%e3%80%82%e8%af%a5%e6%96%b9%e6%b3%95%e5%b5%8c%e5%85%a5%e6%97%b6%e6%89%80%e7%94%a8%e7%9a%84%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%e5%8f%aa%e8%83%bd%e9%80%9a%e8%bf%87%e7%a9%b7%e4%b8%be%e6%90%9c%e7%b4%a2%e6%9e%84%e9%80%a0%ef%bc%8c%e5%bd%93%e5%b5%8c%e5%85%a5%e6%b6%88%e6%81%af%e5%88%86%e6%ae%b5%e9%95%bf%e5%ba%a6+n%e8%be%83%e5%a4%a7%e6%97%b6%ef%bc%8c%e7%a9%b7%e4%b8%be%e6%90%9c%e7%b4%a2%e7%9a%84%e8%ae%a1%e7%ae%97%e4%bb%a3%e4%bb%b7%e8%bf%87%e9%ab%98%e5%af%bc%e8%87%b4%e6%97%a0%e6%b3%95%e5%ae%9e%e7%8e%b0%e3%80%82%e4%b8%ba%e4%ba%86%e8%a7%a3%e5%86%b3%e8%bf%99%e4%b8%80%e9%97%ae%e9%a2%98%ef%bc%8c%e6%9c%ac%e6%96%87%e6%8f%90%e5%87%ba%e4%ba%86%e5%9f%ba%e4%ba%8e%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%e7%9a%84%e9%9a%90%e5%86%99%e6%96%b9%e6%b3%95%ef%bc%8c%e9%80%9a%e8%bf%87%e4%bb%8e%e5%9f%ba%e7%a1%80%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%e4%b8%ad%e5%8e%bb%e9%99%a4%e8%8b%a5%e5%b9%b2%e9%9d%9e%e5%bf%85%e9%9c%80%e7%9a%84%e5%85%83%e7%b4%a0%ef%bc%8c%e8%83%bd%e5%a4%9f%e4%bb%a5%e8%be%83%e5%b0%8f%e7%9a%84%e8%ae%a1%e7%ae%97%e4%bb%a3%e4%bb%b7%e6%9e%84%e9%80%a0%e5%87%ba%e6%89%a9%e5%b1%95%e5%8a%a0%e5%87%8f%e8%a6%86%e7%9b%96%e9%9b%86%ef%bc%8c%e9%81%bf%e5%85%8d%e4%ba%86G-LSB-M%e6%96%b9%e6%b3%95%e4%b8%ad%e7%9a%84%e7%a9%b7%e4%b8%be%e6%90%9c%e7%b4%a2%e5%9b%b0%e9%9a%be%ef%bc%8c%e4%bd%bf%e5%be%97%e4%bd%bf%e7%94%a8%e6%9b%b4%e9%95%bf%e7%9a%84%e4%bf%a1%e6%81%af%e5%88%86%e6%ae%b5%e8%bf%9b%e8%a1%8c%e5%b5%8c%e5%85%a5%e6%88%90%e4%b8%ba%e5%8f%af%e8%83%bd%e3%80%82%e8%af%a5%e6%96%b9%e6%b3%95%e9%99%8d%e4%bd%8e%e4%ba%86%e9%9a%90%e5%86%99%e6%97%b6%e7%9a%84%e5%b9%b3%e5%9d%87%e4%bf%ae%e6%94%b9%e6%ac%a1%e6%95%b0%ef%bc%8c%e6%8f%90%e9%ab%98%e4%ba%86%e5%b5%8c%e5%85%a5%e6%95%88%e7%8e%87%e5%92%8c%e9%9a%90%e5%86%99%e7%9a%84%e9%9a%90%e8%94%bd%e6%80%a7%e3%80%82+Generalized+least+significant+bit+matching+(G-LSB-M)+steganography+scheme+is+a+%c2%b1+1+embedding+method+which+minimizes+the+number+of+modifications+per+pixel+to+improve+the+embedding+efficiency+.The+sum+and+difference+covering+set+(SDCS+)+used+for+embedding+can+only+be+obtained+through+exhaustive+search+%2cwhich+is+hard+to+implement+when+the+number+of+message+bits+increases+.To+solve+this+problem+%2cwe+provide+a+novel+steganography+method+based+on+the+extended+SDCS+(ESDCS+)+.The+ESDCS+is+constructed+by+removing+redundant+elements+from+the+so-called+basic+SDCS+without+exhaustive+search+%2cwhich+implies+that+longer+message+segments+could+be+used+in+the+embedding+process+.The+proposed+method+reduces+the+expect+number+of+modifications+and+thus+improves+the+embedding+efficiency+as+well+as+the+security+of+steganography+.&quot;,&quot;pagename&quot;:&quot;Paper.aspx&quot;}"></div>
+            </div>
+        </div>
+    </div>  
+
+
+    <div class="footer-wrap">
+        <div class="lt-bg"></div>
+        <div class="rt-bg"></div>
+        <div class="footer clear">
+            <div class="lt">
+                <div class="top">
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/NewGuide">帮助</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/CustomerService/Services">客户服务</a>
+                    <a target="_blank" href="http://www.sojump.com/jq/4550749.aspx">问卷调查</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/AboutUs/index">关于我们</a>
+                    <a target="_blank" href="http://www.wanfang.com.cn/">公司首页</a>
+                    <a target="_blank" href="http://weibo.com/wanfangdata">平台微博</a>
+                    <a target="_blank" href="http://wanfangdata.zhiye.com/">加入我们</a>
+                    <a target="_blank" href="http://www.wanfangdata.com.cn/Sitemap">网站地图</a>
+                    <a id="langCN" data-lang="zn-CN" class="lang">简</a>
+                    <a id="langTW" data-lang="zn-TW" class="lang">繁</a>
+                    <a id="langEN" data-lang="EN" href="http://www.wanfangdata.com/" target="_blank">ENG</a>
+                </div>
+                <div class="bottom">
+                    <div>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/hlwcb.jpg">互联网出版许可证：新出网证(京)字042号</a>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/zhengshu_2.jpg">互联网药品信息服务资格证书号：(京)-经营性-2011-0017</a>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/stjmxkz2.jpg">信息网络传播视听节目许可证 许可证号：0108284 </a>
+                    </div>
+                    <div>
+                        <a target="_blank" href="http://ad.wanfangdata.com.cn/images/icp.jpg">京ICP证：010071</a>
+                        <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802020237" ><img src="http://ad.wanfangdata.com.cn/images/gabeian.png" style="margin-right:2px;"/>京公网安备11010802020237号</a>
+<a target="_blank" href="http://ad.wanfangdata.com.cn/images/yunicp.jpg">万方数据知识资源云服务系统[简称：知识云服务平台]V1.0 证书号：软著登字第1016589号</a>
+                    </div>
+                    <p>万方数据知识服务平台--国家科技支撑计划资助项目（编号：2006BAH03B01）©北京万方数据股份有限公司  万方数据电子出版社</p>
+                </div>
+            </div>
+            <div class="rt">
+                <div class="top">
+                    <i class="icon icon-service"></i>
+                    <span>联系客服</span>
+                </div>
+                <div class="mid">4000-115-888</div>
+                <div class="service-email">service@wanfangdata.com.cn</div>
+            </div>
+        </div>
+    </div>
+                            
+                            
+    <script src="http://static.wanfangdata.com.cn/wfks/lib/jquery-1.11.3.min.js?v=201512211715" type="text/javascript"></script>
+    <script src="http://static.wanfangdata.com.cn/wfks/lib/jquery-ui-1.11.4.custom.min.js?v=201512211715" type="text/javascript"></script>
+    <!--[if lt IE 9 ]><script src="http://static.wanfangdata.com.cn/wfks/lib/json2.min.js?v=201512211715" type="text/javascript"></script><![endif]-->
+    <script src="http://www.wanfangdata.com.cn/Config/index"></script>
+    <script src="http://static.wanfangdata.com.cn/wfks/js/global.min.js?v=201512211715" type="text/javascript"></script>
+    <script type="text/javascript">
+        (function () {
+            wf.header.resource.init({ id: 'qk' });
+            wf.exporter.init();
+            wf.fixbox.init();
+            wf.share.init();
+            wf.related.init();
+            var changeText = function () {
+                this.text(this.text() === '展开' ? '收起' : '展开');
+            }
+            $('.abstract .expend').click(function () {
+                $(this).toggleClass('expended').next('.text').slideToggle(300);
+            });
+            $('.abstract-short .expend-short').click(function () {
+                var $this = $(this),
+                    $text = $this.find('span');
+                changeText.call($text);
+                $this.parent().prev('.row').toggle();
+                $this.toggleClass('expended').prev('.text').toggle();
+            });
+            $('.related .expend').click(function () {
+                var $this = $(this),
+                    $text = $this.find('.text'),
+                    $hd = $this.toggleClass('expended').parent().parent();
+                if (!$hd.hasClass('wrap-expend')) { $hd.addClass('wrap-expend'); }
+                $hd.toggleClass('wrap-expended').next('.bd').slideToggle(300);
+                changeText.call($text);
+            });
+        })();
+    </script>
+    
+    <script src="/Content/js/citeRelation.min.js?v=201509070147" type="text/javascript"></script>
+        <script>wf.citenotice.init();</script>
+    <!--[if lt IE 8]><script>(function(){var timer=setInterval(function(){var items=$('.citeRelation .refciteMap .map-item');if(items.length>0){clearInterval(timer);$.each(items,function(){var $this=$(this),groupCls=$this.hasClass('ref')?'ref':$this.hasClass('cite')?'cite':'';markCls='clone-'+($this.data('mark')?$this.data('mark').slice(5):'mtext');$newitem=$this.clone().removeClass().addClass(markCls).addClass('clone-map').addClass(groupCls);$(this).html('');$newitem.appendTo('.refciteMap')})}},100)})();</script><![endif]-->
+
+    <script src="http://static.wanfangdata.com.cn/wfks/module/userSuggestion/userSuggestion.min.js?v=201512211715" type="text/javascript"></script>
+</body>
+</html>

@@ -35,7 +35,7 @@ class StoreMiddleware:
         self._id_match = re.compile(r"wap\.cnki\.net/(.*?)\.html")
 
     async def handle_input(self, response):
-        print("Response url: %s" % response.url)
+        # print("Response url: %s" % response.url)
         url = response.url
         if url.find("wap.cnki.net/qikan") >= 0 or url.find("wap.cnki.net/lunwen") >= 0 or url.find("wap.cnki.net/huiyi") >= 0:
             self._store(response)

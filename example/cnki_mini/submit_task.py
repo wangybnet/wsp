@@ -22,6 +22,6 @@ if __name__ == "__main__":
     with open(zipf, "rb") as f:
         zipb = f.read()
     client = ServerProxy("http://192.168.120.113:7310", allow_none=True)
-    task_id = client.create_task({"desc": "中国知网"}, Binary(zipb))
+    task_id = client.create_task({"desc": "中国知网极简版"}, Binary(zipb))
     print("Task ID: ", task_id)
     client.start_task(task_id)

@@ -10,7 +10,7 @@ downloader_middlewares:
 # ------ Spider Middlewares -------
 spider_middlewares:
   - wsp.spidermws.dedup.MongoDedupMiddleware
-  - wsp.spidermws.limitlevel.LimitLevelMiddleware
+#  - wsp.spidermws.limitlevel.LimitLevelMiddleware
   - project.spidermws.store.StoreMiddleware
 
 # ------ Spider -------
@@ -22,7 +22,7 @@ spiders:
 start_urls:
 
 # ------ Properties ------
-max_level: 1
+#max_level: 1
 max_retry_times: 10
 dedup_mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
 user_agent: "Mozilla/5.0 (iPad; CPU OS 9_3_1 like Mac OS X) AppleWebKit/601.1 (KHTML, like Gecko) CriOS/49.0.2623.109 Mobile/13E238 Safari/601.1.46"

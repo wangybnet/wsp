@@ -20,7 +20,7 @@ class SearchSpider(BaseSpider):
         return ()
 
     def _parse(self, response):
-        print("SearchSpider parse the response(url=%s)" % response.url)
+        # print("SearchSpider parse the response(url=%s)" % response.url)
         html = text_from_http_body(response)
         for u in self.detail_match.findall(html):
             yield HttpRequest("http://wap.cnki.net/%s" % parser.unescape(u).strip())

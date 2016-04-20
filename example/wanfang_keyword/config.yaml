@@ -9,7 +9,7 @@ downloader_middlewares:
 
 # ------ Spider Middlewares -------
 spider_middlewares:
-  - wsp.spidermws.dedup.MongoDedupMiddleware
+#  - wsp.spidermws.dedup.MongoDedupMiddleware
 #  - wsp.spidermws.limitlevel.LimitLevelMiddleware
   - project.spidermws.store.StoreMiddleware
 
