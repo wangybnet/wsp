@@ -40,19 +40,10 @@ class TaskProgressMonitor:
             completed_insc, total_insc = self._update_increment(progress)
             log.debug("Task %s, completed increment: %s, total increment: %s" % (progress["task_id"], completed_insc, total_insc))
             if completed_insc > 0 or total_insc > 0:
-                obj_id = ObjectId(progress["task_id"])
-                otp_json = self._task_progress_tbl.find_one({"_id": obj_id})
-                if otp_json is None:
-                    self._task_progress_tbl.insert_one({"_id": obj_id,
-                                                        "completed": completed_insc,
-                                                        "total": total_insc,
-                                                        "last_modified": time.time()})
-                else:
-                    self._task_progress_tbl.update_one({"_id": obj_id},
-                                                       {"$inc": {"completed": completed_insc,
-                                                                 "total": total_insc}})
-                    self._task_progress_tbl.update_one({"_id": obj_id},
-                                                       {"$set": {"last_modified": time.time()}})
+                try:
+                    self._update_database(progress["task_id"], completed_insc, total_insc)
+                except Exception:
+                    log.warning("Unexpected error occurred when handling data", exc_info=True)
 
     async def inspect(self):
         await asyncio.sleep(self._inspect_time)
@@ -92,6 +83,24 @@ class TaskProgressMonitor:
                 self._tasks[task_id] = _TaskStatus()
             self._tasks[task_id].updated = True
         return completed_insc, total_insc
+
+    """
+    更新数据库
+    """
+    def _update_database(self, task_id, completed_insc, total_insc):
+        obj_id = ObjectId(task_id)
+        otp_json = self._task_progress_tbl.find_one({"_id": obj_id})
+        if otp_json is None:
+            self._task_progress_tbl.insert_one({"_id": obj_id,
+                                                "completed": completed_insc,
+                                                "total": total_insc,
+                                                "last_modified": time.time()})
+        else:
+            self._task_progress_tbl.update_one({"_id": obj_id},
+                                               {"$inc": {"completed": completed_insc,
+                                                         "total": total_insc}})
+            self._task_progress_tbl.update_one({"_id": obj_id},
+                                               {"$set": {"last_modified": time.time()}})
 
 
 class _TaskProgress:

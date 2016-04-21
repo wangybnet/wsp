@@ -19,7 +19,7 @@ class DetailSpider(BaseSpider):
         return ()
 
     def _parse(self, response):
-        print("DetailSpider parse the response(url=%s)" % response.url)
+        # print("DetailSpider parse the response(url=%s)" % response.url)
         html = text_from_http_body(response)
         for u in self.search_match.findall(html):
             if u.find("http://s.wanfangdata.com.cn/Paper.aspx") >= 0:

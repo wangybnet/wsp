@@ -35,7 +35,7 @@ class StoreMiddleware:
         self._id_match = re.compile(r"d\.wanfangdata\.com\.cn(.*?)$")
 
     async def handle_input(self, response):
-        print("Response url: %s" % response.url)
+        # print("Response url: %s" % response.url)
         url = response.url
         if url.find("d.wanfangdata.com.cn") >= 0:
             self._store(response)
@@ -53,14 +53,12 @@ class StoreMiddleware:
         if id:
             try:
                 html = text_from_http_body(response)
-                # self._conn.ping(True)
-                # with self._conn.cursor() as cursor:
-                #     cursor.execute(sql, (id, page_id, url, t))
-                # self._tbl.insert_one({"_id": obj_id, "url": url, "body": response.body})
-                # data_dict = {"id": id, "crawl_time": t, "html": html}
-                # self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
-                with open("/home/wsp/wanfang_data/%s.html" % id, "wb") as f:
-                    f.write(response.body)
+                self._conn.ping(True)
+                with self._conn.cursor() as cursor:
+                    cursor.execute(sql, (id, page_id, url, t))
+                self._tbl.insert_one({"_id": obj_id, "url": url, "body": response.body})
+                data_dict = {"id": id, "crawl_time": t, "html": html}
+                self._producer.send(self.kafka_topic, json.dumps(data_dict).encode("utf-8"))
             except pymysql.IntegrityError:
                 pass
             except UnicodeDecodeError as e:
