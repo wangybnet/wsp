@@ -2,7 +2,7 @@
 
 import time
 
-from tests.test_downloader.domains import GLOBAL_DOMAINS, CHINESE_DOMAINS
+from .domains import GLOBAL_DOMAINS, CHINESE_DOMAINS
 from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpError
 
@@ -17,7 +17,7 @@ async def save_result(request, response):
 
 def test_global_sites():
     clients = 200
-    d = Downloader(clients=clients)
+    d = Downloader(clients=clients, timeout=30)
     begin = time.time()
     repeat = 5
     for i in range(repeat):

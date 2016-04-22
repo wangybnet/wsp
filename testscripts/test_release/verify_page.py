@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 
 if __name__ == "__main__":
-    id = "571401503fd22825435eb82d"
+    id = "571832753fd22832835d66dd"
     tbl_name = "acm"
 
     client = MongoClient("mongodb://wsp:wsp123456@192.168.120.90:27017")

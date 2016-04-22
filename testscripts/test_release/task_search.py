@@ -2,8 +2,9 @@
 
 from xmlrpc.client import ServerProxy
 
+
 if __name__ == "__main__":
-    client =  ServerProxy("http://192.168.120.113:7310")
+    client = ServerProxy("http://192.168.120.212:7310")
     tasks = client.running_tasks()
     print("running_tasks: %s" % tasks)
     for task_id in tasks:

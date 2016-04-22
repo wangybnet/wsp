@@ -3,7 +3,7 @@
 import time
 from urllib import request
 
-from tests.test_downloader.domains import CHINESE_DOMAINS
+from .domains import CHINESE_DOMAINS
 
 
 if __name__ == "__main__":

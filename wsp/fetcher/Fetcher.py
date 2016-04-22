@@ -166,8 +166,8 @@ class Fetcher:
                                  middleware=self._task_manager.downloadermws(task_id))
 
     async def saveResult(self, request, result):
-        req = extract_request(request)
         try:
+            req = extract_request(request)
             if isinstance(result, HttpRequest):
                 new_req = parse_request(req, result)
                 self.pushReq(new_req)
