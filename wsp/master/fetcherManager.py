@@ -14,7 +14,7 @@ from wsp.master.task import TASK_RUNNING, TASK_STOPPED, TASK_REMOVED, TASK_FINIS
 log = logging.getLogger(__name__)
 
 
-class fetcherManager:
+class FetcherManager:
 
     def __init__(self, sys_config):
         assert isinstance(sys_config, SystemConfig), "Wrong configuration"

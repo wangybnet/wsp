@@ -9,7 +9,7 @@ from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 from wsp.config import SystemConfig
-from .fetcherManager import fetcherManager
+from .fetchermanager import FetcherManager
 from .config import MasterConfig
 from .task import WspTask
 from .task import TASK_CREATE
@@ -46,7 +46,7 @@ class Master(object):
                                                                                       sys_config.mongo_addr))
         self._config = master_config
         self._sys_config = sys_config
-        self.fetcher_manager = fetcherManager(self._sys_config)
+        self.fetcher_manager = FetcherManager(self._sys_config)
         self._rpc_server = self._create_rpc_server()
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
         self._collector_manager = CollectorManager(self._sys_config, self._config)
