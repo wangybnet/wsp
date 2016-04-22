@@ -18,14 +18,11 @@ class TimeHandler:
 
 if __name__ == "__main__":
     client = MonitorClient("127.0.0.1:8080")
+    client.start(TimeHandler())
     data = {"key": "call directly", "value": "Hello, World!"}
     print("Send data:", data)
-    client.report(data)
-    time.sleep(1)
-    handler_id = client.add_handler(TimeHandler())
-    time.sleep(3.5)
-    client.remove_handler(handler_id)
-    time.sleep(1)
+    client.send(data)
+    time.sleep(4.5)
     print("Close client")
-    client.close()
+    client.stop()
     print("Closed")

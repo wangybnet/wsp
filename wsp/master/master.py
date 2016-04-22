@@ -13,7 +13,7 @@ from .fetcherManager import fetcherManager
 from .config import MasterConfig
 from .task import WspTask
 from .task import TASK_CREATE
-from .monitor import MonitorManager
+from .collectors import CollectorManager
 
 log = logging.getLogger(__name__)
 
@@ -49,12 +49,11 @@ class Master(object):
         self.fetcher_manager = fetcherManager(self._sys_config)
         self._rpc_server = self._create_rpc_server()
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)
-        self._monitor_manager = MonitorManager(self._sys_config, self._config)
+        self._collector_manager = CollectorManager(self._sys_config, self._config)
 
     def start(self):
         self._start_rpc_server()
-        # open monitor manager
-        self._monitor_manager.open()
+        self._collector_manager.open()
 
     def _start_rpc_server(self):
         log.info("Start master RPC at %s" % self._config.rpc_addr)

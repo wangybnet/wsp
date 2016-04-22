@@ -2,7 +2,7 @@
 
 import unittest
 from pymongo import MongoClient
-#from wsp.master.master import Master
+from wsp.master.master import Master
 import xmlrpc.client
 
 global inserted_id

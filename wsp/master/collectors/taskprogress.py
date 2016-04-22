@@ -13,7 +13,7 @@ from ..config import MasterConfig
 log = logging.getLogger(__name__)
 
 
-class TaskProgressMonitor:
+class TaskProgressCollector:
 
     def __init__(self, sys_config, local_config):
         assert isinstance(sys_config, SystemConfig) and isinstance(local_config, MasterConfig), "Wrong configuration"

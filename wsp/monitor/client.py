@@ -10,61 +10,21 @@ log = logging.getLogger(__name__)
 
 class MonitorClient:
 
-    def __init__(self, server_addr):
+    def __init__(self, server_addr, *handlers):
         self._server_addr = server_addr
         self._loop = None
         self._transport = None
         self._protocol = None
-        self._handler_id = 0
-        self._handler_id_lock = threading.Lock()
-        self._handlers = {}
+        self._fetch_data_methods = []
+        for h in handlers:
+            self._add_handler(h)
 
-    def add_handler(self, handler):
-        self._ensure_start()
-        handler_id = self._request_handler_id()
-        self._loop.call_soon_threadsafe(self._add_handler, handler_id, handler)
-        return handler_id
-
-    def remove_handler(self, handler_id):
-        self._ensure_start()
-        self._loop.call_soon_threadsafe(self._remove_handler, handler_id)
-
-    def report(self, data):
-        self._ensure_start()
-        self._loop.call_soon_threadsafe(self._report, data)
-
-    def close(self):
+    def send(self, data):
         if self._loop is None:
             return
-        self._loop.call_soon_threadsafe(self._close)
+        self._loop.call_soon_threadsafe(self._send, data)
 
-    def _request_handler_id(self):
-        with self._handler_id_lock:
-            handler_id = self._handler_id
-            self._handler_id += 1
-        return handler_id
-
-    def _add_handler(self, handler_id, handler):
-        self._handlers[handler_id] = handler
-        if hasattr(handler, "fetch_data"):
-            self._add_report_task(handler_id, handler.fetch_data)
-
-    def _add_report_task(self, handler_id, coro_func):
-        asyncio.ensure_future(self._report_task(handler_id, coro_func))
-
-    async def _report_task(self, handler_id, coro_func):
-        while handler_id in self._handlers:
-            data = await coro_func()
-            self._report(data)
-
-    def _remove_handler(self, handler_id):
-        if handler_id in self._handlers:
-            self._handlers.pop(handler_id)
-
-    def _report(self, data):
-        self._transport.sendto(json.dumps(data).encode("utf-8"))
-
-    def _ensure_start(self):
+    def start(self):
         if self._loop is None:
             self._loop = asyncio.new_event_loop()
             host, port = self._server_addr.split(":")
@@ -74,6 +34,28 @@ class MonitorClient:
             self._transport, self._protocol = self._loop.run_until_complete(connect)
             t = threading.Thread(target=self._start, args=(self._loop,))
             t.start()
+            for method in self._fetch_data_methods:
+                self._loop.call_soon_threadsafe(self._add_report_task, method)
+
+    def stop(self):
+        if self._loop is None:
+            return
+        self._loop.call_soon_threadsafe(self._stop)
+
+    def _add_handler(self, handler):
+        if hasattr(handler, "fetch_data"):
+            self._fetch_data_methods.append(handler.fetch_data)
+
+    def _add_report_task(self, coro_func):
+        asyncio.ensure_future(self._report_task(coro_func))
+
+    async def _report_task(self, coro_func):
+        while True:
+            data = await coro_func()
+            self._send(data)
+
+    def _send(self, data):
+        self._transport.sendto(json.dumps(data).encode("utf-8"))
 
     def _start(self, loop):
         asyncio.set_event_loop(loop)
@@ -84,7 +66,7 @@ class MonitorClient:
             self._transport.close()
             loop.close()
 
-    def _close(self):
+    def _stop(self):
         self._transport.close()
 
 

@@ -10,61 +10,17 @@ log = logging.getLogger(__name__)
 
 class MonitorServer:
 
-    def __init__(self, addr):
+    def __init__(self, addr, *handlers):
         self._addr = addr
         self._loop = None
         self._transport = None
         self._protocol = None
-        self._handler_id = 0
-        self._handler_id_lock = threading.Lock()
-        self._handlers = {}
-        self._handle_data_methods = {}
+        self._handle_data_methods = []
+        self._inspect_methods = []
+        for h in handlers:
+            self._add_handler(h)
 
-    def stop(self):
-        if self._loop is None:
-            return
-        self._loop.call_soon_threadsafe(self._stop)
-
-    def add_handler(self, handler):
-        self._ensure_start()
-        handler_id = self._request_handler_id()
-        self._loop.call_soon_threadsafe(self._add_handler, handler_id, handler)
-        return handler_id
-
-    def remove_handler(self, handler_id):
-        self._ensure_start()
-        self._loop.call_soon_threadsafe(self._remove_handler, handler_id)
-
-    def _data_received(self, data, addr):
-        for method in self._handle_data_methods.values():
-            method(data, addr)
-
-    def _request_handler_id(self):
-        with self._handler_id_lock:
-            handler_id = self._handler_id
-            self._handler_id += 1
-        return handler_id
-
-    def _add_handler(self, handler_id, handler):
-        self._handlers[handler_id] = handler
-        if hasattr(handler, "handle_data"):
-            self._handle_data_methods[handler_id] = handler.handle_data
-        if hasattr(handler, "inspect"):
-            self._add_inspect_task(handler_id, handler.inspect)
-
-    def _add_inspect_task(self, handler_id, coro_func):
-        asyncio.ensure_future(self._inspect_task(handler_id, coro_func))
-
-    async def _inspect_task(self, handler_id, coro_func):
-        while handler_id in self._handlers:
-            await coro_func()
-
-    def _remove_handler(self, handler_id):
-        if handler_id in self._handle_data_methods:
-            self._handle_data_methods.pop(handler_id)
-        self._handlers.pop(handler_id)
-
-    def _ensure_start(self):
+    def start(self):
         if self._loop is None:
             self._loop = asyncio.new_event_loop()
             host, port = self._addr.split(":")
@@ -75,6 +31,31 @@ class MonitorServer:
             self._protocol.set_callback(self._data_received)
             t = threading.Thread(target=self._start, args=(self._loop,))
             t.start()
+            for method in self._inspect_methods:
+                self._loop.call_soon_threadsafe(self._add_inspect_task, method)
+
+    def stop(self):
+        if self._loop is None:
+            return
+        self._loop.call_soon_threadsafe(self._stop)
+
+    def _add_handler(self, handler):
+        if hasattr(handler, "handle_data"):
+            self._handle_data_methods.append(handler.handle_data)
+        if hasattr(handler, "inspect"):
+            self._inspect_methods.append(handler.inspect)
+
+    def _data_received(self, data, addr):
+        for method in self._handle_data_methods:
+            method(data, addr)
+
+    def _add_inspect_task(self, coro_func):
+        asyncio.ensure_future(self._inspect_task(coro_func))
+
+    @staticmethod
+    async def _inspect_task(coro_func):
+        while True:
+            await coro_func()
 
     def _start(self, loop):
         asyncio.set_event_loop(loop)

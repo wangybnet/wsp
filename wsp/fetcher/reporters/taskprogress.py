@@ -8,7 +8,7 @@ from bson import ObjectId
 from wsp.config import SystemConfig
 
 
-class TaskProgressCollector:
+class TaskProgressReporter:
 
     def __init__(self, sys_config):
         assert isinstance(sys_config, SystemConfig), "Wrong configuration"

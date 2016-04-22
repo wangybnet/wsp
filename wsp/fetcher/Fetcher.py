@@ -20,13 +20,13 @@ from wsp.utils.parse import pack_request, extract_request, parse_request, unpack
 from .config import FetcherConfig
 from .request import WspRequest
 from .taskmanager import TaskManager
-from .collector import CollectorManager
+from .reporters import ReporterManager
 
 log = logging.getLogger(__name__)
 
 
 class Fetcher:
-    # FIXME: 根据任务设置spider
+
     def __init__(self, config):
         assert isinstance(config, FetcherConfig), "Wrong configuration"
         log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s" % (config.master_rpc_addr, config.rpc_addr))
@@ -45,7 +45,7 @@ class Fetcher:
                                       consumer_timeout_ms=self._sys_config.kafka_consumer_timeout_ms)
         self.downloader = Downloader(clients=self._sys_config.downloader_clients, timeout=self._sys_config.downloader_timeout)
         self._task_manager = TaskManager(self._sys_config, self._config)
-        self._collector_manager = CollectorManager(self._sys_config)
+        self._reporter_manager = ReporterManager(self._sys_config)
         self.taskDict = {}
         self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
@@ -71,8 +71,7 @@ class Fetcher:
 
     def start(self):
         self.isRunning = True
-        # open collector manager
-        self._collector_manager.open()
+        self._reporter_manager.open()
         self._start_pull_req()
         self._start_rpc_server()
         self._register_on_master()
@@ -96,7 +95,7 @@ class Fetcher:
                 # set current tasks of task manager
                 self._task_manager.set_tasks(*tasks)
                 # set current tasks of collector managter
-                self._collector_manager.set_tasks(*tasks)
+                self._reporter_manager.set_tasks(*tasks)
 
     """
     通知添加了一个新任务
@@ -127,7 +126,7 @@ class Fetcher:
         topic = '%s' % req.task_id
         log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
         # record pushed request
-        self._collector_manager.record_pushed_request(req.task_id)
+        self._reporter_manager.record_pushed_request(req.task_id)
         tempreq = pickle.dumps(req)
         self.producer.send(topic, tempreq)
 
@@ -146,7 +145,7 @@ class Fetcher:
                     req = pickle.loads(record.value)
                     log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
                     # record pulled request
-                    self._collector_manager.record_pulled_request(req.task_id)
+                    self._reporter_manager.record_pulled_request(req.task_id)
                     req.fetcher = self._addr
                     self._push_downloader_task(req)
                 except StopIteration:

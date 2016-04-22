@@ -86,7 +86,7 @@ class Spider:
 
     @staticmethod
     def _isiterable(obj):
-        return hasattr(obj, '__iter__')
+        return hasattr(obj, "__iter__")
 
 
 class BaseSpider:
@@ -98,7 +98,7 @@ class BaseSpider:
     从Http Response中提取数据，或者通过提取链接生成新的Http Request
 
     返回一个可迭代对象，每次迭代得到的可以是Http Request，None，其他提取出来的数据。
-    特别的，每次迭代得到的可以是协程（以“asnyc def”定义的函数），因此在Spider中实际上是支持协程的。
+    特别的，每次迭代得到的可以是协程（以“asnyc def”定义的函数）。
     """
     def parse(self, response):
         raise NotImplementedError
