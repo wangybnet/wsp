@@ -7,7 +7,7 @@ import logging
 import yaml
 
 import wsp
-from wsp.fetcher.Fetcher import Fetcher
+from wsp.fetcher.fetcher import Fetcher
 from wsp.fetcher.config import FetcherConfig
 
 
