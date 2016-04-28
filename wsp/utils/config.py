@@ -8,9 +8,3 @@ def load_object(path):
     module, name = path[:dot], path[dot + 1:]
     mod = import_module(module)
     return getattr(mod, name)
-
-
-def ensure_int(value):
-    if not isinstance(value, int):
-        value = int(value)
-    return value

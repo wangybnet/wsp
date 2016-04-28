@@ -9,7 +9,7 @@ import pymysql
 from pymongo import MongoClient
 from kafka.producer import KafkaProducer
 
-from wsp.utils.parse import text_from_http_body
+from wsp.utils.parser import text_from_http_body
 from wsp.errors import ResponseNotMatch
 
 

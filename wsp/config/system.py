@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from wsp.utils.config import ensure_int
-
 DEFAULT_MONGO_DB = "wsp"
 DEFAULT_MONGO_TASK_TBL = "task"
 DEFAULT_MONGO_TASK_PROGRESS_TBL = "task_progress"
@@ -29,9 +27,9 @@ class SystemConfig:
         self.mongo_task_progress_tbl = kw.get("mongo_task_progress_tbl", DEFAULT_MONGO_TASK_PROGRESS_TBL)
         self.mongo_task_config_tbl = kw.get("mongo_task_config_tbl", DEFAULT_MONGO_TASK_CONFIG_TBL)
         self.task_config_file = kw.get("task_config_file", DEFAULT_TASK_CONFIG_FILE)
-        self.kafka_consumer_timeout_ms = ensure_int(kw.get("kafka_consumer_timeout_ms", DEFAULT_KAFKA_CONSUMER_TIMEOUT_MS))
-        self.downloader_clients = ensure_int(kw.get("downloader_clients", DEFAULT_DOWNLOADER_CLIENTS))
+        self.kafka_consumer_timeout_ms = kw.get("kafka_consumer_timeout_ms", DEFAULT_KAFKA_CONSUMER_TIMEOUT_MS)
+        self.downloader_clients = kw.get("downloader_clients", DEFAULT_DOWNLOADER_CLIENTS)
         self.downloader_timeout = kw.get("downloader_timeout", DEFAULT_DOWNLOADER_TIMEOUT)
-        self.no_work_sleep_time = ensure_int(kw.get("no_work_sleep_time", DEFAULT_NO_WORK_SLEEP_TIME))
+        self.no_work_sleep_time = kw.get("no_work_sleep_time", DEFAULT_NO_WORK_SLEEP_TIME)
         self.task_progress_report_time = kw.get("task_progress_report_time", DEFAULT_TASK_PROGRESS_REPORT_TIME)
         self.task_progress_inspect_time = kw.get("task_progress_inspect_time", DEFAULT_TASK_PROGRESS_INSPECT_TIME)

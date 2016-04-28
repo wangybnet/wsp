@@ -2,9 +2,6 @@
 
 import logging
 
-from wsp.utils.parse import extract_request
-
-
 log = logging.getLogger(__name__)
 
 
@@ -27,11 +24,10 @@ class UserAgentMiddleware:
     给请求添加代理
     """
     async def handle_request(self, request):
-        req = extract_request(request)
         user_agent = self._user_agent
         if self._is_random:
             user_agent = "%s RAND/%s" % (user_agent, self._random())
-        log.debug("Assign User-Agent '%s' to request (id=%s, url=%s)" % (user_agent, req.id, request.url))
+        log.debug("Assign User-Agent '%s' to request (url=%s)" % (user_agent, request.url))
         request.headers["User-Agent"] = user_agent
 
     def _random(self):

@@ -7,8 +7,6 @@ import math
 
 import aiohttp
 
-from wsp.utils.parse import extract_request
-
 log = logging.getLogger(__name__)
 
 
@@ -38,9 +36,8 @@ class ProxyMiddleware:
     给请求添加代理
     """
     async def handle_request(self, request):
-        req = extract_request(request)
         proxy = await self._pick_proxy()
-        log.debug("Assign proxy '%s' to request (id=%s, url=%s)" % (proxy, req.id, request.url))
+        log.debug("Assign proxy '%s' to request (url=%s)" % (proxy, request.url))
         request.proxy = proxy
 
     async def _pick_proxy(self):

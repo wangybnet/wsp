@@ -16,9 +16,7 @@ from wsp.config import SystemConfig
 from wsp.downloader import Downloader
 from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
-from wsp.utils.parse import pack_request, extract_request, parse_request, unpack_request
 from .config import FetcherConfig
-from .request import WspRequest
 from .taskmanager import TaskManager
 from .reporters import ReporterManager
 
@@ -46,6 +44,7 @@ class Fetcher:
         self.downloader = Downloader(clients=self._sys_config.downloader_clients, timeout=self._sys_config.downloader_timeout)
         self._task_manager = TaskManager(self._sys_config, self._config)
         self._reporter_manager = ReporterManager(self._sys_config)
+        self._request_task = {}
         self.taskDict = {}
         self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
@@ -119,16 +118,15 @@ class Fetcher:
                                                 start_urls,
                                                 middleware=self._task_manager.spidermws(task_id))):
             if isinstance(res, HttpRequest):
-                req = WspRequest(task_id=task_id, father_id=task_id, http_request=res)
-                self.pushReq(req)
+                self.pushReq(task_id, res)
 
-    def pushReq(self, req):
-        topic = '%s' % req.task_id
-        log.debug("Push WSP request (id=%s, url=%s) into the topic %s" % (req.id, req.http_request.url, topic))
+    def pushReq(self, topic, req):
+        log.debug("Push request (url=%s) into the topic %s" % (req.url, topic))
         # record pushed request
-        self._reporter_manager.record_pushed_request(req.task_id)
-        tempreq = pickle.dumps(req)
-        self.producer.send(topic, tempreq)
+        task_id = topic
+        self._reporter_manager.record_pushed_request(task_id)
+        temp_req = pickle.dumps(req)
+        self.producer.send(topic, temp_req)
 
     def _pull_req(self):
         while self.isRunning:
@@ -141,53 +139,51 @@ class Fetcher:
             else:
                 try:
                     with self._subscribe_lock:
-                        record = next(self.consumer)
-                    req = pickle.loads(record.value)
-                    log.debug("The WSP request (id=%s, url=%s) has been pulled" % (req.id, req.http_request.url))
+                        msg = next(self.consumer)
+                    req = pickle.loads(msg.value)
+                    task_id = msg.topic
+                    log.debug("The request (url=%s) has been pulled" % req.url)
+                    # record task id
+                    self._request_task[id(req)] = task_id
                     # record pulled request
-                    self._reporter_manager.record_pulled_request(req.task_id)
-                    req.fetcher = self._addr
-                    self._push_downloader_task(req)
+                    self._reporter_manager.record_pulled_request(task_id)
+                    self._push_downloader_task(task_id, req)
                 except StopIteration:
                     log.debug("Kafka read timeout")
                 except Exception:
-                    log.warning("An error occurred when preparing request", exc_info=True)
+                    log.warning("An error occurred when pulling request", exc_info=True)
 
     def _start_pull_req(self):
         log.info("Start to pull requests")
         t = threading.Thread(target=self._pull_req)
         t.start()
 
-    def _push_downloader_task(self, req):
-        request = pack_request(req)
-        task_id = "%s" % req.task_id
-        self.downloader.add_task(request,
+    def _push_downloader_task(self, task_id, req):
+        self.downloader.add_task(req,
                                  self.saveResult,
                                  middleware=self._task_manager.downloadermws(task_id))
 
     async def saveResult(self, request, result):
+        req_id = id(request)
         try:
-            req = extract_request(request)
+            task_id = self._request_task[req_id]
             if isinstance(result, HttpRequest):
-                new_req = parse_request(req, result)
-                self.pushReq(new_req)
+                self.pushReq(task_id, result)
                 self.producer.flush()
             elif isinstance(result, HttpResponse):
                 # bind HttpRequest
                 result.request = request
-                task_id = "%s" % req.task_id
                 spiders = self._task_manager.spiders(task_id)
                 for res in (await Spider.crawl(spiders,
                                                result,
                                                middleware=self._task_manager.spidermws(task_id))):
                     if isinstance(res, HttpRequest):
-                        new_req = parse_request(req, res)
-                        self.pushReq(new_req)
+                        self.pushReq(task_id, res)
                 self.producer.flush()
             else:
-                log.debug("Got an %s error (%s) when request %s, but I will do noting here" % (type(result), result, request.url))
+                log.debug("Got an %s error (%s) when request %s" % (type(result), result, request.url))
         except Exception:
             log.warning("An error occurred when handing result of downloader", exc_info=True)
         finally:
-            # NOTE: must unpack here to release the reference of WspRequest in HttpRequest, otherwise will cause GC problem
-            unpack_request(request)
+            if req_id in self._request_task:
+                self._request_task.pop(req_id)

@@ -4,7 +4,7 @@ import logging
 import re
 
 from wsp.spider import BaseSpider
-from wsp.utils.parse import text_from_http_body
+from wsp.utils.parser import text_from_http_body
 
 log = logging.getLogger(__name__)
 

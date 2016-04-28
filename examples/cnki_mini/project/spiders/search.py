@@ -4,7 +4,7 @@ import re
 from html import parser
 
 from wsp.spider import BaseSpider
-from wsp.utils.parse import text_from_http_body
+from wsp.utils.parser import text_from_http_body
 from wsp.http import HttpRequest
 
 

@@ -2,7 +2,7 @@
 
 import logging
 
-from wsp.utils.parse import text_from_http_body
+from wsp.utils.parser import text_from_http_body
 from wsp.errors import AccessDeny, ResponseNotMatch
 
 log = logging.getLogger(__name__)

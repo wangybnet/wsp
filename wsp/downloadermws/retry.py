@@ -4,7 +4,6 @@ import logging
 
 from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
 from wsp.http import HttpError
-from wsp.utils.parse import extract_request
 
 log = logging.getLogger(__name__)
 
@@ -36,12 +35,11 @@ class RetryMiddleware:
         return self._retry(request, "%s: %s" % (type(error), error))
 
     def _retry(self, request, reason):
-        req = extract_request(request)
         retry_times = request.meta.get("_retry_times", 0) + 1
         if retry_times <= self._max_retry_times:
-            log.debug("We will retry the request(id=%s, url=%s) because of %s" % (req.id, request.url, reason))
+            log.debug("We will retry the request(url=%s) because of %s" % (request.url, reason))
             request.meta["_retry_times"] = retry_times
             return request.copy()
         else:
-            log.info("The WSP request(id=%s, url=%s) has been retried %d times, and it will be aborted." % (req.id, request.url, self._max_retry_times))
+            log.info("The WSP request(url=%s) has been retried %d times, and it will be aborted." % (request.url, self._max_retry_times))
             raise IgnoreRequest()
