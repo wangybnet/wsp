@@ -4,6 +4,7 @@ import random
 import asyncio
 import logging
 import math
+import json
 
 import aiohttp
 
@@ -61,8 +62,9 @@ class ProxyMiddleware:
             try:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self._agent_addr) as resp:
-                        json = await resp.json()
-                        proxy_list = json["result"]
+                        body = await resp.read()
+                        json_obj = json.loads(body, encoding="utf-8")
+                        proxy_list = json_obj["result"]
                         if proxy_list:
                             self._proxy_list = proxy_list
             except Exception:
