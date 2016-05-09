@@ -28,8 +28,8 @@ class PrintHandler:
 
 
 if __name__ == "__main__":
-    server = MonitorServer("127.0.0.1:8080")
-    server.start(PrintHandler())
+    server = MonitorServer("127.0.0.1:8080", PrintHandler())
+    server.start()
     time.sleep(20)
     print("Stop server")
     server.stop()

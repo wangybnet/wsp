@@ -114,19 +114,21 @@ class Fetcher:
         start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS, [])
         if not isinstance(start_urls, list):
             start_urls = [start_urls]
-        for res in (await Spider.start_requests(spiders,
-                                                start_urls,
-                                                middleware=self._task_manager.spidermws(task_id))):
-            if isinstance(res, HttpRequest):
-                self.pushReq(task_id, res)
+        try:
+            for res in (await Spider.start_requests(spiders,
+                                                    start_urls,
+                                                    middleware=self._task_manager.spidermws(task_id))):
+                if isinstance(res, HttpRequest):
+                    self.pushReq(task_id, res)
+        except Exception:
+            log.warning("Unexpected error occurred when handing start requests", exc_info=True)
 
     def pushReq(self, topic, req):
         log.debug("Push request (url=%s) into the topic %s" % (req.url, topic))
-        # record pushed request
-        task_id = topic
-        self._reporter_manager.record_pushed_request(task_id)
         temp_req = pickle.dumps(req)
         self.producer.send(topic, temp_req)
+        task_id = topic
+        self._reporter_manager.record_pushed_request(task_id)
 
     def _pull_req(self):
         while self.isRunning:
@@ -141,12 +143,10 @@ class Fetcher:
                     with self._subscribe_lock:
                         msg = next(self.consumer)
                     req = pickle.loads(msg.value)
-                    task_id = msg.topic
                     log.debug("The request (url=%s) has been pulled" % req.url)
-                    # record task id
-                    self._request_task[id(req)] = task_id
-                    # record pulled request
+                    task_id = msg.topic
                     self._reporter_manager.record_pulled_request(task_id)
+                    self._request_task[id(req)] = task_id
                     self._push_downloader_task(task_id, req)
                 except StopIteration:
                     log.debug("Kafka read timeout")

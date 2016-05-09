@@ -17,8 +17,8 @@ class TimeHandler:
 
 
 if __name__ == "__main__":
-    client = MonitorClient("127.0.0.1:8080")
-    client.start(TimeHandler())
+    client = MonitorClient("127.0.0.1:8080", TimeHandler())
+    client.start()
     data = {"key": "call directly", "value": "Hello, World!"}
     print("Send data:", data)
     client.send(data)
