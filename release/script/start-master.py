@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+# coding=utf-8
 
-import sys
+import os
 import logging
 
 import yaml
@@ -23,12 +22,12 @@ if __name__ == "__main__":
             print("Loafing '%s' is failed" % yaml_file)
             exit(1)
 
-    master_conf = get_yaml(sys.argv[1])
-    system_conf = get_yaml(sys.argv[2])
-    wsp.set_logger(getattr(logging, master_conf.get("log_level", "INFO").upper(), "INFO"),
+    conf_dir = os.getenv("WSP_CONF_DIR")
+    master_conf = get_yaml("%s/master.yaml" % conf_dir)
+    system_conf = get_yaml("%s/system.yaml" % conf_dir)
+    wsp.set_logger(getattr(logging, os.getenv("WSP_LOG_LEVEL", "INFO").upper(), "INFO"),
                    format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
-                   date_format="%b.%d,%Y %H:%M:%S",
-                   log_file=master_conf.get("log_file"))
+                   date_format="%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
     log.debug("master.yaml=%s" % master_conf)
     log.debug("system.yaml=%s" % system_conf)

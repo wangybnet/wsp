@@ -5,4 +5,4 @@ bin=$(cd "$bin"; pwd)
 
 . "$bin"/wsp-config.sh
 
-"$WSP_HOME"/sbin/wsp-daemon.sh start fetcher
+"$WSP_HOME"/sbin/wsp-daemon.sh stop fetcher

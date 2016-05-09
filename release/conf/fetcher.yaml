@@ -1,7 +1,4 @@
 #-*- coding:utf-8 -*-
 
-log_level: DEBUG
-
-# ------ Fetcher ------
 rpc_addr: 0.0.0.0:7320
 master_rpc_addr: 192.168.120.113:7310

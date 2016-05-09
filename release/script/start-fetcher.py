@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+# coding=utf-8
 
-import sys
+import os
 import logging
 
 import yaml
@@ -12,8 +11,7 @@ from wsp.fetcher.config import FetcherConfig
 
 
 if __name__ == "__main__":
-    home_dir = sys.argv[1]
-    fetcher_yaml = sys.argv[2]
+    fetcher_yaml = "%s/fetcher.yaml" % os.getenv("WSP_CONF_DIR")
     conf = {}
     try:
         with open(fetcher_yaml, "r", encoding="utf-8") as f:
@@ -21,12 +19,13 @@ if __name__ == "__main__":
     except Exception:
         print("Cannot load \"fetcher.yaml\".")
         exit(1)
-    wsp.set_logger(getattr(logging, conf.get("log_level", "INFO").upper(), "INFO"),
+    else:
+        conf.setdefault("fetcher_dir", "%s/fetcher" % os.getenv("WSP_HOME"))
+    wsp.set_logger(getattr(logging, os.getenv("WSP_LOG_LEVEL", "INFO").upper(), "INFO"),
                    format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
-                   date_format="%b.%d,%Y %H:%M:%S",
-                   log_file=conf.get("log_file"))
+                   date_format="%b.%d,%Y %H:%M:%S")
     log = logging.getLogger("wsp")
     log.debug("fetcher.yaml=%s" % conf)
 
-    fetcher = Fetcher(FetcherConfig(home_dir, **conf))
+    fetcher = Fetcher(FetcherConfig(**conf))
     fetcher.start()
