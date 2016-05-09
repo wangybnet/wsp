@@ -58,7 +58,7 @@ class Fetcher:
         return conf
 
     def _register_on_master(self):
-        log.debug("Register on the master at %s" % self.master_addr)
+        log.info("Register on the master at %s" % self.master_addr)
         rpc_client = ServerProxy(self.master_addr, allow_none=True)
         self._addr = rpc_client.register_fetcher(self._port)
 
@@ -151,7 +151,7 @@ class Fetcher:
                 except StopIteration:
                     log.debug("Kafka read timeout")
                 except Exception:
-                    log.warning("An error occurred when pulling request", exc_info=True)
+                    log.warning("Unexpected error occurred when pulling request", exc_info=True)
 
     def _start_pull_req(self):
         log.info("Start to pull requests")
@@ -183,7 +183,7 @@ class Fetcher:
             else:
                 log.debug("Got an %s error (%s) when request %s" % (type(result), result, request.url))
         except Exception:
-            log.warning("An error occurred when handing result of downloader", exc_info=True)
+            log.warning("Unexpected error occurred when handing result of downloader", exc_info=True)
         finally:
             if req_id in self._request_task:
                 self._request_task.pop(req_id)

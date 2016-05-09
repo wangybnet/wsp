@@ -19,8 +19,8 @@ class ProxyMiddleware:
     def __init__(self, proxy_agent_addr, proxy_update_time):
         if not proxy_agent_addr.startswith("http://"):
             proxy_agent_addr = "http://%s" % proxy_agent_addr
-        assert proxy_update_time > 0, "The time interval to update proxy list must be a positive number"
         self._agent_addr = proxy_agent_addr
+        assert proxy_update_time > 0, "The time interval to update proxy list must be a positive number"
         self._update_time = proxy_update_time
         self._proxy_list = None
         self._update_slot = 1
@@ -63,12 +63,12 @@ class ProxyMiddleware:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self._agent_addr) as resp:
                         body = await resp.read()
-                        json_obj = json.loads(body, encoding="utf-8")
+                        json_obj = json.loads(body.decode(encoding="utf-8"))
                         proxy_list = json_obj["result"]
                         if proxy_list:
                             self._proxy_list = proxy_list
             except Exception:
-                pass
+                log.warning("Unexpected error occurred when updating proxy list")
             finally:
                 asyncio.ensure_future(self._update_slot_delay())
 

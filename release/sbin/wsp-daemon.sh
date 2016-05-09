@@ -7,7 +7,7 @@ bin=$(cd "$bin"; pwd)
 
 oper=$1
 shift
-name=$2
+name=$1
 shift
 
 if [ ! -d "$WSP_LOG_DIR" ]; then
@@ -36,15 +36,19 @@ case $oper in
         esac
         nohup "$PYTHON" "$start_script" "$@" > "$log" 2>&1 < /dev/null &
         echo $! > "$pid"
+        sleep 3
+        if ! ps -p $! > /dev/null; then
+            exit 1
+        fi
         ;;
     stop)
         if [ -f "$pid" ]; then
             target_pid=$(cat "$pid")
-            if kill -0 $target_pid > dev/null 2>&1; then
+            if kill -0 $target_pid > /dev/null 2>&1; then
                 echo stopping $name
                 kill $target_pid
-                sleep $stop_time_out
-                if kill -0 $target_pid > dev/null 2>&1; then
+                sleep $stop_timeout
+                if kill -0 $target_pid > /dev/null 2>&1; then
                     echo "$name did not stop gracefully after $stop_time_out seconds: killing with kill -9"
                     kill -9 $target_pid
                 fi

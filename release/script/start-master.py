@@ -19,7 +19,7 @@ if __name__ == "__main__":
                 dict = yaml.load(f)
                 return dict
         except Exception:
-            print("Loafing '%s' is failed" % yaml_file)
+            print("Cannot load '%s'" % yaml_file)
             exit(1)
 
     conf_dir = os.getenv("WSP_CONF_DIR")
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     system_conf = get_yaml("%s/system.yaml" % conf_dir)
     wsp.set_logger(getattr(logging, os.getenv("WSP_LOG_LEVEL", "INFO").upper(), "INFO"),
                    format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
-                   date_format="%b.%d,%Y %H:%M:%S")
+                   date_format="%d/%b/%Y %H:%M:%S")
     log = logging.getLogger("wsp")
     log.debug("master.yaml=%s" % master_conf)
     log.debug("system.yaml=%s" % system_conf)

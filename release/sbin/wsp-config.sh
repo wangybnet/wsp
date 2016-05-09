@@ -4,7 +4,7 @@ bin=$(dirname $0)
 bin=$(cd "$bin"; pwd)
 
 DEFAULT_WSP_HOME=$(cd "$bin"/../; pwd)
-export WSP_HOME=${WSP_HOME:-DEFAULT_WSP_HOME}
+export WSP_HOME=${WSP_HOME:-$DEFAULT_WSP_HOME}
 
 if [ $# -gt 1 ]; then
     if [ "$1" = "--config" ]; then
