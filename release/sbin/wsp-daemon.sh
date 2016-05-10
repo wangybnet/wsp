@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ $# -le 1 ]; then
+    exit 1
+fi
+
 bin=$(dirname $0)
 bin=$(cd "$bin"; pwd)
 
@@ -49,7 +53,7 @@ case $oper in
                 kill $target_pid
                 sleep $stop_timeout
                 if kill -0 $target_pid > /dev/null 2>&1; then
-                    echo "$name did not stop gracefully after $stop_time_out seconds: killing with kill -9"
+                    echo "$name did not stop gracefully after $stop_timeout seconds: killing with kill -9"
                     kill -9 $target_pid
                 fi
             else

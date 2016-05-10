@@ -1,6 +1,5 @@
 #-*- coding:utf-8 -*-
 
-# ------ System Configuration ------
 kafka_addr: 192.168.120.90:9092
 mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
 monitor_addr: 192.168.120.113:7311
