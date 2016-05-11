@@ -17,11 +17,11 @@ class SystemConfig:
 
     def __init__(self, **kw):
         self.kafka_addr = kw.get("kafka_addr")
-        assert self.kafka_addr is not None, "Must assign the Kafka address"
+        assert self.kafka_addr is not None, "Must assign the address of Kafka"
         self.mongo_addr = kw.get("mongo_addr")
-        assert self.mongo_addr is not None, "Must assign the MongoDB address"
-        self.monitor_addr = kw.get("monitor_addr")
-        assert self.monitor_addr is not None, "Must assign the Monitor address"
+        assert self.mongo_addr is not None, "Must assign the address of MongoDB"
+        self.monitor_server_addr = kw.get("monitor_server_addr")
+        assert self.monitor_server_addr is not None, "Must assign the address of monitor server"
         self.mongo_db = kw.get("mongo_db", DEFAULT_MONGO_DB)
         self.mongo_task_tbl = kw.get("mongo_task_tbl", DEFAULT_MONGO_TASK_TBL)
         self.mongo_task_progress_tbl = kw.get("mongo_task_progress_tbl", DEFAULT_MONGO_TASK_PROGRESS_TBL)

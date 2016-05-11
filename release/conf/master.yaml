@@ -1,4 +1,2 @@
-#-*- coding:utf-8 -*-
-
-rpc_addr: 0.0.0.0:7310
-monitor_addr: 0.0.0.0:7311
+master_rpc_addr: 0.0.0.0:7310
+monitor_server_addr: 0.0.0.0:7330

@@ -1,7 +1,5 @@
-#-*- coding:utf-8 -*-
-
-kafka_addr: 192.168.120.90:9092
-mongo_addr: mongodb://wsp:wsp123456@192.168.120.90:27017
-monitor_addr: 192.168.120.113:7311
+kafka_addr: <KAFKA_IP>:<KAFKA_PORT>
+mongo_addr: mongodb://<USERNAME>:<PASSWORD>@<MONGODB_IP>:<MONGODB_PORT>
+monitor_server_addr: <MONITOR_IP>:<MONITOR_PORT>
 downloader_clients: 200
 #task_progress_inspect_time: 60

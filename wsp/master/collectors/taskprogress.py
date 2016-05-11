@@ -20,7 +20,7 @@ class TaskProgressCollector:
         self._sys_config = sys_config
         self._local_config = local_config
         self._inspect_time = self._sys_config.task_progress_inspect_time
-        master_addr = self._local_config.rpc_addr
+        master_addr = self._local_config.master_rpc_addr
         colon = master_addr.rindex(":")
         self._master_addr = "http://127.0.0.1%s" % master_addr[colon:]
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)

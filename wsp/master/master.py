@@ -41,7 +41,7 @@ class Master(object):
 
     def __init__(self, master_config, sys_config):
         assert isinstance(master_config, MasterConfig) and isinstance(sys_config, SystemConfig), "Wrong configuration"
-        log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (master_config.rpc_addr,
+        log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (master_config.master_rpc_addr,
                                                                                       sys_config.kafka_addr,
                                                                                       sys_config.mongo_addr))
         self._config = master_config
@@ -56,7 +56,7 @@ class Master(object):
         self._collector_manager.open()
 
     def _start_rpc_server(self):
-        log.info("Start master RPC at %s" % self._config.rpc_addr)
+        log.info("Start master RPC at %s" % self._config.master_rpc_addr)
         t = threading.Thread(target=self._rpc_server.serve_forever)
         t.start()
 
@@ -65,7 +65,7 @@ class Master(object):
         return self._mongo_client[db_name][col_name]
 
     def _create_rpc_server(self):
-        host, port = self._config.rpc_addr.split(":")
+        host, port = self._config.master_rpc_addr.split(":")
         port = int(port)
         server = MasterRpcServer((host, port), allow_none=True)
         server.register_function(self.create_task)

@@ -1,11 +1,11 @@
 # coding=utf-8
 
-DEFAULT_RPC_ADDR = "0.0.0.0:7310"
-DEFAULT_MONITOR_ADDR = "0.0.0.0:7311"
+DEFAULT_MASTER_RPC_ADDR = "0.0.0.0:7310"
+DEFAULT_MONITOR_SERVER_ADDR = "0.0.0.0:7330"
 
 
 class MasterConfig:
 
     def __init__(self, **kw):
-        self.rpc_addr = kw.get("rpc_addr", DEFAULT_RPC_ADDR)
-        self.monitor_addr = kw.get("monitor_addr", DEFAULT_MONITOR_ADDR)
+        self.master_rpc_addr = kw.get("master_rpc_addr", DEFAULT_MASTER_RPC_ADDR)
+        self.monitor_server_addr = kw.get("monitor_server_addr", DEFAULT_MONITOR_SERVER_ADDR)

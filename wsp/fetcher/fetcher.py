@@ -18,7 +18,7 @@ from wsp.http import HttpRequest, HttpResponse
 from wsp.spider import Spider
 from .config import FetcherConfig
 from .taskmanager import TaskManager
-from .reporters import ReporterManager
+from .reportermanager import ReporterManager
 
 log = logging.getLogger(__name__)
 
@@ -27,12 +27,12 @@ class Fetcher:
 
     def __init__(self, config):
         assert isinstance(config, FetcherConfig), "Wrong configuration"
-        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s" % (config.master_rpc_addr, config.rpc_addr))
+        log.debug("New fetcher with master_rpc_addr=%s, rpc_addr=%s" % (config.master_rpc_addr, config.fetcher_rpc_addr))
         self._config = config
         self.master_addr = self._config.master_rpc_addr
         if not self.master_addr.startswith("http://"):
             self.master_addr = "http://%s" % self.master_addr
-        self._host, self._port = self._config.rpc_addr.split(":")
+        self._host, self._port = self._config.fetcher_rpc_addr.split(":")
         self._port = int(self._port)
         self._sys_config = self._pull_sys_config_from_master()
         self.isRunning = False
