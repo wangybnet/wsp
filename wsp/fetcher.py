@@ -57,20 +57,20 @@ class Fetcher:
         self._addr = None
 
     def _pull_sys_config_from_master(self):
-        rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        conf = SystemConfig(**rpc_client.system_config())
+        with ServerProxy(self.master_addr, allow_none=True) as rpc_client:
+            conf = SystemConfig(**rpc_client.system_config())
         log.debug("Get the system configuration={kafka_addr=%s, mongo_addr=%s}" % (conf.kafka_addr, conf.mongo_addr))
         return conf
 
     def _register_on_master(self):
         log.info("Register on the master at %s" % self.master_addr)
-        rpc_client = ServerProxy(self.master_addr, allow_none=True)
-        self._addr = rpc_client.register_fetcher(self._port)
+        with ServerProxy(self.master_addr, allow_none=True) as rpc_client:
+            self._addr = rpc_client.register_fetcher(self._port)
 
     def _create_rpc_server(self):
         server = SimpleXMLRPCServer((self._host, self._port), allow_none=True)
-        server.register_function(self.changeTasks)
-        server.register_function(self.new_task)
+        server.register_function(self.change_tasks)
+        server.register_function(self.add_task)
         return server
 
     def start(self):
@@ -86,7 +86,7 @@ class Fetcher:
         t.start()
 
     # NOTE: The tasks here is a list of task IDs.
-    def changeTasks(self, tasks):
+    def change_tasks(self, tasks):
         topics = [t for t in tasks]
         with self._task_dict_lock:
             with self._subscribe_lock:
@@ -106,7 +106,7 @@ class Fetcher:
 
     主要作用是将起始的URL导入Kafka，在分布式环境下多个Fetch会重复导入起始的URL，这一问题由去重中间件解决。
     """
-    def new_task(self, task_id):
+    def add_task(self, task_id):
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -124,11 +124,11 @@ class Fetcher:
                                                     start_urls,
                                                     middleware=self._task_manager.spidermws(task_id))):
                 if isinstance(res, HttpRequest):
-                    self.pushReq(task_id, res)
+                    self.push_req(task_id, res)
         except Exception:
             log.warning("Unexpected error occurred when handing start requests", exc_info=True)
 
-    def pushReq(self, topic, req):
+    def push_req(self, topic, req):
         log.debug("Push request (url=%s) into the topic %s" % (req.url, topic))
         temp_req = pickle.dumps(req)
         self.producer.send(topic, temp_req)
@@ -165,15 +165,15 @@ class Fetcher:
 
     def _push_downloader_task(self, task_id, req):
         self.downloader.add_task(req,
-                                 self.saveResult,
+                                 self.save_result,
                                  middleware=self._task_manager.downloadermws(task_id))
 
-    async def saveResult(self, request, result):
+    async def save_result(self, request, result):
         req_id = id(request)
         try:
             task_id = self._request_task[req_id]
             if isinstance(result, HttpRequest):
-                self.pushReq(task_id, result)
+                self.push_req(task_id, result)
                 self.producer.flush()
             elif isinstance(result, HttpResponse):
                 # bind HttpRequest
@@ -183,7 +183,7 @@ class Fetcher:
                                                result,
                                                middleware=self._task_manager.spidermws(task_id))):
                     if isinstance(res, HttpRequest):
-                        self.pushReq(task_id, res)
+                        self.push_req(task_id, res)
                 self.producer.flush()
             else:
                 log.debug("Got an %s error (%s) when request %s" % (type(result), result, request.url))

@@ -49,8 +49,8 @@ class TaskProgressCollector:
         for task_id in [i for i in self._tasks.keys()]:
             if not self._tasks[task_id].updated:
                 log.debug("The task %s has not been updated in the last %s seconds" % (task_id, self._inspect_time))
-                client = ServerProxy(self._master_addr)
-                client.finish_task(task_id)
+                with ServerProxy(self._master_addr) as client:
+                    client.finish_task(task_id)
                 self._tasks.pop(task_id)
                 self._tasks_parts.pop(task_id)
             else:

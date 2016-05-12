@@ -192,20 +192,20 @@ class FetcherManager:
     def _notice_change_tasks(self, fetcher_addr=None):
         log.debug("Notice %s to change the tasks" % (fetcher_addr if fetcher_addr else "all the fetchers"))
         if fetcher_addr:
-            rpcClient = ServerProxy(fetcher_addr, allow_none=True)
-            rpcClient.changeTasks(self.running_tasks)
+            with ServerProxy(fetcher_addr, allow_none=True) as rpc_client:
+                rpc_client.change_tasks(self.running_tasks)
         else:
             for f in self.fetcherList:
-                rpcClient = ServerProxy(f, allow_none=True)
-                rpcClient.changeTasks(self.running_tasks)
+                with ServerProxy(f, allow_none=True) as rpc_client:
+                    rpc_client.change_tasks(self.running_tasks)
         # FIXME: 默认返回True，之后可能根据RPC连接情况修改
         return True
 
     def _notice_new_task(self, task_id):
         log.debug("Notice the new task %s" % task_id)
         for f in self.fetcherList:
-            rpcClient = ServerProxy(f, allow_none=True)
-            rpcClient.new_task(task_id)
+            with ServerProxy(f, allow_none=True) as rpc_client:
+                rpc_client.add_task(task_id)
         # FIXME: 默认返回True，之后可能根据RPC连接情况修改
         return True
 
