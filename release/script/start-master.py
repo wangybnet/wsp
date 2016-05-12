@@ -6,9 +6,8 @@ import logging
 import yaml
 
 import wsp
-from wsp.master.master import Master
-from wsp.master.config import MasterConfig
-from wsp.config.system import SystemConfig
+from wsp.master import Master
+from wsp.config import MasterConfig, SystemConfig
 
 
 if __name__ == "__main__":

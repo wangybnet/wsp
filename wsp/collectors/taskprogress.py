@@ -7,8 +7,7 @@ from xmlrpc.client import ServerProxy
 from pymongo import MongoClient
 from bson import ObjectId
 
-from wsp.config import SystemConfig
-from ..config import MasterConfig
+from wsp.config import SystemConfig, MasterConfig
 
 log = logging.getLogger(__name__)
 

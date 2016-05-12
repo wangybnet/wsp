@@ -3,10 +3,11 @@
 import inspect
 import logging
 
-from wsp.config import task as tc
-from wsp.http import HttpRequest
-from wsp.utils.config import load_object
-from wsp import errors
+from . import errors
+from .config import task as tc
+from .http import HttpRequest
+from .utils.config import load_object
+from .middleware import MiddlewareManager
 
 log = logging.getLogger(__name__)
 
@@ -129,3 +130,50 @@ class SpiderFactory:
             else:
                 spiders.append(spider)
         return spiders
+
+
+class SpiderMiddlewareManager(MiddlewareManager):
+    """
+    Spider中间件管理器
+    """
+
+    def __init__(self, *middlewares):
+        self._input_handlers = []
+        self._output_handlers = []
+        self._error_handlers = []
+        self._start_requests_handlers = []
+        MiddlewareManager.__init__(self, *middlewares)
+
+    def _add_middleware(self, middleware):
+        if hasattr(middleware, "handle_input"):
+            self._input_handlers.append(middleware.handle_input)
+        if hasattr(middleware, "handle_output"):
+            self._output_handlers.append(middleware.handle_output)
+        if hasattr(middleware, "handle_error"):
+            self._error_handlers.append(middleware.handle_error)
+        if hasattr(middleware, "handle_start_requests"):
+            self._start_requests_handlers.append(middleware.handle_start_requests)
+
+    @property
+    def input_handlers(self):
+        return self._input_handlers
+
+    @property
+    def output_handlers(self):
+        return self._output_handlers
+
+    @property
+    def error_handlers(self):
+        return self._error_handlers
+
+    @property
+    def start_requests_handlers(self):
+        return self._start_requests_handlers
+
+    @classmethod
+    def _middleware_list_from_config(cls, config):
+        mw_list = config.get(tc.SPIDER_MIDDLEWARES, [])
+        if not isinstance(mw_list, list):
+            mw_list = [mw_list]
+        log.debug("Spider middleware list: %s" % mw_list)
+        return mw_list

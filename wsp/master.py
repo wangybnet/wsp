@@ -1,25 +1,50 @@
-# encoding: utf-8
+# coding=utf-8
 
+import time
 import logging
 import threading
 from xmlrpc.server import SimpleXMLRPCServer
-import time
+from xmlrpc.client import ServerProxy
+
 
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-from wsp.config import SystemConfig
-from .fetchermanager import FetcherManager
-from .config import MasterConfig
-from .task import WspTask
-from .task import TASK_CREATE
-from .collectors import CollectorManager
+from .config import SystemConfig, MasterConfig
+from .monitor import MonitorServer
+from .collectors import TaskProgressCollector
 
 log = logging.getLogger(__name__)
 
+TASK_CREATE = 0
+TASK_RUNNING = 1
+TASK_STOPPED = 2
+TASK_FINISHED = 3
+TASK_REMOVED = 4
+
+
+class WspTask:
+
+    def __init__(self, **kw):
+        self.id = kw.get("id", "%s" % ObjectId())
+        self.create_time = kw.get("create_time", None)
+        self.finish_time = kw.get("finish_time", None)
+        self.status = kw.get("status", None)
+        self.desc = kw.get("desc", None)
+
+    def to_dict(self):
+        return {
+            '_id': ObjectId(self.id),
+            'id': self.id,
+            'create_time': self.create_time,
+            'finish_time': self.finish_time,
+            'status': self.status,
+            'desc': self.desc
+        }
+
 
 class MasterRpcServer(SimpleXMLRPCServer):
-    
+
     def __init__(self, *args, **kw):
         self.client_ip = None
         super(MasterRpcServer, self).__init__(*args, **kw)
@@ -143,3 +168,93 @@ class Master(object):
         running_tasks = self.fetcher_manager.running_tasks
         log.debug("Return the running tasks: %s" % running_tasks)
         return running_tasks
+
+
+class FetcherManager:
+
+    def __init__(self, sys_config):
+        assert isinstance(sys_config, SystemConfig), "Wrong configuration"
+        log.debug("New fetcher manager with kafka_addr=%s, mongo_addr=%s" % (sys_config.kafka_addr, sys_config.mongo_addr))
+        self._sys_config = sys_config
+        self.running_tasks = []
+        self.fetcherList = []
+        self._mongo_client = MongoClient(self._sys_config.mongo_addr)
+        self.taskTable = self._mongo_client[self._sys_config.mongo_db][self._sys_config.mongo_task_tbl]
+
+    def add_fetcher(self, fetcher_addr):
+        if not fetcher_addr.startswith("http://"):
+            fetcher_addr = "http://%s" % fetcher_addr
+        if fetcher_addr not in self.fetcherList:
+            log.debug("Add a new fetcher %s" % fetcher_addr)
+            self.fetcherList.append(fetcher_addr)
+            self._notice_change_tasks(fetcher_addr)
+
+    def _notice_change_tasks(self, fetcher_addr=None):
+        log.debug("Notice %s to change the tasks" % (fetcher_addr if fetcher_addr else "all the fetchers"))
+        if fetcher_addr:
+            rpcClient = ServerProxy(fetcher_addr, allow_none=True)
+            rpcClient.changeTasks(self.running_tasks)
+        else:
+            for f in self.fetcherList:
+                rpcClient = ServerProxy(f, allow_none=True)
+                rpcClient.changeTasks(self.running_tasks)
+        # FIXME: 默认返回True，之后可能根据RPC连接情况修改
+        return True
+
+    def _notice_new_task(self, task_id):
+        log.debug("Notice the new task %s" % task_id)
+        for f in self.fetcherList:
+            rpcClient = ServerProxy(f, allow_none=True)
+            rpcClient.new_task(task_id)
+        # FIXME: 默认返回True，之后可能根据RPC连接情况修改
+        return True
+
+    def delete_task(self, task_id):
+        # TODO: 从Kafka中删除topic
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_REMOVED}})
+        self.running_tasks.remove(task_id)
+        return self._notice_change_tasks()
+
+    def stop_task(self, task_id):
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_STOPPED}})
+        self.running_tasks.remove(task_id)
+        return self._notice_change_tasks()
+
+    def finish_task(self, task_id):
+        if task_id in self.running_tasks:
+            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_FINISHED,
+                                                                            "finish_time": int(time.time())}})
+            self.running_tasks.remove(task_id)
+            return self._notice_change_tasks()
+        return False
+
+    def start_task(self, task_id):
+        task_dict = self.taskTable.find_one({"_id": ObjectId(task_id)})
+        task = WspTask(**task_dict)
+        if task.status == 0:
+            if not self._notice_new_task(task_id):
+                return False
+        if task_id not in self.running_tasks:
+            self.running_tasks.append(task_id)
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_RUNNING}})
+        return self._notice_change_tasks()
+
+    def get_running_tasks(self):
+        return self.running_tasks
+
+
+class CollectorManager:
+
+    def __init__(self, sys_config, local_config):
+        assert isinstance(sys_config, SystemConfig) and isinstance(local_config, MasterConfig), "Wrong configuration"
+        self._sys_config = sys_config
+        self._local_config = local_config
+        self._task_progress_collector = TaskProgressCollector(self._sys_config, self._local_config)
+        self._monitor_server = MonitorServer(self._local_config.monitor_server_addr,
+                                             self._task_progress_collector)
+
+    def open(self):
+        self._monitor_server.start()
+
+    def close(self):
+        self._monitor_server.stop()

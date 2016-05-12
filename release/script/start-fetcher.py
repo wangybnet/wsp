@@ -6,8 +6,8 @@ import logging
 import yaml
 
 import wsp
-from wsp.fetcher.fetcher import Fetcher
-from wsp.fetcher.config import FetcherConfig
+from wsp.fetcher import Fetcher
+from wsp.config import FetcherConfig
 
 
 if __name__ == "__main__":

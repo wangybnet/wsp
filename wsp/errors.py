@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from wsp.http.error import HttpError
+from .http import HttpError
 
 
 class IgnoreRequest(Exception):
