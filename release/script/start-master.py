@@ -1,7 +1,12 @@
 # coding=utf-8
 
 import os
+import sys
 import logging
+
+wsp_lib = "%s/lib" % os.getenv("WSP_HOME")
+if wsp_lib not in sys.path:
+    sys.path.append(wsp_lib)
 
 import yaml
 
