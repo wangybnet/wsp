@@ -41,5 +41,5 @@ class RetryMiddleware:
             request.meta["_retry_times"] = retry_times
             return request.copy()
         else:
-            log.info("The WSP request(url=%s) has been retried %d times, and it will be aborted." % (request.url, self._max_retry_times))
+            log.info("The request(url=%s) has been retried %d times, and it will be aborted." % (request.url, self._max_retry_times))
             raise IgnoreRequest()

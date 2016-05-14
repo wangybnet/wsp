@@ -16,43 +16,6 @@ from .collectors import TaskProgressCollector
 
 log = logging.getLogger(__name__)
 
-TASK_CREATE = 0
-TASK_RUNNING = 1
-TASK_STOPPED = 2
-TASK_FINISHED = 3
-TASK_REMOVED = 4
-
-
-class WspTask:
-
-    def __init__(self, **kw):
-        self.id = kw.get("id", "%s" % ObjectId())
-        self.create_time = kw.get("create_time", None)
-        self.finish_time = kw.get("finish_time", None)
-        self.status = kw.get("status", None)
-        self.desc = kw.get("desc", None)
-
-    def to_dict(self):
-        return {
-            '_id': ObjectId(self.id),
-            'id': self.id,
-            'create_time': self.create_time,
-            'finish_time': self.finish_time,
-            'status': self.status,
-            'desc': self.desc
-        }
-
-
-class MasterRpcServer(SimpleXMLRPCServer):
-
-    def __init__(self, *args, **kw):
-        self.client_ip = None
-        super(MasterRpcServer, self).__init__(*args, **kw)
-
-    def process_request(self, request, client_address):
-        self.client_ip, _ = client_address
-        return super(MasterRpcServer, self).process_request(request, client_address)
-
 
 class Master(object):
     """
@@ -107,7 +70,7 @@ class Master(object):
 
     def create_task(self, task_info, task_config_zip):
         task = WspTask(**task_info)
-        task.status = TASK_CREATE
+        task.status = WspTask.TASK_CREATE
         if task.create_time is None:
             task.create_time = int(time.time())
         log.info("Create the task %s" % task.to_dict())
@@ -170,6 +133,17 @@ class Master(object):
         return running_tasks
 
 
+class MasterRpcServer(SimpleXMLRPCServer):
+
+    def __init__(self, *args, **kw):
+        self.client_ip = None
+        super(MasterRpcServer, self).__init__(*args, **kw)
+
+    def process_request(self, request, client_address):
+        self.client_ip, _ = client_address
+        return super(MasterRpcServer, self).process_request(request, client_address)
+
+
 class FetcherManager:
 
     def __init__(self, sys_config):
@@ -211,18 +185,18 @@ class FetcherManager:
 
     def delete_task(self, task_id):
         # TODO: 从Kafka中删除topic
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_REMOVED}})
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": WspTask.TASK_REMOVED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
     def stop_task(self, task_id):
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_STOPPED}})
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": WspTask.TASK_STOPPED}})
         self.running_tasks.remove(task_id)
         return self._notice_change_tasks()
 
     def finish_task(self, task_id):
         if task_id in self.running_tasks:
-            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_FINISHED,
+            self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": WspTask.TASK_FINISHED,
                                                                             "finish_time": int(time.time())}})
             self.running_tasks.remove(task_id)
             return self._notice_change_tasks()
@@ -236,7 +210,7 @@ class FetcherManager:
                 return False
         if task_id not in self.running_tasks:
             self.running_tasks.append(task_id)
-        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": TASK_RUNNING}})
+        self.taskTable.update_one({"_id": ObjectId(task_id)}, {"$set": {"status": WspTask.TASK_RUNNING}})
         return self._notice_change_tasks()
 
     def get_running_tasks(self):
@@ -258,3 +232,28 @@ class CollectorManager:
 
     def close(self):
         self._monitor_server.stop()
+
+
+class WspTask:
+    TASK_CREATE = 0
+    TASK_RUNNING = 1
+    TASK_STOPPED = 2
+    TASK_FINISHED = 3
+    TASK_REMOVED = 4
+
+    def __init__(self, **kw):
+        self.id = kw.get("id", "%s" % ObjectId())
+        self.create_time = kw.get("create_time", None)
+        self.finish_time = kw.get("finish_time", None)
+        self.status = kw.get("status", None)
+        self.desc = kw.get("desc", None)
+
+    def to_dict(self):
+        return {
+            '_id': ObjectId(self.id),
+            'id': self.id,
+            'create_time': self.create_time,
+            'finish_time': self.finish_time,
+            'status': self.status,
+            'desc': self.desc
+        }

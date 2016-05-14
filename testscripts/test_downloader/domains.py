@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from urllib import request
-
 GLOBAL_DOMAINS = ["yahoo.com",
                   "live.com",
                   "msn.com",
@@ -793,16 +791,3 @@ CHINESE_DOMAINS = ["baidu.com",
                    "dangdang.com",
                    "bitauto.com",
                    "suning.com"]
-
-
-if __name__ == "__main__":
-    with open("top1000_domains.txt", "r") as f:
-        for line in f.readlines():
-            line = line.strip()
-            try:
-                data = request.urlopen("http://" + line, timeout=5).read()
-            except Exception:
-                # print("Error: ", line)
-                pass
-            else:
-                print("\"" + line + "\",")

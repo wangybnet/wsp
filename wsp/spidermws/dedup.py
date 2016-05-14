@@ -5,7 +5,7 @@ import logging
 from pymongo import MongoClient
 
 from wsp.http import HttpRequest
-from wsp.config import task as tc
+from wsp.config import TaskConfig
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class MongoDedupMiddleware:
 
     @classmethod
     def from_config(cls, config):
-        task_id = config.get(tc.TASK_ID)
+        task_id = config.get(TaskConfig.TASK_ID)
         return cls(config.get("dedup_mongo_addr"),
                    config.get("dedup_mongo_db", "wsp"),
                    config.get("dedup_mongo_tbl", "dedup_%s" % task_id))

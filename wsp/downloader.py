@@ -7,7 +7,7 @@ import threading
 import aiohttp
 
 from . import errors
-from .config import task as tc
+from .config import TaskConfig
 from .middleware import MiddlewareManager
 from .http import HttpRequest, HttpResponse, HttpError
 
@@ -189,7 +189,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
 
     @classmethod
     def _middleware_list_from_config(cls, config):
-        mw_list = config.get(tc.DOWNLOADER_MIDDLEWARES, [])
+        mw_list = config.get(TaskConfig.DOWNLOADER_MIDDLEWARES, [])
         if not isinstance(mw_list, list):
             mw_list = [mw_list]
         log.debug("Downloader middleware list: %s" % mw_list)

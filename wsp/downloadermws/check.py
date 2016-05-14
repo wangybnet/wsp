@@ -9,9 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class CheckMiddleware:
-    """
-    判断爬虫是否被封
-    """
+
     def __init__(self, check):
         self._check = check
 

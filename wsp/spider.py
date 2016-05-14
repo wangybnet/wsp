@@ -4,7 +4,7 @@ import inspect
 import logging
 
 from . import errors
-from .config import task as tc
+from .config import TaskConfig
 from .http import HttpRequest
 from .utils.config import load_object
 from .middleware import MiddlewareManager
@@ -112,7 +112,7 @@ class SpiderFactory:
 
     @staticmethod
     def create(config):
-        spider_list = config.get(tc.SPIDERS, [])
+        spider_list = config.get(TaskConfig.SPIDERS, [])
         if not isinstance(spider_list, list):
             spider_list = [spider_list]
         log.debug("Spider list: %s" % spider_list)
@@ -172,7 +172,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
 
     @classmethod
     def _middleware_list_from_config(cls, config):
-        mw_list = config.get(tc.SPIDER_MIDDLEWARES, [])
+        mw_list = config.get(TaskConfig.SPIDER_MIDDLEWARES, [])
         if not isinstance(mw_list, list):
             mw_list = [mw_list]
         log.debug("Spider middleware list: %s" % mw_list)

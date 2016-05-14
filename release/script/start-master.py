@@ -4,9 +4,17 @@ import os
 import sys
 import logging
 
-wsp_lib = "%s/lib" % os.getenv("WSP_HOME")
-if wsp_lib not in sys.path:
-    sys.path.append(wsp_lib)
+wsp_home = os.getenv("WSP_HOME")
+if not wsp_home:
+    wsp_home = "../"
+wsp_conf_dir = os.getenv("WSP_CONF_DIR")
+if not wsp_conf_dir:
+    wsp_conf_dir = "%s/conf" % wsp_home
+wsp_lib_dir = os.getenv("WSP_LIB_DIR")
+if not wsp_lib_dir:
+    wsp_lib_dir = "%s/lib" % wsp_home
+if os.path.exists(wsp_conf_dir) and (wsp_lib_dir not in sys.path):
+    sys.path.append(wsp_lib_dir)
 
 import yaml
 
@@ -26,9 +34,8 @@ if __name__ == "__main__":
             print("Cannot load '%s'" % yaml_file)
             exit(1)
 
-    conf_dir = os.getenv("WSP_CONF_DIR")
-    master_conf = get_yaml("%s/master.yaml" % conf_dir)
-    system_conf = get_yaml("%s/system.yaml" % conf_dir)
+    master_conf = get_yaml("%s/master.yaml" % wsp_conf_dir)
+    system_conf = get_yaml("%s/system.yaml" % wsp_conf_dir)
     wsp.set_logger(getattr(logging, os.getenv("WSP_LOG_LEVEL", "INFO").upper(), "INFO"),
                    format="%(asctime)s %(name)s: [%(levelname)s] %(message)s",
                    date_format="%d/%b/%Y %H:%M:%S")

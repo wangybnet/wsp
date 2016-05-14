@@ -17,7 +17,6 @@ from kafka import KafkaProducer
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-from .config import task as tc
 from .http import HttpRequest, HttpResponse
 from .config import SystemConfig, FetcherConfig, TaskConfig
 from .downloader import Downloader, DownloaderMiddlewareManager
@@ -116,7 +115,7 @@ class Fetcher:
 
     async def _new_task(self, task_id):
         spiders = self._task_manager.spiders(task_id)
-        start_urls = self._task_manager.task_config(task_id).get(tc.START_URLS, [])
+        start_urls = self._task_manager.task_config(task_id).get(TaskConfig.START_URLS, [])
         if not isinstance(start_urls, list):
             start_urls = [start_urls]
         try:
@@ -269,7 +268,7 @@ class TaskManager:
         config_yaml = "%s/%s" % (code_dir, self._sys_config.task_config_file)
         with open(config_yaml, "r", encoding="utf-8") as f:
             task_config = TaskConfig(**yaml.load(f))
-            task_config[tc.TASK_ID] = task_id
+            task_config[TaskConfig.TASK_ID] = task_id
         log.debug("Loaded the configuration of the task %s" % task_id)
         self._load_custom_objects(task_id, task_config, code_dir)
         return task_config
