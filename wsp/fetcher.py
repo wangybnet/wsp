@@ -50,7 +50,6 @@ class Fetcher:
         self._reporter_manager = ReporterManager(self._sys_config)
         self._request_task = {}
         self.taskDict = {}
-        self._task_dict_lock = threading.Lock()
         self._subscribe_lock = threading.Lock()
         # NOTE: Fetcher的地址在向Master注册时获取
         self._addr = None
@@ -87,18 +86,17 @@ class Fetcher:
     # NOTE: The tasks here is a list of task IDs.
     def change_tasks(self, tasks):
         topics = [t for t in tasks]
-        with self._task_dict_lock:
-            with self._subscribe_lock:
-                log.debug("Subscribe topics %s" % topics)
-                if topics:
-                    self.consumer.subscribe(topics)
-                self.taskDict = {}
-                for t in tasks:
-                    self.taskDict[t] = None
-                # set current tasks of task manager
-                self._task_manager.set_tasks(*tasks)
-                # set current tasks of collector managter
-                self._reporter_manager.set_tasks(*tasks)
+        with self._subscribe_lock:
+            log.debug("Subscribe topics %s" % topics)
+            if topics:
+                self.consumer.subscribe(topics)
+            self.taskDict = {}
+            for t in tasks:
+                self.taskDict[t] = None
+            # set current tasks of task manager
+            self._task_manager.set_tasks(*tasks)
+            # set current tasks of collector managter
+            self._reporter_manager.set_tasks(*tasks)
 
     """
     通知添加了一个新任务
@@ -136,7 +134,7 @@ class Fetcher:
 
     def _pull_req(self):
         while self.isRunning:
-            with self._task_dict_lock:
+            with self._subscribe_lock:
                 no_work = not self.taskDict
             if no_work:
                 sleep_time = self._sys_config.no_work_sleep_time
