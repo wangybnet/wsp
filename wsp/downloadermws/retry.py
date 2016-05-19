@@ -2,7 +2,7 @@
 
 import logging
 
-from wsp.errors import AccessDeny, ResponseNotMatch, IgnoreRequest
+from wsp.errors import ResponseNotMatch, IgnoreRequest
 from wsp.http import HttpError
 
 log = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class RetryMiddleware:
     """
 
     # 需要重试的异常的集合
-    RETRY_ERRORS = (HttpError, AccessDeny, ResponseNotMatch)
+    RETRY_ERRORS = (HttpError, ResponseNotMatch)
     # 需要重试的HTTP状态码的集合
     RETRY_HTTP_STATUS = (500, 502, 503, 504, 408)
 

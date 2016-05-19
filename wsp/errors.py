@@ -7,12 +7,8 @@ class IgnoreRequest(Exception):
     pass
 
 
-class AccessDeny(Exception):
-    pass
-
-
 class ResponseNotMatch(Exception):
     pass
 
 
-ERRORS = (HttpError, IgnoreRequest, AccessDeny, ResponseNotMatch)
+ERRORS = (HttpError, IgnoreRequest, ResponseNotMatch)
