@@ -18,22 +18,14 @@ log = logging.getLogger(__name__)
 
 
 class Master(object):
-    """
-    Master类的功能:
-        [1].新建任务,任务建立成功返回任务ID
-        [2].删除任务,删除成功返回true
-        [3].启动单个任务,启动成功返回true
-        [4].停止单个任务,停止成功返回true
-        [5].返回配置文件信息供fetcher使用
-    """
 
-    def __init__(self, master_config, sys_config):
-        assert isinstance(master_config, MasterConfig) and isinstance(sys_config, SystemConfig), "Wrong configuration"
+    def __init__(self, master_config, system_config):
+        assert isinstance(master_config, MasterConfig) and isinstance(system_config, SystemConfig), "Wrong configuration"
         log.debug("New master with addr=%s, config={kafka_addr=%s, mongo_addr=%s}" % (master_config.master_rpc_addr,
-                                                                                      sys_config.kafka_addr,
-                                                                                      sys_config.mongo_addr))
+                                                                                      system_config.kafka_addr,
+                                                                                      system_config.mongo_addr))
         self._config = master_config
-        self._sys_config = sys_config
+        self._sys_config = system_config
         self.fetcher_manager = FetcherManager(self._sys_config)
         self._rpc_server = self._create_rpc_server()
         self._mongo_client = MongoClient(self._sys_config.mongo_addr)

@@ -1,5 +1,7 @@
 # coding=utf-8
 
+import re
+
 
 class MasterConfig:
     DEFAULT_MASTER_RPC_ADDR = "0.0.0.0:7310"
@@ -79,3 +81,78 @@ class TaskConfig:
 
     def __setitem__(self, key, value):
         self._config[key] = value
+
+
+class AgentConfig:
+    DEFAULT_AGENT_SERVER_ADDR = "0.0.0.0:7350"
+    DEFAULT_PROXY_QUEUE_SIZE = 10000
+    DEFAULT_BACK_QUEUE_SIZE = 1000000
+
+    class Page:
+
+        def __init__(self, url, page=None):
+            self.urls = []
+            if page:
+                start, end = page.split("-")
+                start, end = int(start), int(end)
+                i = start
+                while i <= end:
+                    self.urls.append(url.replace("[page]", str(i)))
+                    i += 1
+            else:
+                self.urls.append(url)
+
+    class Match:
+
+        def __init__(self, url_match, proxy_match):
+            self._url_match = re.compile(url_match)
+            self._proxy_match = re.compile(proxy_match.encode("utf-8"))
+
+        def findall(self, url, body):
+            res = []
+            if self._url_match.search(url):
+                for i in self._proxy_match.findall(body):
+                    if isinstance(i, tuple):
+                        res.append("%s:%s" % (i[0].decode("utf-8"), i[1].decode("utf-8")))
+                    else:
+                        res.append(i.decode("utf-8"))
+            return res
+
+    class Test:
+
+        def __init__(self, url, timeout=20, search=None):
+            self.url = url
+            self.timeout = timeout
+            self._url_match, self._body_match = None, None
+            if search:
+                if "url" in search:
+                    self._url_match = re.compile(search["url"])
+                if "body" in search:
+                    self._body_match = re.compile(search["body"].encode("utf-8"))
+
+        def match(self, url, body):
+            if self._url_match and not self._url_match.search(url):
+                return False
+            if self._body_match and not self._body_match.search(body):
+                return False
+            return True
+
+    def __init__(self, **kw):
+        start_pages = kw.get("start_pages", [])
+        if not isinstance(start_pages, list):
+            start_pages = [start_pages]
+        self.start_pages = [self.Page(**i) for i in start_pages]
+        update_pages = kw.get("update_pages", [])
+        if not isinstance(update_pages, list):
+            update_pages = [update_pages]
+        self.update_pages = [self.Page(**i) for i in update_pages]
+        proxy_rules = kw.get("proxy_rules", [])
+        if not isinstance(proxy_rules, list):
+            proxy_rules = [proxy_rules]
+        self.proxy_match = [self.Match(**i) for i in proxy_rules]
+        http_test = kw.get("http_test", [])
+        if not isinstance(http_test, list):
+            http_test = [http_test]
+        self.http_test = [self.Test(**i) for i in http_test]
+        self.agent_dir = kw.get("agent_dir")
+        assert self.agent_dir is not None, "Must assign the directory that the agent uses"
