@@ -86,9 +86,12 @@ class TaskConfig:
 class AgentConfig:
     DEFAULT_AGENT_SERVER_ADDR = "0.0.0.0:7350"
     DEFAULT_PROXY_QUEUE_SIZE = 10000
-    DEFAULT_BACK_QUEUE_SIZE = 1000000
+    DEFAULT_BACKUP_QUEUE_SIZE = 1000000
+    DEFAULT_PROXY_UPDATE_TIME = 300
+    DEFAULT_PROXY_CHECK_TIME = 300
+    DEFAULT_PROXY_BLOCK_TIME = 86400
 
-    class Page:
+    class _Page:
 
         def __init__(self, url, page=None):
             self.urls = []
@@ -102,7 +105,7 @@ class AgentConfig:
             else:
                 self.urls.append(url)
 
-    class Match:
+    class _Match:
 
         def __init__(self, url_match, proxy_match):
             self._url_match = re.compile(url_match)
@@ -118,7 +121,7 @@ class AgentConfig:
                         res.append(i.decode("utf-8"))
             return res
 
-    class Test:
+    class _Test:
 
         def __init__(self, url, timeout=20, search=None):
             self.url = url
@@ -138,21 +141,27 @@ class AgentConfig:
             return True
 
     def __init__(self, **kw):
+        self.agent_server_addr = kw.get("agent_server_addr", self.DEFAULT_AGENT_SERVER_ADDR)
         start_pages = kw.get("start_pages", [])
         if not isinstance(start_pages, list):
             start_pages = [start_pages]
-        self.start_pages = [self.Page(**i) for i in start_pages]
+        self.start_pages = [self._Page(**i) for i in start_pages]
         update_pages = kw.get("update_pages", [])
         if not isinstance(update_pages, list):
             update_pages = [update_pages]
-        self.update_pages = [self.Page(**i) for i in update_pages]
+        self.update_pages = [self._Page(**i) for i in update_pages]
         proxy_rules = kw.get("proxy_rules", [])
         if not isinstance(proxy_rules, list):
             proxy_rules = [proxy_rules]
-        self.proxy_match = [self.Match(**i) for i in proxy_rules]
+        self.proxy_match = [self._Match(**i) for i in proxy_rules]
         http_test = kw.get("http_test", [])
         if not isinstance(http_test, list):
             http_test = [http_test]
-        self.http_test = [self.Test(**i) for i in http_test]
+        self.http_test = [self._Test(**i) for i in http_test]
         self.agent_dir = kw.get("agent_dir")
         assert self.agent_dir is not None, "Must assign the directory that the agent uses"
+        self.proxy_queue_size = kw.get("proxy_queue_size", self.DEFAULT_PROXY_QUEUE_SIZE)
+        self.backup_queue_size = kw.get("backup_queue_size", self.DEFAULT_BACKUP_QUEUE_SIZE)
+        self.proxy_update_time = kw.get("proxy_update_time", self.DEFAULT_PROXY_UPDATE_TIME)
+        self.proxy_check_time = kw.get("proxy_check_time", self.DEFAULT_PROXY_CHECK_TIME)
+        self.proxy_block_time = kw.get("proxy_block_time", self.DEFAULT_PROXY_BLOCK_TIME)
