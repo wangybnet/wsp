@@ -133,11 +133,11 @@ class Fetcher:
         self._reporter_manager.record_pushed_request(task_id)
 
     def _pull_req(self):
+        sleep_time = self._sys_config.no_work_sleep_time
         while self.isRunning:
             with self._subscribe_lock:
                 no_work = not self.taskDict
             if no_work:
-                sleep_time = self._sys_config.no_work_sleep_time
                 log.debug("No work, and I will sleep %s seconds" % sleep_time)
                 time.sleep(sleep_time)
             else:
