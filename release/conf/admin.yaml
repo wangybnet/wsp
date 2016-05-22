@@ -1,2 +1,0 @@
-admin_server_addr: 0.0.0.0:7340
-master_rpc_addr: <MASTER_IP>:<MASTER_PORT>

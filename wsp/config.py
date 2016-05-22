@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import re
-
 
 class MasterConfig:
     DEFAULT_MASTER_RPC_ADDR = "0.0.0.0:7310"
@@ -81,87 +79,3 @@ class TaskConfig:
 
     def __setitem__(self, key, value):
         self._config[key] = value
-
-
-class AgentConfig:
-    DEFAULT_AGENT_SERVER_ADDR = "0.0.0.0:7350"
-    DEFAULT_PROXY_QUEUE_SIZE = 10000
-    DEFAULT_BACKUP_QUEUE_SIZE = 1000000
-    DEFAULT_PROXY_UPDATE_TIME = 300
-    DEFAULT_PROXY_CHECK_TIME = 300
-    DEFAULT_PROXY_BLOCK_TIME = 86400
-
-    class _Page:
-
-        def __init__(self, url, page=None):
-            self.urls = []
-            if page:
-                start, end = page.split("-")
-                start, end = int(start), int(end)
-                i = start
-                while i <= end:
-                    self.urls.append(url.replace("[page]", str(i)))
-                    i += 1
-            else:
-                self.urls.append(url)
-
-    class _Match:
-
-        def __init__(self, url_match, proxy_match):
-            self._url_match = re.compile(url_match)
-            self._proxy_match = re.compile(proxy_match.encode("utf-8"))
-
-        def findall(self, url, body):
-            res = []
-            if self._url_match.search(url):
-                for i in self._proxy_match.findall(body):
-                    if isinstance(i, tuple):
-                        res.append("%s:%s" % (i[0].decode("utf-8"), i[1].decode("utf-8")))
-                    else:
-                        res.append(i.decode("utf-8"))
-            return res
-
-    class _Test:
-
-        def __init__(self, url, timeout=20, search=None):
-            self.url = url
-            self.timeout = timeout
-            self._url_match, self._body_match = None, None
-            if search:
-                if "url" in search:
-                    self._url_match = re.compile(search["url"])
-                if "body" in search:
-                    self._body_match = re.compile(search["body"].encode("utf-8"))
-
-        def match(self, url, body):
-            if self._url_match and not self._url_match.search(url):
-                return False
-            if self._body_match and not self._body_match.search(body):
-                return False
-            return True
-
-    def __init__(self, **kw):
-        self.agent_server_addr = kw.get("agent_server_addr", self.DEFAULT_AGENT_SERVER_ADDR)
-        start_pages = kw.get("start_pages", [])
-        if not isinstance(start_pages, list):
-            start_pages = [start_pages]
-        self.start_pages = [self._Page(**i) for i in start_pages]
-        update_pages = kw.get("update_pages", [])
-        if not isinstance(update_pages, list):
-            update_pages = [update_pages]
-        self.update_pages = [self._Page(**i) for i in update_pages]
-        proxy_rules = kw.get("proxy_rules", [])
-        if not isinstance(proxy_rules, list):
-            proxy_rules = [proxy_rules]
-        self.proxy_match = [self._Match(**i) for i in proxy_rules]
-        http_test = kw.get("http_test", [])
-        if not isinstance(http_test, list):
-            http_test = [http_test]
-        self.http_test = [self._Test(**i) for i in http_test]
-        self.agent_dir = kw.get("agent_dir")
-        assert self.agent_dir is not None, "Must assign the directory that the agent uses"
-        self.proxy_queue_size = kw.get("proxy_queue_size", self.DEFAULT_PROXY_QUEUE_SIZE)
-        self.backup_queue_size = kw.get("backup_queue_size", self.DEFAULT_BACKUP_QUEUE_SIZE)
-        self.proxy_update_time = kw.get("proxy_update_time", self.DEFAULT_PROXY_UPDATE_TIME)
-        self.proxy_check_time = kw.get("proxy_check_time", self.DEFAULT_PROXY_CHECK_TIME)
-        self.proxy_block_time = kw.get("proxy_block_time", self.DEFAULT_PROXY_BLOCK_TIME)
