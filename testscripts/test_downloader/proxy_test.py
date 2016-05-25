@@ -60,7 +60,7 @@ class ProxyTest:
         with aiohttp.ClientSession(connector=aiohttp.ProxyConnector(proxy=proxy)) as session:
             with aiohttp.Timeout(20):
                 async with session.request("GET",
-                                           "https://wangyb.net") as resp:
+                                           "http://m.baidu.com") as resp:
                     body = await resp.read()
 
     async def _pick_proxy(self):

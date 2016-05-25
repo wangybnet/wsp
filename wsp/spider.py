@@ -3,7 +3,6 @@
 import inspect
 import logging
 
-from . import errors
 from .config import TaskConfig
 from .http import HttpRequest
 from .utils.config import load_object
@@ -29,14 +28,11 @@ class Spider:
             if middleware:
                 res = await cls._handle_output(response, res, middleware)
         except Exception as e:
-            if not isinstance(e, errors.ERRORS):
-                log.warning("Unexpected error occurred when crawling", exc_info=True)
             try:
                 if middleware:
                     await cls._handle_error(response, e, middleware)
-            except Exception as _e:
-                if not isinstance(_e, errors.ERRORS):
-                    log.warning("Unexpected error occurred when handling the error occurred when crawling", exc_info=True)
+            except Exception:
+                pass
             return ()
         else:
             return res

@@ -6,7 +6,6 @@ import threading
 
 import aiohttp
 
-from . import errors
 from .config import TaskConfig
 from .middleware import MiddlewareManager
 from .http import HttpRequest, HttpResponse, HttpError
@@ -56,15 +55,11 @@ class Downloader:
                 if _res:
                     res = _res
         except Exception as e:
-            if not isinstance(e, errors.ERRORS):
-                log.warning("Unexpected error occurred in downloader", exc_info=True)
             try:
                 res = None
                 if middleware:
                     res = await self._handle_error(request, e, middleware)
             except Exception as _e:
-                if not isinstance(_e, errors.ERRORS):
-                    log.warning("Unexpected error occurred when handling error in downloader", exc_info=True)
                 await callback(request, _e)
             else:
                 if res:
