@@ -38,6 +38,7 @@ class TaskProgressReporter:
                 self._tasks[task_id] = _TaskProgress()
             tp = self._tasks[task_id]
             tp.completed += 1
+            tp.updated = True
 
     def record_pushed_request(self, task_id):
         with self._data_lock:
@@ -45,6 +46,7 @@ class TaskProgressReporter:
                 self._tasks[task_id] = _TaskProgress()
             tp = self._tasks[task_id]
             tp.total += 1
+            tp.updated = True
 
     """
     获取上报数据
@@ -55,10 +57,12 @@ class TaskProgressReporter:
         with self._data_lock:
             for t in self._tasks.keys():
                 tp = self._tasks[t]
-                data.append({"task_id": t,
-                             "signature": tp.signature,
-                             "completed": tp.completed,
-                             "total": tp.total})
+                if tp.updated:
+                    data.append({"task_id": t,
+                                 "signature": tp.signature,
+                                 "completed": tp.completed,
+                                 "total": tp.total})
+                    tp.updated = False
         return {"task_progress": data}
 
 
@@ -68,3 +72,4 @@ class _TaskProgress:
         self.signature = kw.get("signature", "%s" % ObjectId())
         self.completed = kw.get("completed", 0)
         self.total = kw.get("total", 0)
+        self.updated = kw.get("updated", False)
